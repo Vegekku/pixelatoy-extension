@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Pixelatoy Preorder Table Modifier",
+  "version": "1.0",
+  "description": "Añade disponibilidad a la tabla de reservas",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}
