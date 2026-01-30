@@ -1,11 +1,12 @@
-(function () {
-  // 🔧 TEXTO QUE QUIERES MOSTRAR EN LA NUEVA COLUMNA
-  const customText = "MI TEXTO";
+console.log("Pixelatoy content script activo");
 
-  // Esperamos a que el DOM esté listo
-  document.addEventListener("DOMContentLoaded", () => {
+const COLUMN_INDEX_KEY = 2; // columna 3 (0-based)
+const INSERT_COLUMN_INDEX = 4; // columna 5
+
+function applyCustomColumn() {
+  chrome.storage.local.get("pixelatoyTexts", (result) => {
+    const storedTexts = result.pixelatoyTexts || {};
     const table = document.getElementById("preorder_list");
-    console.log(table);
 
     if (!table) {
       console.warn("No se encontró la tabla");
@@ -13,23 +14,42 @@
     }
 
     const rows = table.querySelectorAll("tr");
-    console.log(rows);
 
-    rows.forEach((row, index) => {
-      // Detectamos si es cabecera
+    rows.forEach((row, rowIndex) => {
+      const cells = row.children;
+      if (cells.length <= COLUMN_INDEX_KEY) return;
+
       const isHeader = row.querySelectorAll("th").length > 0;
+      const key = isHeader ? null : cells[COLUMN_INDEX_KEY].textContent.trim();
+
+      // Evitar duplicar la columna
+      if (cells[INSERT_COLUMN_INDEX]?.dataset?.custom === "1") return;
 
       const cell = document.createElement(isHeader ? "th" : "td");
-      cell.textContent = isHeader ? "Disponibilidad" : customText;
+      cell.dataset.custom = "1";
 
-      const cells = row.children;
+      cell.textContent = isHeader
+        ? "Disponibilidad"
+        : (storedTexts[key] || "");
 
-      // Insertar en posición 5 (índice 4)
-      if (cells.length >= 4) {
-        row.insertBefore(cell, cells[4]);
+      if (cells.length > INSERT_COLUMN_INDEX) {
+        row.insertBefore(cell, cells[INSERT_COLUMN_INDEX]);
       } else {
         row.appendChild(cell);
       }
     });
   });
-})();
+}
+
+// Ejecutar al cargar
+applyCustomColumn();
+
+// Reaplicar si la tabla cambia (reservas nuevas / eliminadas)
+// const observer = new MutationObserver(() => {
+//   applyCustomColumn();
+// });
+
+// observer.observe(document.body, {
+//   childList: true,
+//   subtree: true
+// });
