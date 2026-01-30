@@ -9,7 +9,7 @@
       "matches": [
         "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*"
       ],
-      "js": ["content2.js"]
+      "js": ["content.js"]
     }
   ],
   "action": {
