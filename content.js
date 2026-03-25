@@ -133,6 +133,13 @@ function applyCustomColumn() {
               if (value) data[key] = value; else delete data[key];
               chrome.storage.local.set({ [STORAGE_KEY]: data });
             });
+
+            const limitCell = row.querySelector(`[${DATA_LIMIT}]`);
+            if (limitCell) {
+              const newLimit = addThreeMonths(value);
+              limitCell.textContent = newLimit;
+              colorRowByDate(row, parseDateTime(newLimit));
+            }
           });
         }
 
