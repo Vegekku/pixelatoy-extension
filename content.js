@@ -136,9 +136,14 @@ function applyCustomColumn() {
 
             const limitCell = row.querySelector(`[${DATA_LIMIT}]`);
             if (limitCell) {
-              const newLimit = addThreeMonths(value);
-              limitCell.textContent = newLimit;
-              colorRowByDate(row, parseDateTime(newLimit));
+              const newLimit = value ? addThreeMonths(value) : null;
+              limitCell.textContent = newLimit ?? "";
+              if (!newLimit) {
+                row.style.background = "";
+                row.style.color = "";
+              } else {
+                colorRowByDate(row, parseDateTime(newLimit));
+              }
             }
           });
         }
