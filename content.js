@@ -168,8 +168,35 @@ function applyCustomColumn() {
   });
 }
 
+function addLegend() {
+  const table = document.getElementById("preorder_list");
+  if (!table || document.getElementById("pixelatoy-legend")) return;
+
+  const legend = document.createElement("div");
+  legend.id = "pixelatoy-legend";
+  legend.style.cssText = "margin-top:10px;display:flex;gap:16px;font-size:13px;align-items:center;";
+
+  const items = [
+    { bg: "#000", color: "#fff", label: "Menos de 7 días" },
+    { bg: "#d9534f", color: "#fff", label: "Menos de 30 días" },
+    { bg: "#f0ad4e", color: "#000", label: "Menos de 60 días" },
+    { bg: "#5cb85c", color: "#000", label: "60 días o más" },
+  ];
+
+  items.forEach(({ bg, color, label }) => {
+    const item = document.createElement("span");
+    item.style.cssText = `display:flex;align-items:center;gap:6px;`;
+    item.innerHTML = `<span style="width:16px;height:16px;background:${bg};border-radius:3px;display:inline-block;"></span>${label}`;
+    item.style.color = "inherit";
+    legend.appendChild(item);
+  });
+
+  table.insertAdjacentElement("afterend", legend);
+}
+
 // Ejecutar al cargar
 applyCustomColumn();
+addLegend();
 
 // Detectar cambios dinámicos (entradas/salidas)
 // const observer = new MutationObserver(applyCustomColumn);
