@@ -66,6 +66,33 @@ function addThreeMonths(dateStr) {
   return `${y}-${m}-${d} ${h}:${mi}`;
 }
 
+function formatCountdown(dateStr) {
+  const date = parseDateTime(dateStr);
+  if (!date) return "";
+
+  const diffMs = date - new Date();
+  if (diffMs <= 0) return "Vencido";
+
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  return `${days}d ${hours}h ${minutes}m`;
+}
+
+function refreshCountdowns() {
+  const table = document.getElementById("preorder_list");
+  if (!table) return;
+
+  table.querySelectorAll(`[${DATA_LIMIT}]`).forEach((cell) => {
+    const dateStr = cell.getAttribute("data-pixelatoy-limit-date");
+    if (!dateStr) return;
+    cell.textContent = formatCountdown(dateStr);
+    colorRowByDate(cell.closest("tr"), parseDateTime(dateStr));
+  });
+}
+
 function colorRowByDate(row, date) {
   if (!date) return;
 
@@ -137,7 +164,8 @@ function applyCustomColumn() {
             const limitCell = row.querySelector(`[${DATA_LIMIT}]`);
             if (limitCell) {
               const newLimit = value ? addThreeMonths(value) : null;
-              limitCell.textContent = newLimit ?? "";
+              limitCell.setAttribute("data-pixelatoy-limit-date", newLimit ?? "");
+              limitCell.textContent = newLimit ? formatCountdown(newLimit) : "";
               if (!newLimit) {
                 row.style.background = "";
                 row.style.color = "";
@@ -155,19 +183,25 @@ function applyCustomColumn() {
         const topeCell = document.createElement(isHeader ? "th" : "td");
         topeCell.setAttribute(DATA_LIMIT, "1");
 
-        topeCell.textContent = isHeader
-          ? "Límite"
-          : addThreeMonths(cells[INSERT_COLUMN_INDEX]?.textContent.trim());
+        if (isHeader) {
+          topeCell.textContent = "Límite";
+        } else {
+          const limitDate = addThreeMonths(cells[INSERT_COLUMN_INDEX]?.textContent.trim());
+          topeCell.setAttribute("data-pixelatoy-limit-date", limitDate ?? "");
+          topeCell.textContent = limitDate ? formatCountdown(limitDate) : "";
+        }
 
         row.insertBefore(topeCell, cells[LIMIT_COLUMN_INDEX] || null);
       } else if (!isHeader) {
-        // Recalcular si cambia la nota
         const noteValue = cells[INSERT_COLUMN_INDEX]?.textContent.trim();
-        cells[LIMIT_COLUMN_INDEX].textContent = addThreeMonths(noteValue);
+        const limitDate = addThreeMonths(noteValue);
+        cells[LIMIT_COLUMN_INDEX].setAttribute("data-pixelatoy-limit-date", limitDate ?? "");
+        cells[LIMIT_COLUMN_INDEX].textContent = limitDate ? formatCountdown(limitDate) : "";
       }
 
       if (!isHeader) {
-        colorRowByDate(row, parseDateTime(cells[LIMIT_COLUMN_INDEX].textContent.trim()));
+        const limitDate = cells[LIMIT_COLUMN_INDEX].getAttribute("data-pixelatoy-limit-date");
+        colorRowByDate(row, parseDateTime(limitDate));
       }
     });
   });
@@ -202,6 +236,7 @@ function addLegend() {
 // Ejecutar al cargar
 applyCustomColumn();
 addLegend();
+setInterval(refreshCountdowns, 60000);
 
 // Detectar cambios dinámicos (entradas/salidas)
 // const observer = new MutationObserver(applyCustomColumn);
