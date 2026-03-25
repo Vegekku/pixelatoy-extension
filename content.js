@@ -1,7 +1,7 @@
 console.log("Pixelatoy content script activo");
 
-const COLUMN_INDEX_KEY = 2;     // Columna 3
-const INSERT_COLUMN_INDEX = 4; // Columna 5
+const COLUMN_INDEX_KEY = 2;
+const INSERT_COLUMN_INDEX = 4;
 const LIMIT_COLUMN_INDEX = 5;
 const STORAGE_KEY = "pixelatoyTexts";
 const DATA_INSERT = 'data-pixelatoy-insert';
@@ -12,7 +12,7 @@ function normalizeDateTime(value) {
 
   if (!match) return value;
 
-  const [, dd, mm, yyyy, hh, min] = match;
+  let [, dd, mm, yyyy, hh, min] = match;
 
   dd = dd.padStart(2, "0");
   mm = mm.padStart(2, "0");
@@ -27,27 +27,33 @@ function normalizeDateTime(value) {
 
 function cleanText(value) {
   return value
-    .replace(/\u00A0/g, " ") // espacios raros
+    .replace(/\u00A0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function addThreeMonths(dateStr) {
-  const match = dateStr.match(
+function parseDateTime(value) {
+  const match = value.match(
     /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/
   );
 
-  if (!match) return "";
+  if (!match) return null;
 
-  let [, yyyy, mm, dd, hh, min] = match;
+  let [, y, m, d, h, min] = match;
 
-  const date = new Date(
-    Number(yyyy),
-    Number(mm) - 1,
-    Number(dd),
-    Number(hh),
+  return new Date(
+    Number(y),
+    Number(m) - 1,
+    Number(d),
+    Number(h),
     Number(min)
   );
+}
+
+function addThreeMonths(dateStr) {
+  const date = parseDateTime(dateStr);
+
+  if (!date) return null;
 
   date.setMonth(date.getMonth() + 3);
 
@@ -60,13 +66,35 @@ function addThreeMonths(dateStr) {
   return `${y}-${m}-${d} ${h}:${mi}`;
 }
 
+function colorRowByDate(row, date) {
+  if (!date) return;
+
+  const now = new Date();
+  const diffMs = date - now;
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  // Reset estilos previos
+  row.style.background = "";
+  row.style.color = "";
+
+  if (diffDays < 7) {
+    row.style.background = "#000";
+    row.style.color = "#fff";
+  } else if (diffDays < 30) {
+    row.style.background = "#d9534f"; // rojo
+    row.style.color = "#fff";
+  } else if (diffDays < 60) {
+    row.style.background = "#f0ad4e"; // naranja
+    row.style.color = "#000";
+  } else {
+    row.style.background = "#5cb85c"; // verde
+    row.style.color = "#000";
+  }
+}
+
 function applyCustomColumn() {
   const table = document.getElementById("preorder_list");
-  
-  if (!table) {
-    console.warn("No se encontró la tabla");
-    return;
-  }
+  if (!table) return;
 
   chrome.storage.local.get(STORAGE_KEY, (result) => {
     const storedTexts = result[STORAGE_KEY] || {};
@@ -97,18 +125,12 @@ function applyCustomColumn() {
 
           // Guardar automáticamente al editar
           cell.addEventListener("blur", () => {
-            let value = cell.textContent;
-            value = cleanText(value);
-            value = normalizeDateTime(value);
-
+            let value = normalizeDateTime(cleanText(cell.textContent));
             cell.textContent = value;
 
             chrome.storage.local.get(STORAGE_KEY, (res) => {
               const data = res[STORAGE_KEY] || {};
-              
-              if (value) data[key] = value;
-              else delete data[key];
-
+              if (value) data[key] = value; else delete data[key];
               chrome.storage.local.set({ [STORAGE_KEY]: data });
             });
           });
@@ -121,18 +143,19 @@ function applyCustomColumn() {
         const topeCell = document.createElement(isHeader ? "th" : "td");
         topeCell.setAttribute(DATA_LIMIT, "1");
 
-        if (isHeader) {
-          topeCell.textContent = "Límite";
-        } else {
-          const noteValue = cells[INSERT_COLUMN_INDEX]?.textContent.trim();
-          topeCell.textContent = addThreeMonths(noteValue);
-        }
+        topeCell.textContent = isHeader
+          ? "Límite"
+          : addThreeMonths(cells[INSERT_COLUMN_INDEX]?.textContent.trim());
 
         row.insertBefore(topeCell, cells[LIMIT_COLUMN_INDEX] || null);
       } else if (!isHeader) {
         // Recalcular si cambia la nota
         const noteValue = cells[INSERT_COLUMN_INDEX]?.textContent.trim();
         cells[LIMIT_COLUMN_INDEX].textContent = addThreeMonths(noteValue);
+      }
+
+      if (!isHeader) {
+        colorRowByDate(row, parseDateTime(cells[LIMIT_COLUMN_INDEX].textContent.trim()));
       }
     });
   });
