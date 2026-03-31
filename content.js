@@ -74,11 +74,12 @@ function formatCountdown(dateStr) {
   if (diffMs <= 0) return "Vencido";
 
   const totalMinutes = Math.floor(diffMs / (1000 * 60));
-  const days = Math.floor(totalMinutes / (60 * 24));
+  const months = Math.floor(totalMinutes / (60 * 24 * 30));
+  const days = Math.floor((totalMinutes % (60 * 24 * 30)) / (60 * 24));
   const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
   const minutes = totalMinutes % 60;
 
-  return `${days}d ${hours}h ${minutes}m`;
+  return `${months}m ${days}d ${hours}h ${minutes}min`;
 }
 
 function refreshCountdowns() {
