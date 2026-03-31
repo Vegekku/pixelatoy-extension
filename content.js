@@ -160,11 +160,15 @@ function applyCustomColumn() {
 
           let value = normalizeDateTime(cleanText(cell.textContent));
 
-          chrome.storage.local.get(STORAGE_KEY, (res) => {
-            const data = res[STORAGE_KEY] || {};
-            if (value) data[key] = value; else delete data[key];
-            chrome.storage.local.set({ [STORAGE_KEY]: data });
-          });
+          try {
+            chrome.storage.local.get(STORAGE_KEY, (res) => {
+              const data = res[STORAGE_KEY] || {};
+              if (value) data[key] = value; else delete data[key];
+              chrome.storage.local.set({ [STORAGE_KEY]: data });
+            });
+          } catch (e) {
+            console.warn("Pixelatoy: contexto de extensión invalidado, recarga la página.");
+          }
 
           const newLimit = value ? addThreeMonths(value) : null;
           cell.setAttribute("data-limit-date", newLimit ?? "");
