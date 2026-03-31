@@ -209,6 +209,20 @@ function addLegend() {
   });
 
   table.insertAdjacentElement("afterend", legend);
+
+  const instructions = document.createElement("div");
+  instructions.style.cssText = "margin-top:10px;padding:10px 14px;background:#f5f5f5;border-radius:4px;font-size:13px;color:#333;line-height:1.6;";
+  instructions.innerHTML = `
+    <strong>Instrucciones de uso</strong>
+    <ul style="margin:6px 0 0 0;padding-left:18px;">
+      <li>Haz click en una celda de <em>En almacén</em> para introducir o editar la fecha de entrada.</li>
+      <li>Formato de fecha esperado: <code>YYYY-MM-DD HH:MM</code> (ej: <code>2024-03-15 10:30</code>).</li>
+      <li>Al salir del campo, la fecha se guarda automáticamente y se muestra el tiempo restante hasta el límite (entrada + 3 meses).</li>
+      <li>El contador se actualiza automáticamente cada minuto.</li>
+      <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
+    </ul>
+  `;
+  legend.insertAdjacentElement("afterend", instructions);
 }
 
 const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
