@@ -222,13 +222,11 @@ function getSortValue(cell, colIndex) {
 function applySortIndicator(ths) {
   ths.forEach((th, i) => {
     if (!SORTABLE_COLUMNS.has(i)) return;
-    const base = th.getAttribute("data-original-text") || th.textContent.replace(/ [▲▼]$/, "").trim();
+    const base = th.getAttribute("data-original-text") || th.textContent.trim();
     if (!th.getAttribute("data-original-text")) th.setAttribute("data-original-text", base);
-    if (sortState.colIndex === i) {
-      th.textContent = `${base} ${sortState.direction === "asc" ? "▲" : "▼"}`;
-    } else {
-      th.textContent = base;
-    }
+
+    const isActive = sortState.colIndex === i;
+    th.innerHTML = `${base} <span style="display:inline-flex;flex-direction:column;font-size:0.5em;line-height:1;vertical-align:middle;"><span style="opacity:${isActive && sortState.direction === 'asc' ? 1 : 0.3}">▲</span><span style="opacity:${isActive && sortState.direction === 'desc' ? 1 : 0.3}">▼</span></span>`;
   });
 }
 
@@ -285,8 +283,11 @@ function applyColumnSorting() {
     if (!SORTABLE_COLUMNS.has(i)) return;
     th.style.cursor = "pointer";
     th.style.userSelect = "none";
+    th.style.whiteSpace = "nowrap";
     th.addEventListener("click", () => sortTable(i));
   });
+
+  applySortIndicator(Array.from(headerRow.children));
 }
 
 applyCustomColumn();
