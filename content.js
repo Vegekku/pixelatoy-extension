@@ -144,8 +144,15 @@ function applyCustomColumn() {
         cell.addEventListener("click", () => {
           cell.setAttribute("data-editing", "1");
           cell.contentEditable = "true";
-          cell.textContent = storedTexts[key] || "";
+          const stored = storedTexts[key] || "";
+          cell.textContent = stored;
+          if (!stored) cell.setAttribute("data-placeholder", "YYYY-MM-DD HH:MM");
           cell.focus();
+        });
+
+        cell.addEventListener("input", () => {
+          if (cell.textContent.trim()) cell.removeAttribute("data-placeholder");
+          else cell.setAttribute("data-placeholder", "YYYY-MM-DD HH:MM");
         });
 
         cell.addEventListener("paste", (e) => {
@@ -156,6 +163,7 @@ function applyCustomColumn() {
 
         cell.addEventListener("blur", () => {
           cell.removeAttribute("data-editing");
+          cell.removeAttribute("data-placeholder");
           cell.contentEditable = "false";
 
           let value = normalizeDateTime(cleanText(cell.textContent));
@@ -193,6 +201,10 @@ function applyCustomColumn() {
 function addLegend() {
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-legend")) return;
+
+  const style = document.createElement("style");
+  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; }`;
+  document.head.appendChild(style);
 
   const legend = document.createElement("div");
   legend.id = "pixelatoy-legend";
