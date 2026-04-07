@@ -6,21 +6,33 @@ const STORAGE_KEY = "pixelatoyTexts";
 const DATA_INSERT = 'data-pixelatoy-insert';
 
 function normalizeDateTime(value) {
-  const match = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
-
-  if (!match) return value;
-
-  let [, dd, mm, yyyy, hh, min] = match;
-
-  dd = dd.padStart(2, "0");
-  mm = mm.padStart(2, "0");
-  hh = hh.padStart(2, "0");
-
-  if (dd > 31 || mm > 12 || hh > 23 || min > 59) {
-    return value;
+  const withTime = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (withTime) {
+    let [, dd, mm, yyyy, hh, min] = withTime;
+    dd = dd.padStart(2, "0");
+    mm = mm.padStart(2, "0");
+    hh = hh.padStart(2, "0");
+    if (dd > 31 || mm > 12 || hh > 23 || min > 59) return value;
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
   }
 
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  const dateOnly = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dateOnly) {
+    let [, dd, mm, yyyy] = dateOnly;
+    dd = dd.padStart(2, "0");
+    mm = mm.padStart(2, "0");
+    if (dd > 31 || mm > 12) return value;
+    return `${yyyy}-${mm}-${dd} 00:00`;
+  }
+
+  const isoDateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDateOnly) {
+    const [, yyyy, mm, dd] = isoDateOnly;
+    if (dd > 31 || mm > 12) return value;
+    return `${yyyy}-${mm}-${dd} 00:00`;
+  }
+
+  return value;
 }
 
 function cleanText(value) {
@@ -142,12 +154,21 @@ function applyCustomColumn() {
         if (limitDate) colorRowByDate(row, parseDateTime(limitDate));
 
         cell.addEventListener("click", () => {
+          if (cell.getAttribute("data-editing") === "1") return;
           cell.setAttribute("data-editing", "1");
           cell.contentEditable = "true";
-          const stored = storedTexts[key] || "";
-          cell.textContent = stored;
-          if (!stored) cell.setAttribute("data-placeholder", "YYYY-MM-DD HH:MM");
-          cell.focus();
+          try {
+            chrome.storage.local.get(STORAGE_KEY, (res) => {
+              const stored = (res[STORAGE_KEY] || {})[key] || "";
+              cell.textContent = stored;
+              if (!stored) cell.setAttribute("data-placeholder", "YYYY-MM-DD\n(hora opcional)");
+              cell.focus();
+            });
+          } catch (e) {
+            cell.textContent = "";
+            cell.setAttribute("data-placeholder", "YYYY-MM-DD (hora opcional)");
+            cell.focus();
+          }
         });
 
         cell.addEventListener("input", () => {
@@ -167,6 +188,18 @@ function applyCustomColumn() {
           cell.contentEditable = "false";
 
           let value = normalizeDateTime(cleanText(cell.textContent));
+
+          if (value && !parseDateTime(value)) {
+            cell.style.outlineColor = "#d9534f";
+            cell.title = "Formato de fecha no válido. Ej: 2024-03-15 o 2024-03-15 10:30";
+            cell.contentEditable = "true";
+            cell.setAttribute("data-editing", "1");
+            cell.focus();
+            return;
+          }
+
+          cell.style.outlineColor = "";
+          cell.title = "";
 
           try {
             chrome.storage.local.get(STORAGE_KEY, (res) => {
@@ -203,7 +236,7 @@ function addLegend() {
   if (!table || document.getElementById("pixelatoy-legend")) return;
 
   const style = document.createElement("style");
-  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; }`;
+  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }`;
   document.head.appendChild(style);
 
   const legend = document.createElement("div");
@@ -232,7 +265,7 @@ function addLegend() {
     <strong>Instrucciones de uso</strong>
     <ul style="margin:6px 0 0 0;padding-left:18px;">
       <li>Haz click en una celda de <em>En almacén</em> para introducir o editar la fecha de entrada.</li>
-      <li>Formato de fecha esperado: <code>YYYY-MM-DD HH:MM</code> (ej: <code>2024-03-15 10:30</code>).</li>
+      <li>Formato de fecha esperado: <code>YYYY-MM-DD</code> o <code>YYYY-MM-DD HH:MM</code> (ej: <code>2024-03-15</code> o <code>2024-03-15 10:30</code>). La hora es opcional, si no se indica se asume <code>00:00</code>. También se aceptan los formatos <code>DD/MM/YYYY</code> y <code>DD-MM-YYYY</code> (ej: <code>15/03/2024</code> o <code>15-03-2024</code>), con o sin hora.</li>
       <li>Al salir del campo, la fecha se guarda automáticamente y se muestra el tiempo restante hasta el límite (entrada + 3 meses).</li>
       <li>El contador se actualiza automáticamente cada minuto.</li>
       <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
