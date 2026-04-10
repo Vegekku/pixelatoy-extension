@@ -7,7 +7,7 @@ Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.
 ### Columna "En almacén"
 - Haz click en cualquier celda de la columna para introducir o editar la fecha de entrada al almacén.
 - Formato de fecha esperado: `YYYY-MM-DD` o `YYYY-MM-DD HH:MM` (ej: `2024-03-15` o `2024-03-15 10:30`). La hora es opcional, si no se indica se asume `00:00`.
-- También se aceptan los formatos `DD/MM/YYYY` y `DD-MM-YYYY` (ej: `15/03/2024` o `15-03-2024`), con o sin hora.
+- También se aceptan los formatos `DD/MM/YYYY`, `DD-MM-YYYY` (ej: `15/03/2024` o `15-03-2024`), `DD mes YYYY` (ej: `15 marzo 2024`) y `mes DD, YYYY` (ej: `February 23, 2026`), con o sin hora.
 - Al salir del campo, la fecha se guarda automáticamente y la celda muestra un contador dinámico con el tiempo restante hasta el límite (fecha de entrada + 3 meses).
 - El contador se actualiza automáticamente cada minuto con el formato `Xm Xd Xh Xmin`.
 - Si se borra la fecha, el contador desaparece y el color de la fila se resetea.
