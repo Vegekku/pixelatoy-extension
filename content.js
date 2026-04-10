@@ -5,6 +5,12 @@ const INSERT_COLUMN_INDEX = 4;
 const STORAGE_KEY = "pixelatoyTexts";
 const DATA_INSERT = 'data-pixelatoy-insert';
 
+function parseNaturalDate(value) {
+  const ts = Date.parse(value);
+  if (!isNaN(ts)) return new Date(ts);
+  return null;
+}
+
 function normalizeDateTime(value) {
   const withTime = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
   if (withTime) {
@@ -30,6 +36,22 @@ function normalizeDateTime(value) {
     const [, yyyy, mm, dd] = isoDateOnly;
     if (dd > 31 || mm > 12) return value;
     return `${yyyy}-${mm}-${dd} 00:00`;
+  }
+
+  // Formato natural: DD mes YYYY o mes DD, YYYY (cualquier idioma)
+  const naturalMatch = value.match(/^\d{1,2}\s+[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i)
+    || value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
+  if (naturalMatch) {
+    const timeMatch = value.match(/(\d{1,2}):(\d{2})$/);
+    const dateOnly = timeMatch ? value.replace(timeMatch[0], "").trim() : value;
+    const parsed = parseNaturalDate(dateOnly);
+    if (!parsed) return value;
+    const yyyy = parsed.getFullYear();
+    const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+    const dd = String(parsed.getDate()).padStart(2, "0");
+    const hh = timeMatch ? String(timeMatch[1]).padStart(2, "0") : "00";
+    const min = timeMatch ? timeMatch[2] : "00";
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
   }
 
   return value;
@@ -162,6 +184,7 @@ function applyCustomColumn() {
               const stored = (res[STORAGE_KEY] || {})[key] || "";
               cell.textContent = stored;
               if (!stored) cell.setAttribute("data-placeholder", "YYYY-MM-DD\n(hora opcional)");
+          cell.title = "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026";
               cell.focus();
             });
           } catch (e) {
@@ -191,7 +214,7 @@ function applyCustomColumn() {
 
           if (value && !parseDateTime(value)) {
             cell.style.outlineColor = "#d9534f";
-            cell.title = "Formato de fecha no válido. Ej: 2024-03-15 o 2024-03-15 10:30";
+            cell.title = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 2024 o February 23 2026";
             cell.contentEditable = "true";
             cell.setAttribute("data-editing", "1");
             cell.focus();
@@ -265,7 +288,7 @@ function addLegend() {
     <strong>Instrucciones de uso</strong>
     <ul style="margin:6px 0 0 0;padding-left:18px;">
       <li>Haz click en una celda de <em>En almacén</em> para introducir o editar la fecha de entrada.</li>
-      <li>Formato de fecha esperado: <code>YYYY-MM-DD</code> o <code>YYYY-MM-DD HH:MM</code> (ej: <code>2024-03-15</code> o <code>2024-03-15 10:30</code>). La hora es opcional, si no se indica se asume <code>00:00</code>. También se aceptan los formatos <code>DD/MM/YYYY</code> y <code>DD-MM-YYYY</code> (ej: <code>15/03/2024</code> o <code>15-03-2024</code>), con o sin hora.</li>
+      <li>Formato de fecha esperado: <code>YYYY-MM-DD</code> o <code>YYYY-MM-DD HH:MM</code> (ej: <code>2024-03-15</code> o <code>2024-03-15 10:30</code>). La hora es opcional, si no se indica se asume <code>00:00</code>. También se aceptan los formatos <code>DD/MM/YYYY</code>, <code>DD-MM-YYYY</code> (ej: <code>15/03/2024</code>), <code>DD mes YYYY</code> (ej: <code>15 marzo 2024</code>) y <code>mes DD, YYYY</code> (ej: <code>February 23, 2026</code>), con o sin hora.</li>
       <li>Al salir del campo, la fecha se guarda automáticamente y se muestra el tiempo restante hasta el límite (entrada + 3 meses).</li>
       <li>El contador se actualiza automáticamente cada minuto.</li>
       <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
