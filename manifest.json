@@ -3,7 +3,10 @@
   "name": "Pixelatoy Preorder Manager",
   "version": "1.0",
   "description": "Mejora la tabla de reservas de Pixelatoy añadiendo seguimiento de fechas de entrada, contador de tiempo restante hasta el límite de almacén y ordenación por columnas.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "notifications", "alarms"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
