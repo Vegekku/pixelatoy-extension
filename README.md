@@ -22,6 +22,12 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 | 🟧 Naranja | Menos de 60 días |
 | 🟩 Verde | 60 días o más |
 
+### Datos huérfanos
+- Si un producto desaparece de la tabla de reservas (enviado o eliminado) pero tiene datos guardados en el almacenamiento, se muestra una sección de aviso debajo de la tabla.
+- Para cada producto huérfano se muestra: nombre, fecha de entrada y estado del límite (tiempo restante o vencido).
+- Se puede eliminar cada producto individualmente o todos a la vez.
+- La sección solo aparece si hay datos huérfanos.
+
 ### Ordenación por columnas
 - Las columnas con ▲▼ permiten ordenar la tabla haciendo click en el header.
 - Primer click → orden ascendente.
@@ -55,6 +61,7 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 pixelatoy-extension/
 ├── content.js       # Lógica principal de la extensión
 ├── manifest.json    # Configuración de la extensión
+├── IMPROVEMENTS.md  # Ideas y mejoras pendientes
 └── icons/
     ├── icon16.png
     ├── icon48.png
