@@ -8,6 +8,3 @@ Cambios necesarios:
 - `createEditableCell`: al hacer blur, pasar el `outerHTML` de la fila
 - Todas las lecturas del storage: extraer `.date` del objeto
 - `checkOrphanData`: renderizar el HTML guardado como fila en la tabla
-
-## Popup de la extensión
-Usar el popup (click en el icono de la extensión) para mostrar la misma información que las notificaciones: resumen de productos agrupados por rango de urgencia (< 7 días, < 30 días, < 60 días).

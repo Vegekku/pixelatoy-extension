@@ -28,6 +28,12 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - Se puede eliminar cada producto individualmente o todos a la vez.
 - La sección solo aparece si hay datos huérfanos.
 
+### Popup de estado
+- Al hacer click en el icono de la extensión se muestra un resumen de productos agrupados por urgencia.
+- Rangos mostrados: menos de 7 días, menos de 30 días, menos de 60 días.
+- Solo se muestran los rangos que tengan productos.
+- Botón para ir directamente a la página de reservas.
+
 ### Ordenación por columnas
 - Las columnas con ▲▼ permiten ordenar la tabla haciendo click en el header.
 - Primer click → orden ascendente.
@@ -60,6 +66,9 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 ```
 pixelatoy-extension/
 ├── content.js       # Lógica principal de la extensión
+├── background.js    # Service worker para notificaciones y alarmas
+├── popup.html       # Popup del icono de la extensión
+├── popup.js         # Lógica del popup
 ├── manifest.json    # Configuración de la extensión
 ├── IMPROVEMENTS.md  # Ideas y mejoras pendientes
 └── icons/
