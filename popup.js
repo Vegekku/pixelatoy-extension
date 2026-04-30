@@ -26,31 +26,49 @@ chrome.storage.local.get(STORAGE_KEY, (res) => {
   const data = res[STORAGE_KEY] || {};
   const content = document.getElementById("content");
   const now = new Date();
-  const counts = THRESHOLDS.map(() => 0);
+  const groups = THRESHOLDS.map(() => []);
 
-  for (const dateStr of Object.values(data)) {
+  for (const [name, dateStr] of Object.entries(data)) {
     const limit = addThreeMonths(dateStr);
     if (!limit) continue;
     const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
     for (let i = 0; i < THRESHOLDS.length; i++) {
       if (diffDays < THRESHOLDS[i].days) {
-        counts[i]++;
+        groups[i].push(name);
         break;
       }
     }
   }
 
-  const hasAny = counts.some(c => c > 0);
+  const hasAny = groups.some(g => g.length > 0);
 
   if (!hasAny) {
     content.innerHTML = '<div class="empty">No hay productos con urgencia</div>';
   } else {
     THRESHOLDS.forEach((t, i) => {
-      if (counts[i] === 0) return;
+      if (groups[i].length === 0) return;
+      const wrapper = document.createElement("div");
+
       const div = document.createElement("div");
       div.className = "range";
-      div.innerHTML = `<span class="dot" style="background:${t.bg}"></span><span>${t.label}</span><span class="count">${counts[i]}</span>`;
-      content.appendChild(div);
+      div.innerHTML = `<span class="arrow">▶</span><span class="dot" style="background:${t.bg}"></span><span>${t.label}</span><span class="count">${groups[i].length}</span>`;
+
+      const list = document.createElement("ul");
+      list.className = "products";
+      groups[i].forEach(name => {
+        const li = document.createElement("li");
+        li.textContent = name;
+        list.appendChild(li);
+      });
+
+      div.addEventListener("click", () => {
+        list.classList.toggle("open");
+        div.querySelector(".arrow").classList.toggle("open");
+      });
+
+      wrapper.appendChild(div);
+      wrapper.appendChild(list);
+      content.appendChild(wrapper);
     });
   }
 
