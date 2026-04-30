@@ -14,3 +14,6 @@ Permitir al usuario activar/desactivar notificaciones push y popup de forma inde
 
 ## Refactor del código
 Extraer lógica común (parseDateTime, addThreeMonths, thresholds, constantes de storage) a un módulo compartido para evitar duplicación entre content.js, background.js y popup.js. Valorar reestructuración de archivos si es necesario.
+
+## Versionado de cambios
+Valorar añadir CHANGELOG.md y/o tags de git para mantener un histórico de versiones legible, especialmente si se publica en la Chrome Web Store.
