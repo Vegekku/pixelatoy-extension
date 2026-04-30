@@ -8,3 +8,9 @@ Cambios necesarios:
 - `createEditableCell`: al hacer blur, pasar el `outerHTML` de la fila
 - Todas las lecturas del storage: extraer `.date` del objeto
 - `checkOrphanData`: renderizar el HTML guardado como fila en la tabla
+
+## Configuración de la extensión
+Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones o desde el propio popup.
+
+## Refactor del código
+Extraer lógica común (parseDateTime, addThreeMonths, thresholds, constantes de storage) a un módulo compartido para evitar duplicación entre content.js, background.js y popup.js. Valorar reestructuración de archivos si es necesario.
