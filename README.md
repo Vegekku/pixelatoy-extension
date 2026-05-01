@@ -30,7 +30,8 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 
 ### Popup de estado
 - Al hacer click en el icono de la extensión se muestra un resumen de productos agrupados por urgencia.
-- Rangos mostrados: menos de 7 días, menos de 30 días, menos de 60 días.
+- Rangos mostrados: menos de 7 días, menos de 30 días, menos de 60 días, 60 días o más.
+- Cada rango es un toggle desplegable que muestra las imágenes de los productos.
 - Solo se muestran los rangos que tengan productos.
 - Botón para ir directamente a la página de reservas.
 
@@ -54,7 +55,9 @@ Próximamente disponible.
 
 ## Almacenamiento de datos
 
-Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome. Ten en cuenta que:
+Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
+
+Cada producto se almacena con la estructura `{ date, img }`, donde `date` es la fecha de entrada y `img` la URL de la imagen del producto.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
