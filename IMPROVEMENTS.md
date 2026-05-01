@@ -9,5 +9,11 @@ Cambios necesarios:
 - Todas las lecturas del storage: extraer `.date` del objeto
 - `checkOrphanData`: renderizar el HTML guardado como fila en la tabla
 
-## Popup de la extensión
-Usar el popup (click en el icono de la extensión) para mostrar la misma información que las notificaciones: resumen de productos agrupados por rango de urgencia (< 7 días, < 30 días, < 60 días).
+## Configuración de la extensión
+Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones o desde el propio popup.
+
+## Refactor del código
+Extraer lógica común (parseDateTime, addThreeMonths, thresholds, constantes de storage) a un módulo compartido para evitar duplicación entre content.js, background.js y popup.js. Valorar reestructuración de archivos si es necesario.
+
+## Versionado de cambios
+Valorar añadir CHANGELOG.md y/o tags de git para mantener un histórico de versiones legible, especialmente si se publica en la Chrome Web Store.

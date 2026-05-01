@@ -156,11 +156,25 @@ function updateCell(cell, row, limitDate) {
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-function saveToStorage(key, value) {
+function getStoredDate(entry) {
+  if (!entry) return "";
+  return entry.date || "";
+}
+
+function getRowImg(row) {
+  const img = row.querySelector("td img");
+  return img ? img.src : "";
+}
+
+function saveToStorage(key, value, row) {
   try {
     chrome.storage.local.get(STORAGE_KEY, (res) => {
       const data = res[STORAGE_KEY] || {};
-      if (value) data[key] = value; else delete data[key];
+      if (value) {
+        data[key] = { date: value, img: getRowImg(row) };
+      } else {
+        delete data[key];
+      }
       chrome.storage.local.set({ [STORAGE_KEY]: data });
     });
   } catch (e) {
@@ -180,7 +194,7 @@ function createEditableCell(key, row) {
     cell.contentEditable = "true";
     try {
       chrome.storage.local.get(STORAGE_KEY, (res) => {
-        const stored = (res[STORAGE_KEY] || {})[key] || "";
+        const stored = getStoredDate((res[STORAGE_KEY] || {})[key]);
         cell.textContent = stored;
         if (!stored) cell.setAttribute("data-placeholder", PLACEHOLDER);
         cell.title = TOOLTIP_FORMATS;
@@ -223,7 +237,7 @@ function createEditableCell(key, row) {
     cell.style.outlineColor = "";
     cell.title = "";
 
-    saveToStorage(key, value);
+    saveToStorage(key, value, row);
     updateCell(cell, row, value ? addThreeMonths(value) : null);
   });
 
@@ -256,8 +270,19 @@ function applyCustomColumn() {
       }
 
       const cell = createEditableCell(key, row);
-      const limitDate = addThreeMonths(storedTexts[key] || "");
+      const storedDate = getStoredDate(storedTexts[key]);
+      const limitDate = addThreeMonths(storedDate);
       updateCell(cell, row, limitDate);
+
+      // Update img in storage if missing
+      if (storedDate && storedTexts[key] && !storedTexts[key].img) {
+        const img = getRowImg(row);
+        if (img) {
+          storedTexts[key] = { date: storedDate, img };
+          chrome.storage.local.set({ [STORAGE_KEY]: storedTexts });
+        }
+      }
+
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
     });
 
@@ -446,7 +471,7 @@ function checkOrphanData() {
     const list = document.createElement("div");
     list.style.cssText = "display:flex;flex-direction:column;gap:6px;";
 
-    orphans.forEach(([key, dateStr]) => {
+    orphans.forEach(([key, { date: dateStr, img }]) => {
       const limitDate = addThreeMonths(dateStr);
       const status = limitDate ? formatCountdown(limitDate) : "Sin fecha";
 
