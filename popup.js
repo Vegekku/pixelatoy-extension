@@ -5,6 +5,7 @@ const THRESHOLDS = [
   { days: 7, label: "Menos de 7 días", bg: "#000", color: "#fff" },
   { days: 30, label: "Menos de 30 días", bg: "#d9534f", color: "#fff" },
   { days: 60, label: "Menos de 60 días", bg: "#f0ad4e", color: "#000" },
+  { days: Infinity, label: "60 días o más", bg: "#5cb85c", color: "#000" },
 ];
 
 function parseDateTime(value) {
