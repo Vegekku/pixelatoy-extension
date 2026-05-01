@@ -27,7 +27,8 @@ function buildNotificationMessage(data) {
   const now = new Date();
   const counts = NOTIFICATION_THRESHOLDS.map(() => 0);
 
-  for (const dateStr of Object.values(data)) {
+  for (const entry of Object.values(data)) {
+    const dateStr = entry.date;
     const limit = addThreeMonths(dateStr);
     if (!limit) continue;
     const diffDays = (limit - now) / (1000 * 60 * 60 * 24);

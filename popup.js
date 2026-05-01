@@ -28,13 +28,15 @@ chrome.storage.local.get(STORAGE_KEY, (res) => {
   const now = new Date();
   const groups = THRESHOLDS.map(() => []);
 
-  for (const [name, dateStr] of Object.entries(data)) {
+  for (const [name, entry] of Object.entries(data)) {
+    const dateStr = entry.date;
+    const img = entry.img || "";
     const limit = addThreeMonths(dateStr);
     if (!limit) continue;
     const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
     for (let i = 0; i < THRESHOLDS.length; i++) {
       if (diffDays < THRESHOLDS[i].days) {
-        groups[i].push(name);
+        groups[i].push({ name, img });
         break;
       }
     }
@@ -53,12 +55,21 @@ chrome.storage.local.get(STORAGE_KEY, (res) => {
       div.className = "range";
       div.innerHTML = `<span class="arrow">▶</span><span class="dot" style="background:${t.bg}"></span><span>${t.label}</span><span class="count">${groups[i].length}</span>`;
 
-      const list = document.createElement("ul");
+      const list = document.createElement("div");
       list.className = "products";
-      groups[i].forEach(name => {
-        const li = document.createElement("li");
-        li.textContent = name;
-        list.appendChild(li);
+      groups[i].forEach(({ name, img }) => {
+        if (img) {
+          const el = document.createElement("img");
+          el.src = img;
+          el.title = name;
+          list.appendChild(el);
+        } else {
+          const el = document.createElement("div");
+          el.className = "no-img";
+          el.title = name;
+          el.textContent = "?";
+          list.appendChild(el);
+        }
       });
 
       div.addEventListener("click", () => {
