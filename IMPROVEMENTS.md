@@ -10,10 +10,24 @@ Cambios necesarios:
 - `checkOrphanData`: renderizar el HTML guardado como fila en la tabla
 
 ## Configuración de la extensión
-Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones o desde el propio popup.
+Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones separada (`options.html` + `options.js`).
 
-## Refactor del código
-Extraer lógica común (parseDateTime, addThreeMonths, thresholds, constantes de storage) a un módulo compartido para evitar duplicación entre content.js, background.js y popup.js. Valorar reestructuración de archivos si es necesario.
+Desactivar el popup significa que el icono de la extensión no hace nada (`chrome.action.setPopup({ popup: "" })`).
+
+Config guardada en `pixelatoyConfig` en `chrome.storage.local`: `{ notificaciones: true, popup: true }`. Si la clave no existe, se asumen ambos valores `true` para no romper el comportamiento actual.
+
+Cambios necesarios:
+- `options.html` + `options.js`: página de opciones con dos toggles
+- `manifest.json`: añadir `options_page`
+- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
+- `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
+
+## Refactor del código ⚠️ Parcialmente implementado
+`helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
+
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export` ni módulos ES. La única alternativa sin bundler sería cargar `helpers.js` como script global vía el array `js` del manifest, pero eso es incompatible con los `export` que necesitan `background.js` y `popup.js`.
+
+Para eliminar la duplicación en `content.js` sería necesario introducir un bundler (esbuild, rollup...) que resuelva los imports en tiempo de build.
 
 ## Versionado de cambios
 Valorar añadir CHANGELOG.md y/o tags de git para mantener un histórico de versiones legible, especialmente si se publica en la Chrome Web Store.
