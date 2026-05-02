@@ -1,27 +1,7 @@
-const STORAGE_KEY = "pixelatoyTexts";
+import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+
 const ALARM_NAME = "pixelatoy-daily-check";
-const PREORDER_URL = "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails";
-
-const NOTIFICATION_THRESHOLDS = [
-  { days: 7, label: "⬛ Crítico (menos de 7 días)" },
-  { days: 30, label: "🟥 Urgente (menos de 30 días)" },
-  { days: 60, label: "🟧 Atención (menos de 60 días)" },
-];
-
-function parseDateTime(value) {
-  if (!value) return null;
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
-  if (!match) return null;
-  const [, y, m, d, h, min] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min));
-}
-
-function addThreeMonths(dateStr) {
-  const date = parseDateTime(dateStr);
-  if (!date) return null;
-  date.setMonth(date.getMonth() + 3);
-  return date;
-}
+const NOTIFICATION_THRESHOLDS = THRESHOLDS.filter(t => t.days !== Infinity);
 
 function buildNotificationMessage(data) {
   const now = new Date();
@@ -29,7 +9,7 @@ function buildNotificationMessage(data) {
 
   for (const entry of Object.values(data)) {
     const dateStr = entry.date;
-    const limit = addThreeMonths(dateStr);
+    const limit = parseDateTime(addThreeMonths(dateStr));
     if (!limit) continue;
     const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
     for (let i = 0; i < NOTIFICATION_THRESHOLDS.length; i++) {

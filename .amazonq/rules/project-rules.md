@@ -1,5 +1,6 @@
 - Cuando se añadan o modifiquen funcionalidades, actualizar el README.md para reflejar los cambios.
 - Cuando se añadan o modifiquen funcionalidades, valorar si es necesario actualizar el IMPROVEMENTS.md.
+- Los cambios se integran a main a través de Pull Request en GitHub. Al finalizar una rama, proporcionar título y descripción para la PR.
 - Los mensajes de commit deben ser concisos, sin cuerpo descriptivo. Deben describir el cambio funcional, no la implementación técnica.
 - El idioma del código (variables, funciones, comentarios) es en español cuando sea texto visible al usuario, e inglés para el código interno.
 - Antes de implementar cambios, confirmar el enfoque con el usuario.
