@@ -22,6 +22,16 @@ Cambios necesarios:
 - `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
 - `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
 
+Desactivar el popup significa que el icono de la extensión no hace nada (`chrome.action.setPopup({ popup: "" })`).
+
+Config guardada en `pixelatoyConfig` en `chrome.storage.local`: `{ notificaciones: true, popup: true }`. Si la clave no existe, se asumen ambos valores `true` para no romper el comportamiento actual.
+
+Cambios necesarios:
+- `options.html` + `options.js`: página de opciones con dos toggles
+- `manifest.json`: añadir `options_page`
+- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
+- `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
+
 ## Refactor del código ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
