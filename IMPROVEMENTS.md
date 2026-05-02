@@ -22,8 +22,12 @@ Cambios necesarios:
 - `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
 - `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
 
-## Refactor del código
-Extraer lógica común (parseDateTime, addThreeMonths, thresholds, constantes de storage) a un módulo compartido para evitar duplicación entre content.js, background.js y popup.js. Valorar reestructuración de archivos si es necesario.
+## Refactor del código ⚠️ Parcialmente implementado
+`helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
+
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export` ni módulos ES. La única alternativa sin bundler sería cargar `helpers.js` como script global vía el array `js` del manifest, pero eso es incompatible con los `export` que necesitan `background.js` y `popup.js`.
+
+Para eliminar la duplicación en `content.js` sería necesario introducir un bundler (esbuild, rollup...) que resuelva los imports en tiempo de build.
 
 ## Versionado de cambios
 Valorar añadir CHANGELOG.md y/o tags de git para mantener un histórico de versiones legible, especialmente si se publica en la Chrome Web Store.

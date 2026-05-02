@@ -10,20 +10,16 @@ const PLACEHOLDER = "YYYY-MM-DD\n(hora opcional)";
 const TOOLTIP_FORMATS = "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026";
 const TOOLTIP_ERROR = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 2024 o February 23 2026";
 
-const COLOR_THRESHOLDS = [
+const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
+
+const THRESHOLDS = [
   { days: 7,        bg: "#000",    color: "#fff", label: "Menos de 7 días" },
   { days: 30,       bg: "#d9534f", color: "#fff", label: "Menos de 30 días" },
   { days: 60,       bg: "#f0ad4e", color: "#000", label: "Menos de 60 días" },
   { days: Infinity, bg: "#5cb85c", color: "#000", label: "60 días o más" },
 ];
 
-const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
-
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-
-function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
-  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
 
 function parseDateTime(value) {
   if (!value) return null;
@@ -31,6 +27,23 @@ function parseDateTime(value) {
   if (!match) return null;
   const [, y, m, d, h, min] = match;
   return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min));
+}
+
+function addThreeMonths(dateStr) {
+  const date = parseDateTime(dateStr);
+  if (!date) return null;
+  date.setMonth(date.getMonth() + 3);
+  return toISODateTime(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes()
+  );
+}
+
+function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
+  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
 function parseNaturalDate(dateStr) {
@@ -101,19 +114,6 @@ function normalizeDateTime(value) {
   return value;
 }
 
-function addThreeMonths(dateStr) {
-  const date = parseDateTime(dateStr);
-  if (!date) return null;
-  date.setMonth(date.getMonth() + 3);
-  return toISODateTime(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    date.getHours(),
-    date.getMinutes()
-  );
-}
-
 function formatCountdown(dateStr) {
   const date = parseDateTime(dateStr);
   if (!date) return "";
@@ -138,7 +138,7 @@ function colorRowByDate(row, date) {
   row.style.color = "";
   if (!date) return;
   const diffDays = (date - new Date()) / (1000 * 60 * 60 * 24);
-  const { bg, color } = COLOR_THRESHOLDS.find(t => diffDays < t.days);
+  const { bg, color } = THRESHOLDS.find(t => diffDays < t.days);
   row.style.background = bg;
   row.style.color = color;
 }
@@ -392,7 +392,7 @@ function addLegend() {
   legend.id = "pixelatoy-legend";
   legend.style.cssText = "margin-top:10px;display:flex;gap:16px;font-size:13px;align-items:center;";
 
-  COLOR_THRESHOLDS.forEach(({ bg, label }) => {
+  THRESHOLDS.forEach(({ bg, label }) => {
     const item = document.createElement("span");
     item.style.cssText = "display:flex;align-items:center;gap:6px;";
     item.innerHTML = `<span style="width:16px;height:16px;background:${bg};border-radius:3px;display:inline-block;"></span>${label}`;
