@@ -1,5 +1,18 @@
 # Mejoras pendientes
 
+## Obtención automática de fecha de entrada desde el detalle del producto
+Al cargar la tabla, para cada fila sin fecha guardada manualmente, seguir el enlace al detalle del pedido (última columna) → extraer el enlace al producto → fetchear el detalle del producto → extraer la fecha de entrada en almacén → guardar en storage y actualizar la celda automáticamente.
+
+Si en cualquier paso falla (enlace roto, dato no encontrado, error de red...), se ignora silenciosamente y la celda queda editable como siempre. Las fechas introducidas manualmente nunca se sobreescriben.
+
+Cambios necesarios:
+- `manifest.json`: añadir `host_permissions` para `https://www.pixelatoy.com/*`
+- `background.js`: listener que reciba una URL, haga fetch y devuelva el HTML (evita restricciones CORS del content script)
+- `content.js`: tras cargar la tabla, iterar filas sin fecha → mensaje al background con la URL del detalle del pedido → parsear HTML → extraer URL del producto → segundo mensaje al background → parsear HTML → extraer fecha → guardar y actualizar celda
+
+Pendiente: identificar el selector exacto donde aparece la fecha en el HTML del detalle del producto.
+
+
 ## Datos huérfanos — mostrar fila completa en la tabla
 Guardar el HTML completo del `<tr>` en el storage junto con la fecha (`{ date, html }`) para poder reinsertar los productos huérfanos directamente en la tabla con un color de fila distinto, en lugar de mostrarlos en una sección aparte.
 
