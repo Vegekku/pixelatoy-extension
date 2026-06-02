@@ -261,29 +261,38 @@ function parseHTML(html) {
   return doc;
 }
 
+function createOverlay(row) {
+  const rect = row.getBoundingClientRect();
+  const overlayDiv = document.createElement("div");
+  overlayDiv.className = "pixelatoy-overlay";
+  overlayDiv.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+  const dotsEl = document.createElement("span");
+  dotsEl.className = "pixelatoy-dots";
+  dotsEl.innerHTML = "<span>&bull;</span><span>&bull;</span><span>&bull;</span>";
+  overlayDiv.appendChild(dotsEl);
+  document.body.appendChild(overlayDiv);
+  const spans = dotsEl.querySelectorAll("span");
+  let frameIndex = 0;
+  spans[0].classList.add("active");
+  setInterval(() => {
+    if (!overlayDiv.isConnected) return;
+    spans[frameIndex % 3].classList.remove("active");
+    frameIndex++;
+    spans[frameIndex % 3].classList.add("active");
+  }, 400);
+  return overlayDiv;
+}
+
 async function fetchWarehouseDateForRow(row, key, cell) {
+  const rowCells = row.children;
+  const lastCell = rowCells[rowCells.length - 1];
+  const availabilityCell = rowCells[rowCells.length - 2];
+  if (!availabilityCell?.querySelector("form")) return;
+
+  cell.setAttribute("data-fetching", "1");
+  const overlayDiv = createOverlay(row);
+
   try {
-    const cells = row.children;
-    const lastCell = cells[cells.length - 1];
-    const availabilityCell = cells[cells.length - 2];
-    if (!availabilityCell?.querySelector("form")) return;
-
-    cell.setAttribute("data-fetching", "1");
-    cell.style.cursor = "wait";
-    const dotsEl = document.createElement("span");
-    dotsEl.className = "pixelatoy-dots";
-    dotsEl.innerHTML = "<span>·</span><span>·</span><span>·</span>";
-    cell.appendChild(dotsEl);
-    const spans = dotsEl.querySelectorAll("span");
-    let frameIndex = 0;
-    spans[0].classList.add("active");
-    const typingInterval = setInterval(() => {
-      if (!cell.hasAttribute("data-fetching")) { clearInterval(typingInterval); return; }
-      spans[frameIndex % 3].classList.remove("active");
-      frameIndex++;
-      spans[frameIndex % 3].classList.add("active");
-    }, 400);
-
     const orderLink = lastCell.querySelector("a")?.href;
     if (!orderLink) return;
 
@@ -318,9 +327,7 @@ async function fetchWarehouseDateForRow(row, key, cell) {
     // fallo silencioso
   } finally {
     cell.removeAttribute("data-fetching");
-    cell.removeAttribute("data-placeholder");
-    cell.style.cursor = "";
-    cell.querySelector(".pixelatoy-dots")?.remove();
+    overlayDiv.remove();
   }
 }
 
@@ -336,7 +343,6 @@ function autoFetchMissingDates(storedTexts) {
     fetchWarehouseDateForRow(row, key, cell);
   });
 }
-
 
 function applyCustomColumn() {
   const table = document.getElementById("preorder_list");
@@ -479,8 +485,9 @@ function addLegend() {
 
   const style = document.createElement("style");
   style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }
-.pixelatoy-dots span { display:inline-block; font-size:1.4em; opacity:0.5; font-weight:400; transition:font-weight 0.2s, opacity 0.2s; }
-.pixelatoy-dots span.active { font-weight:900; opacity:1; }`;
+.pixelatoy-dots span { display:inline-block; font-size:3.5em; opacity:0.5; font-weight:400; transition:font-weight 0.2s, opacity 0.2s; }
+.pixelatoy-dots span.active { font-weight:900; opacity:1; }
+.pixelatoy-overlay { position:absolute; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.75); pointer-events:all; cursor:wait; z-index:10; }`;
   document.head.appendChild(style);
 
   const legend = document.createElement("div");
