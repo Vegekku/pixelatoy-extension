@@ -70,3 +70,13 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_NAME) checkAndNotify();
 });
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type === "fetch") {
+    fetch(msg.url)
+      .then(r => r.text())
+      .then(html => sendResponse({ html }))
+      .catch(() => sendResponse({ html: null }));
+    return true; // async response
+  }
+});

@@ -190,6 +190,7 @@ function createEditableCell(key, row) {
 
   cell.addEventListener("click", () => {
     if (cell.getAttribute("data-editing") === "1") return;
+    if (cell.getAttribute("data-fetching") === "1") return;
     cell.setAttribute("data-editing", "1");
     cell.contentEditable = "true";
     try {
@@ -244,7 +245,98 @@ function createEditableCell(key, row) {
   return cell;
 }
 
-// ─── Columna personalizada ────────────────────────────────────────────────────
+// ─── Auto-fetch fecha desde detalle del producto ─────────────────────────────
+
+function fetchHTML(url) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "fetch", url }, (res) => {
+      resolve(res?.html ?? null);
+    });
+  });
+}
+
+function parseHTML(html) {
+  const doc = document.createElement("div");
+  doc.innerHTML = html;
+  return doc;
+}
+
+async function fetchWarehouseDateForRow(row, key, cell) {
+  try {
+    const cells = row.children;
+    const lastCell = cells[cells.length - 1];
+    const availabilityCell = cells[cells.length - 2];
+    if (!availabilityCell?.querySelector("form")) return;
+
+    cell.setAttribute("data-fetching", "1");
+    cell.style.cursor = "wait";
+    const dotsEl = document.createElement("span");
+    dotsEl.className = "pixelatoy-dots";
+    dotsEl.innerHTML = "<span>·</span><span>·</span><span>·</span>";
+    cell.appendChild(dotsEl);
+    const spans = dotsEl.querySelectorAll("span");
+    let frameIndex = 0;
+    spans[0].classList.add("active");
+    const typingInterval = setInterval(() => {
+      if (!cell.hasAttribute("data-fetching")) { clearInterval(typingInterval); return; }
+      spans[frameIndex % 3].classList.remove("active");
+      frameIndex++;
+      spans[frameIndex % 3].classList.add("active");
+    }, 400);
+
+    const orderLink = lastCell.querySelector("a")?.href;
+    if (!orderLink) return;
+
+    const orderHTML = await fetchHTML(orderLink);
+    if (!orderHTML) return;
+
+    const orderDoc = parseHTML(orderHTML);
+    const productLink = Array.from(orderDoc.querySelectorAll("a"))
+      .find(a => a.textContent.trim() === key)?.href;
+    if (!productLink) return;
+
+    const productHTML = await fetchHTML(productLink);
+    if (!productHTML) return;
+
+    const productDoc = parseHTML(productHTML);
+    const dts = productDoc.querySelectorAll("dt.name");
+    let dateText = null;
+    for (const dt of dts) {
+      if (dt.textContent.trim() === "Entrada en almacén") {
+        dateText = dt.nextElementSibling?.textContent.trim();
+        break;
+      }
+    }
+    if (!dateText) return;
+
+    const normalized = normalizeDateTime(dateText);
+    if (!parseDateTime(normalized)) return;
+
+    // saveToStorage(key, normalized, row);
+    updateCell(cell, row, addThreeMonths(normalized));
+  } catch (e) {
+    // fallo silencioso
+  } finally {
+    cell.removeAttribute("data-fetching");
+    cell.removeAttribute("data-placeholder");
+    cell.style.cursor = "";
+    cell.querySelector(".pixelatoy-dots")?.remove();
+  }
+}
+
+function autoFetchMissingDates(storedTexts) {
+  const table = document.getElementById("preorder_list");
+  if (!table) return;
+  table.querySelectorAll("tr").forEach((row) => {
+    if (row.querySelectorAll("th").length > 0) return;
+    const key = row.children[COLUMN_INDEX_KEY]?.textContent.trim();
+    if (!key || getStoredDate(storedTexts[key])) return;
+    const cell = row.querySelector(`[${DATA_INSERT}]`);
+    if (!cell) return;
+    fetchWarehouseDateForRow(row, key, cell);
+  });
+}
+
 
 function applyCustomColumn() {
   const table = document.getElementById("preorder_list");
@@ -287,6 +379,7 @@ function applyCustomColumn() {
     });
 
     applyColumnSorting();
+    autoFetchMissingDates(storedTexts);
   });
 }
 
@@ -385,7 +478,9 @@ function addLegend() {
   if (!table || document.getElementById("pixelatoy-legend")) return;
 
   const style = document.createElement("style");
-  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }`;
+  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }
+.pixelatoy-dots span { display:inline-block; font-size:1.4em; opacity:0.5; font-weight:400; transition:font-weight 0.2s, opacity 0.2s; }
+.pixelatoy-dots span.active { font-weight:900; opacity:1; }`;
   document.head.appendChild(style);
 
   const legend = document.createElement("div");
