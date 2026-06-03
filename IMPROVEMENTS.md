@@ -25,13 +25,22 @@ El nombre del artículo en la tabla de reservas es un enlace que abre el detalle
 
 ### 1.5 Indicador visual de fila durante el fetch ✅ Implementado
 
-### 1.6 Botón para refrescar datos manualmente
-Añadir un botón o acción para volver a consultar los datos automáticamente para un artículo concreto o para todos. Una vez que los datos están guardados no debería ser necesario re-consultarlos, pero puede ser útil si la fecha cambia en la tienda.
+### 1.6 Botón para refrescar datos manualmente ✅ Implementado
+Botón “Refrescar datos” junto a la leyenda que re-consulta todos los productos. Solo muestra cambios encontrados con overlay informativo y botones de aceptar/rechazar por fila. Los enlaces rotos se reintentan.
 
 ### 1.7 Gestión de enlaces rotos al detalle del artículo ✅ Implementado
 Se detectan enlaces rotos verificando la presencia de `h1.page-title[itemprop="name"]` en la página del producto. Si no existe, se marca `brokenLink: true` en storage y se muestra un icono ⛓️💥 junto al nombre. Los enlaces rotos no se reintentan automáticamente.
 
-### 1.8 Soporte multiidioma en la extracción de fecha
+### 1.8 Auto-fetch en segundo plano
+Programar una alarma (`chrome.alarms`) que se dispare 1-2 veces al día para obtener datos de productos sin fecha o con enlace roto directamente desde el service worker, sin necesidad de tener la página de reservas abierta.
+
+Puntos a definir:
+- Frecuencia exacta (1 o 2 veces al día).
+- Si los datos obtenidos se aplican directamente al storage o se guardan como "pendientes" para que el usuario los confirme al entrar a la página.
+- El service worker ya tiene `host_permissions` y acceso a cookies, por lo que puede hacer `fetch()` directamente.
+- `chrome.alarms` despierta el service worker aunque esté dormido.
+
+### 1.9 Soporte multiidioma en la extracción de fecha
 El campo "Entrada en almacén" puede aparecer con distinto nombre si la web está en inglés. Identificar el texto equivalente en inglés y contemplarlo en el selector.
 
 ---
