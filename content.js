@@ -166,14 +166,14 @@ function getRowImg(row) {
   return img ? img.src : "";
 }
 
-function saveToStorage(key, value, row) {
+function saveToStorage(key, fields, row) {
   try {
     chrome.storage.local.get(STORAGE_KEY, (res) => {
       const data = res[STORAGE_KEY] || {};
-      if (value) {
-        data[key] = { date: value, img: getRowImg(row) };
-      } else {
+      if (fields === null) {
         delete data[key];
+      } else {
+        data[key] = { ...data[key], ...fields, img: (fields.img || (data[key] && data[key].img) || getRowImg(row)) };
       }
       chrome.storage.local.set({ [STORAGE_KEY]: data });
     });
@@ -238,7 +238,11 @@ function createEditableCell(key, row) {
     cell.style.outlineColor = "";
     cell.title = "";
 
-    saveToStorage(key, value, row);
+    if (value) {
+      saveToStorage(key, { date: value }, row);
+    } else {
+      saveToStorage(key, null, row);
+    }
     updateCell(cell, row, value ? addThreeMonths(value) : null);
   });
 
@@ -283,46 +287,64 @@ function createOverlay(row) {
   return overlayDiv;
 }
 
-async function fetchWarehouseDateForRow(row, key, cell) {
+async function resolveProductUrl(row, key) {
   const rowCells = row.children;
   const lastCell = rowCells[rowCells.length - 1];
-  const availabilityCell = rowCells[rowCells.length - 2];
-  if (!availabilityCell?.querySelector("form")) return;
+  const orderLink = lastCell.querySelector("a")?.href;
+  if (!orderLink) return null;
+
+  const orderHTML = await fetchHTML(orderLink);
+  if (!orderHTML) return null;
+
+  const orderDoc = parseHTML(orderHTML);
+  const productLink = Array.from(orderDoc.querySelectorAll("a"))
+    .find(a => a.textContent.trim() === key)?.href;
+  return productLink || null;
+}
+
+async function fetchDateFromProduct(productUrl) {
+  const productHTML = await fetchHTML(productUrl);
+  if (!productHTML) return null;
+
+  const productDoc = parseHTML(productHTML);
+  const dts = productDoc.querySelectorAll("dt.name");
+  for (const dt of dts) {
+    if (dt.textContent.trim() === "Entrada en almacén") {
+      const dateText = dt.nextElementSibling?.textContent.trim();
+      if (!dateText) return null;
+      const normalized = normalizeDateTime(dateText);
+      return parseDateTime(normalized) ? normalized : null;
+    }
+  }
+  return null;
+}
+
+async function autoFetchRowData(row, key, cell, stored) {
+  const hasDate = !!getStoredDate(stored);
+  const hasUrl = !!(stored && stored.productUrl);
+  if (hasDate && hasUrl) return;
+
+  const needsDate = !hasDate && row.children[row.children.length - 2]?.querySelector("form");
+  if (hasUrl && !needsDate) return;
 
   cell.setAttribute("data-fetching", "1");
   const overlayDiv = createOverlay(row);
 
   try {
-    const orderLink = lastCell.querySelector("a")?.href;
-    if (!orderLink) return;
+    let productUrl = hasUrl ? stored.productUrl : null;
 
-    const orderHTML = await fetchHTML(orderLink);
-    if (!orderHTML) return;
+    if (!productUrl) {
+      productUrl = await resolveProductUrl(row, key);
+      if (productUrl) saveToStorage(key, { productUrl }, row);
+    }
 
-    const orderDoc = parseHTML(orderHTML);
-    const productLink = Array.from(orderDoc.querySelectorAll("a"))
-      .find(a => a.textContent.trim() === key)?.href;
-    if (!productLink) return;
-
-    const productHTML = await fetchHTML(productLink);
-    if (!productHTML) return;
-
-    const productDoc = parseHTML(productHTML);
-    const dts = productDoc.querySelectorAll("dt.name");
-    let dateText = null;
-    for (const dt of dts) {
-      if (dt.textContent.trim() === "Entrada en almacén") {
-        dateText = dt.nextElementSibling?.textContent.trim();
-        break;
+    if (needsDate && productUrl) {
+      const date = await fetchDateFromProduct(productUrl);
+      if (date) {
+        saveToStorage(key, { date }, row);
+        updateCell(cell, row, addThreeMonths(date));
       }
     }
-    if (!dateText) return;
-
-    const normalized = normalizeDateTime(dateText);
-    if (!parseDateTime(normalized)) return;
-
-    // saveToStorage(key, normalized, row);
-    updateCell(cell, row, addThreeMonths(normalized));
   } catch (e) {
     // fallo silencioso
   } finally {
@@ -331,16 +353,18 @@ async function fetchWarehouseDateForRow(row, key, cell) {
   }
 }
 
-function autoFetchMissingDates(storedTexts) {
+function autoFetchMissingData(storedTexts) {
   const table = document.getElementById("preorder_list");
   if (!table) return;
   table.querySelectorAll("tr").forEach((row) => {
     if (row.querySelectorAll("th").length > 0) return;
     const key = row.children[COLUMN_INDEX_KEY]?.textContent.trim();
-    if (!key || getStoredDate(storedTexts[key])) return;
+    if (!key) return;
+    const stored = storedTexts[key] || {};
+    if (getStoredDate(stored) && stored.productUrl) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
-    fetchWarehouseDateForRow(row, key, cell);
+    autoFetchRowData(row, key, cell, stored);
   });
 }
 
@@ -372,20 +396,11 @@ function applyCustomColumn() {
       const limitDate = addThreeMonths(storedDate);
       updateCell(cell, row, limitDate);
 
-      // Update img in storage if missing
-      if (storedDate && storedTexts[key] && !storedTexts[key].img) {
-        const img = getRowImg(row);
-        if (img) {
-          storedTexts[key] = { date: storedDate, img };
-          chrome.storage.local.set({ [STORAGE_KEY]: storedTexts });
-        }
-      }
-
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
     });
 
     applyColumnSorting();
-    autoFetchMissingDates(storedTexts);
+    autoFetchMissingData(storedTexts);
   });
 }
 

@@ -12,11 +12,10 @@
 
 ## 1. Auto-fetch de datos del producto
 
-### 1.1 Guardar fecha de entrada en almacén ⚠️ En progreso
-Implementado el fetch y visualización. Pendiente activar el guardado en storage.
+### 1.1 Guardar fecha de entrada en almacén ✅ Implementado
 
-### 1.2 Guardar URL del detalle del producto
-Almacenar la URL del detalle del producto en el storage junto con la fecha (`{ date, img, productUrl }`). Permite saltarse el paso de acceder al detalle del pedido en futuras consultas, accediendo directamente al producto.
+### 1.2 Guardar URL del detalle del producto ✅ Implementado
+Se almacena la URL del detalle del producto en el storage (`{ date, img, productUrl }`). En cargas posteriores se salta el fetch al detalle del pedido y se accede directamente al producto, reduciendo tiempos de respuesta.
 
 ### 1.3 Guardar fecha estimada de disponibilidad
 Los artículos aún no disponibles tienen una fecha estimada de disponibilidad en su detalle. Extraerla y guardarla en el storage (`{ date, img, productUrl, availableFrom }`). Útil para saber cuándo se podrá consultar la fecha de entrada real.
@@ -24,8 +23,7 @@ Los artículos aún no disponibles tienen una fecha estimada de disponibilidad e
 ### 1.4 Enlace al detalle del producto desde la tabla
 Convertir el nombre del artículo en la tabla de reservas en un enlace al detalle del producto, usando la URL guardada en storage. Permite acceder directamente al producto sin pasar por el detalle del pedido.
 
-### 1.5 Indicador visual de fila durante el fetch
-Aplicar un estilo sutil a toda la fila mientras se están consultando los datos (por ejemplo, un fondo ligeramente diferente o una opacidad reducida), no solo a la celda.
+### 1.5 Indicador visual de fila durante el fetch ✅ Implementado
 
 ### 1.6 Botón para refrescar datos manualmente
 Añadir un botón o acción para volver a consultar los datos automáticamente para un artículo concreto o para todos. Una vez que los datos están guardados no debería ser necesario re-consultarlos, pero puede ser útil si la fecha cambia en la tienda.
