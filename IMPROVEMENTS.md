@@ -50,7 +50,10 @@ El campo "Entrada en almacén" puede aparecer con distinto nombre si la web est�
 
 ### 3.1 Sección de aviso con eliminación individual y global ✅ Implementado
 
-### 3.2 Mostrar fila completa en la tabla
+### 3.2 Mostrar imagen y enlace en datos huérfanos
+Aprovechar `img` y `productUrl` del storage para enriquecer la sección de huérfanos: mostrar la miniatura del producto y enlazar el nombre a su página de detalle.
+
+### 3.3 Mostrar fila completa en la tabla
 Guardar el `outerHTML` del `<tr>` en el storage (`{ date, html }`) para reinsertar los productos huérfanos directamente en la tabla con un estilo diferenciado, en lugar de mostrarlos en una sección aparte.
 
 Cambios necesarios:
