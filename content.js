@@ -154,6 +154,18 @@ function updateCell(cell, row, limitDate) {
   }
 }
 
+function linkifyProductName(cell, url) {
+  if (!cell || cell.querySelector("a.pixelatoy-link")) return;
+  const text = cell.textContent.trim();
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.className = "pixelatoy-link";
+  a.textContent = text;
+  cell.textContent = "";
+  cell.appendChild(a);
+}
+
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
 function getStoredDate(entry) {
@@ -335,7 +347,10 @@ async function autoFetchRowData(row, key, cell, stored) {
 
     if (!productUrl) {
       productUrl = await resolveProductUrl(row, key);
-      if (productUrl) saveToStorage(key, { productUrl }, row);
+      if (productUrl) {
+        saveToStorage(key, { productUrl }, row);
+        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl);
+      }
     }
 
     if (needsDate && productUrl) {
@@ -395,6 +410,10 @@ function applyCustomColumn() {
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
       updateCell(cell, row, limitDate);
+
+      if (storedTexts[key]?.productUrl) {
+        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl);
+      }
 
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
     });

@@ -20,8 +20,8 @@ Se almacena la URL del detalle del producto en el storage (`{ date, img, product
 ### 1.3 Guardar fecha estimada de disponibilidad
 Los artículos aún no disponibles tienen una fecha estimada de disponibilidad en su detalle. Extraerla y guardarla en el storage (`{ date, img, productUrl, availableFrom }`). Útil para saber cuándo se podrá consultar la fecha de entrada real.
 
-### 1.4 Enlace al detalle del producto desde la tabla
-Convertir el nombre del artículo en la tabla de reservas en un enlace al detalle del producto, usando la URL guardada en storage. Permite acceder directamente al producto sin pasar por el detalle del pedido.
+### 1.4 Enlace al detalle del producto desde la tabla ✅ Implementado
+El nombre del artículo en la tabla de reservas es un enlace que abre el detalle del producto en nueva pestaña, usando la URL guardada en storage.
 
 ### 1.5 Indicador visual de fila durante el fetch ✅ Implementado
 
