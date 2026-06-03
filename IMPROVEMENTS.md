@@ -28,8 +28,8 @@ El nombre del artículo en la tabla de reservas es un enlace que abre el detalle
 ### 1.6 Botón para refrescar datos manualmente
 Añadir un botón o acción para volver a consultar los datos automáticamente para un artículo concreto o para todos. Una vez que los datos están guardados no debería ser necesario re-consultarlos, pero puede ser útil si la fecha cambia en la tienda.
 
-### 1.7 Gestión de enlaces rotos al detalle del artículo
-Algunos enlaces al detalle del artículo dentro del detalle del pedido están rotos (404 u otro error). Detectar este caso explícitamente y marcarlo de alguna forma en la celda o en el storage para no reintentar en cada carga.
+### 1.7 Gestión de enlaces rotos al detalle del artículo ✅ Implementado
+Se detectan enlaces rotos verificando la presencia de `h1.page-title[itemprop="name"]` en la página del producto. Si no existe, se marca `brokenLink: true` en storage y se muestra un icono ⛓️💥 junto al nombre. Los enlaces rotos no se reintentan automáticamente.
 
 ### 1.8 Soporte multiidioma en la extracción de fecha
 El campo "Entrada en almacén" puede aparecer con distinto nombre si la web está en inglés. Identificar el texto equivalente en inglés y contemplarlo en el selector.

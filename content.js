@@ -154,7 +154,21 @@ function updateCell(cell, row, limitDate) {
   }
 }
 
-function linkifyProductName(cell, url) {
+function getRowKey(row) {
+  const cell = row.children[COLUMN_INDEX_KEY];
+  return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
+}
+
+function addBrokenLinkWarning(cell) {
+  if (!cell || cell.querySelector("span[title]")) return;
+  const warn = document.createElement("span");
+  warn.textContent = " ⛓️‍💥";
+  warn.title = "Este enlace puede no apuntar al producto correcto";
+  warn.style.cursor = "help";
+  cell.appendChild(warn);
+}
+
+function linkifyProductName(cell, url, brokenLink) {
   if (!cell || cell.querySelector("a.pixelatoy-link")) return;
   const text = cell.textContent.trim();
   const a = document.createElement("a");
@@ -164,6 +178,7 @@ function linkifyProductName(cell, url) {
   a.textContent = text;
   cell.textContent = "";
   cell.appendChild(a);
+  if (brokenLink) addBrokenLinkWarning(cell);
 }
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -314,21 +329,30 @@ async function resolveProductUrl(row, key) {
   return productLink || null;
 }
 
+function isValidProductPage(html) {
+  const doc = parseHTML(html);
+  return !!doc.querySelector('h1.page-title[itemprop="name"]');
+}
+
 async function fetchDateFromProduct(productUrl) {
   const productHTML = await fetchHTML(productUrl);
-  if (!productHTML) return null;
+  if (!productHTML) return { date: null, brokenLink: false };
+
+  if (!isValidProductPage(productHTML)) {
+    return { date: null, brokenLink: true };
+  }
 
   const productDoc = parseHTML(productHTML);
   const dts = productDoc.querySelectorAll("dt.name");
   for (const dt of dts) {
     if (dt.textContent.trim() === "Entrada en almacén") {
       const dateText = dt.nextElementSibling?.textContent.trim();
-      if (!dateText) return null;
+      if (!dateText) return { date: null, brokenLink: false };
       const normalized = normalizeDateTime(dateText);
-      return parseDateTime(normalized) ? normalized : null;
+      return { date: parseDateTime(normalized) ? normalized : null, brokenLink: false };
     }
   }
-  return null;
+  return { date: null, brokenLink: false };
 }
 
 async function autoFetchRowData(row, key, cell, stored) {
@@ -336,7 +360,7 @@ async function autoFetchRowData(row, key, cell, stored) {
   const hasUrl = !!(stored && stored.productUrl);
   if (hasDate && hasUrl) return;
 
-  const needsDate = !hasDate && row.children[row.children.length - 2]?.querySelector("form");
+  const needsDate = !hasDate && !stored?.brokenLink && row.children[row.children.length - 2]?.querySelector("form");
   if (hasUrl && !needsDate) return;
 
   cell.setAttribute("data-fetching", "1");
@@ -354,9 +378,12 @@ async function autoFetchRowData(row, key, cell, stored) {
     }
 
     if (needsDate && productUrl) {
-      const date = await fetchDateFromProduct(productUrl);
-      if (date) {
-        saveToStorage(key, { date }, row);
+      const { date, brokenLink } = await fetchDateFromProduct(productUrl);
+      if (brokenLink) {
+        saveToStorage(key, { brokenLink: true }, row);
+        addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
+      } else if (date) {
+        saveToStorage(key, { date, brokenLink: false }, row);
         updateCell(cell, row, addThreeMonths(date));
       }
     }
@@ -373,7 +400,7 @@ function autoFetchMissingData(storedTexts) {
   if (!table) return;
   table.querySelectorAll("tr").forEach((row) => {
     if (row.querySelectorAll("th").length > 0) return;
-    const key = row.children[COLUMN_INDEX_KEY]?.textContent.trim();
+    const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
     if (getStoredDate(stored) && stored.productUrl) return;
@@ -412,7 +439,7 @@ function applyCustomColumn() {
       updateCell(cell, row, limitDate);
 
       if (storedTexts[key]?.productUrl) {
-        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl);
+        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl, storedTexts[key].brokenLink);
       }
 
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
@@ -573,7 +600,7 @@ function checkOrphanData() {
   const tableKeys = new Set();
   table.querySelectorAll("tr").forEach((row) => {
     if (row.querySelectorAll("th").length > 0) return;
-    const key = row.children[COLUMN_INDEX_KEY]?.textContent.trim();
+    const key = getRowKey(row);
     if (key) tableKeys.add(key);
   });
 
