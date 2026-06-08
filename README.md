@@ -1,6 +1,6 @@
 # Pixelatoy Preorder Manager
 
-Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.pixelatoy.com) añadiendo seguimiento de fechas, contador de tiempo restante y ordenación por columnas.
+Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.pixelatoy.com) añadiendo seguimiento de fechas de almacén, enlaces a productos con detección de enlaces rotos, refresco manual de datos, contador de tiempo restante y ordenación por columnas.
 
 ## Funcionalidades
 
@@ -42,6 +42,21 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - Tercer click → restaura el orden original.
 - Al ordenar por una columna, la ordenación anterior se resetea.
 
+### Obtención automática de datos
+- Al cargar la página, la extensión obtiene automáticamente la URL del producto y la fecha de entrada en almacén para los productos que no tengan estos datos guardados.
+- Durante la consulta se muestra un overlay de carga sobre la fila afectada.
+- Si el producto aún no está disponible, no se extrae fecha pero sí se guarda el enlace para futuras consultas.
+
+### Enlace al detalle del producto
+- El nombre del producto en la tabla es un enlace que abre su página de detalle en nueva pestaña.
+- Si el enlace está roto (la página no corresponde al producto), se muestra un icono ⛓️💥 junto al nombre.
+
+### Refrescar datos
+- Botón "Refrescar datos" junto a la leyenda para re-consultar la información de todos los productos.
+- Solo se muestran los cambios encontrados respecto a los datos almacenados.
+- Cada fila con cambios muestra un overlay informativo con la comparación y botones para aceptar o rechazar individualmente.
+- Los enlaces rotos se reintentan durante el refresco.
+
 ## Instalación
 
 ### Desde la Chrome Web Store
@@ -57,7 +72,7 @@ Próximamente disponible.
 
 Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
 
-Cada producto se almacena con la estructura `{ date, img }`, donde `date` es la fecha de entrada y `img` la URL de la imagen del producto.
+Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle y `brokenLink` indica si el enlace al producto es inválido.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
@@ -70,6 +85,7 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 pixelatoy-extension/
 ├── content.js       # Lógica principal de la extensión
 ├── background.js    # Service worker para notificaciones y alarmas
+├── helpers.js       # Constantes y funciones compartidas (módulo ES)
 ├── popup.html       # Popup del icono de la extensión
 ├── popup.js         # Lógica del popup
 ├── manifest.json    # Configuración de la extensión
