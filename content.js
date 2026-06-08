@@ -154,6 +154,33 @@ function updateCell(cell, row, limitDate) {
   }
 }
 
+function getRowKey(row) {
+  const cell = row.children[COLUMN_INDEX_KEY];
+  return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
+}
+
+function addBrokenLinkWarning(cell) {
+  if (!cell || cell.querySelector("span[title]")) return;
+  const warn = document.createElement("span");
+  warn.textContent = " ⛓️‍💥";
+  warn.title = "Este enlace puede no apuntar al producto correcto";
+  warn.style.cursor = "help";
+  cell.appendChild(warn);
+}
+
+function linkifyProductName(cell, url, brokenLink) {
+  if (!cell || cell.querySelector("a.pixelatoy-link")) return;
+  const text = cell.textContent.trim();
+  const a = document.createElement("a");
+  a.href = url;
+  a.target = "_blank";
+  a.className = "pixelatoy-link";
+  a.textContent = text;
+  cell.textContent = "";
+  cell.appendChild(a);
+  if (brokenLink) addBrokenLinkWarning(cell);
+}
+
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
 function getStoredDate(entry) {
@@ -166,14 +193,14 @@ function getRowImg(row) {
   return img ? img.src : "";
 }
 
-function saveToStorage(key, value, row) {
+function saveToStorage(key, fields, row) {
   try {
     chrome.storage.local.get(STORAGE_KEY, (res) => {
       const data = res[STORAGE_KEY] || {};
-      if (value) {
-        data[key] = { date: value, img: getRowImg(row) };
-      } else {
+      if (fields === null) {
         delete data[key];
+      } else {
+        data[key] = { ...data[key], ...fields, img: (fields.img || (data[key] && data[key].img) || getRowImg(row)) };
       }
       chrome.storage.local.set({ [STORAGE_KEY]: data });
     });
@@ -190,6 +217,7 @@ function createEditableCell(key, row) {
 
   cell.addEventListener("click", () => {
     if (cell.getAttribute("data-editing") === "1") return;
+    if (cell.getAttribute("data-fetching") === "1") return;
     cell.setAttribute("data-editing", "1");
     cell.contentEditable = "true";
     try {
@@ -237,14 +265,148 @@ function createEditableCell(key, row) {
     cell.style.outlineColor = "";
     cell.title = "";
 
-    saveToStorage(key, value, row);
+    if (value) {
+      saveToStorage(key, { date: value }, row);
+    } else {
+      saveToStorage(key, null, row);
+    }
     updateCell(cell, row, value ? addThreeMonths(value) : null);
   });
 
   return cell;
 }
 
-// ─── Columna personalizada ────────────────────────────────────────────────────
+// ─── Auto-fetch fecha desde detalle del producto ─────────────────────────────
+
+function fetchHTML(url) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ type: "fetch", url }, (res) => {
+      resolve(res?.html ?? null);
+    });
+  });
+}
+
+function parseHTML(html) {
+  return new DOMParser().parseFromString(html, "text/html");
+}
+
+function createOverlay(row) {
+  const rect = row.getBoundingClientRect();
+  const overlayDiv = document.createElement("div");
+  overlayDiv.className = "pixelatoy-overlay";
+  overlayDiv.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+  const dotsEl = document.createElement("span");
+  dotsEl.className = "pixelatoy-dots";
+  dotsEl.innerHTML = "<span>&bull;</span><span>&bull;</span><span>&bull;</span>";
+  overlayDiv.appendChild(dotsEl);
+  document.body.appendChild(overlayDiv);
+  const spans = dotsEl.querySelectorAll("span");
+  let frameIndex = 0;
+  spans[0].classList.add("active");
+  setInterval(() => {
+    if (!overlayDiv.isConnected) return;
+    spans[frameIndex % 3].classList.remove("active");
+    frameIndex++;
+    spans[frameIndex % 3].classList.add("active");
+  }, 400);
+  return overlayDiv;
+}
+
+async function resolveProductUrl(row, key) {
+  const rowCells = row.children;
+  const lastCell = rowCells[rowCells.length - 1];
+  const orderLink = lastCell.querySelector("a")?.href;
+  if (!orderLink) return null;
+
+  const orderHTML = await fetchHTML(orderLink);
+  if (!orderHTML) return null;
+
+  const orderDoc = parseHTML(orderHTML);
+  const productLink = Array.from(orderDoc.querySelectorAll("a"))
+    .find(a => a.textContent.trim() === key)?.href;
+  return productLink || null;
+}
+
+function isValidProductPage(html) {
+  const doc = parseHTML(html);
+  return !!doc.querySelector('h1.page-title[itemprop="name"]');
+}
+
+async function fetchDateFromProduct(productUrl) {
+  const productHTML = await fetchHTML(productUrl);
+  if (!productHTML) return { date: null, brokenLink: false };
+
+  if (!isValidProductPage(productHTML)) {
+    return { date: null, brokenLink: true };
+  }
+
+  const productDoc = parseHTML(productHTML);
+  const dts = productDoc.querySelectorAll("dt.name");
+  for (const dt of dts) {
+    if (dt.textContent.trim() === "Entrada en almacén") {
+      const dateText = dt.nextElementSibling?.textContent.trim();
+      if (!dateText) return { date: null, brokenLink: false };
+      const normalized = normalizeDateTime(dateText);
+      return { date: parseDateTime(normalized) ? normalized : null, brokenLink: false };
+    }
+  }
+  return { date: null, brokenLink: false };
+}
+
+async function autoFetchRowData(row, key, cell, stored) {
+  const hasDate = !!getStoredDate(stored);
+  const hasUrl = !!(stored && stored.productUrl);
+  if (hasDate && hasUrl) return;
+
+  const needsDate = !hasDate && !stored?.brokenLink && row.children[row.children.length - 2]?.querySelector("form");
+  if (hasUrl && !needsDate) return;
+
+  cell.setAttribute("data-fetching", "1");
+  const overlayDiv = createOverlay(row);
+
+  try {
+    let productUrl = hasUrl ? stored.productUrl : null;
+
+    if (!productUrl) {
+      productUrl = await resolveProductUrl(row, key);
+      if (productUrl) {
+        saveToStorage(key, { productUrl }, row);
+        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl);
+      }
+    }
+
+    if (needsDate && productUrl) {
+      const { date, brokenLink } = await fetchDateFromProduct(productUrl);
+      if (brokenLink) {
+        saveToStorage(key, { brokenLink: true }, row);
+        addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
+      } else if (date) {
+        saveToStorage(key, { date, brokenLink: false }, row);
+        updateCell(cell, row, addThreeMonths(date));
+      }
+    }
+  } catch (e) {
+    // fallo silencioso
+  } finally {
+    cell.removeAttribute("data-fetching");
+    overlayDiv.remove();
+  }
+}
+
+function autoFetchMissingData(storedTexts) {
+  const table = document.getElementById("preorder_list");
+  if (!table) return;
+  table.querySelectorAll("tr").forEach((row) => {
+    if (row.querySelectorAll("th").length > 0) return;
+    const key = getRowKey(row);
+    if (!key) return;
+    const stored = storedTexts[key] || {};
+    if (getStoredDate(stored) && stored.productUrl) return;
+    const cell = row.querySelector(`[${DATA_INSERT}]`);
+    if (!cell) return;
+    autoFetchRowData(row, key, cell, stored);
+  });
+}
 
 function applyCustomColumn() {
   const table = document.getElementById("preorder_list");
@@ -274,19 +436,15 @@ function applyCustomColumn() {
       const limitDate = addThreeMonths(storedDate);
       updateCell(cell, row, limitDate);
 
-      // Update img in storage if missing
-      if (storedDate && storedTexts[key] && !storedTexts[key].img) {
-        const img = getRowImg(row);
-        if (img) {
-          storedTexts[key] = { date: storedDate, img };
-          chrome.storage.local.set({ [STORAGE_KEY]: storedTexts });
-        }
+      if (storedTexts[key]?.productUrl) {
+        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl, storedTexts[key].brokenLink);
       }
 
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
     });
 
     applyColumnSorting();
+    autoFetchMissingData(storedTexts);
   });
 }
 
@@ -378,6 +536,135 @@ function applyColumnSorting() {
   applySortIndicator(Array.from(headerRow.children));
 }
 
+// ─── Refresh ──────────────────────────────────────────────────────────────────
+
+function createOverlayButton(text, title, bg, onClick) {
+  const btn = document.createElement("button");
+  btn.textContent = text;
+  btn.title = title;
+  btn.className = "pixelatoy-btn";
+  btn.style.background = bg;
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+function createInfoOverlay(row, changes, onAccept, onReject) {
+  const rect = row.getBoundingClientRect();
+  const overlay = document.createElement("div");
+  overlay.className = "pixelatoy-overlay pixelatoy-info-overlay";
+  overlay.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+
+  const content = document.createElement("div");
+  content.style.cssText = "flex:1;padding:0 12px;font-size:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
+  changes.forEach(({ label, oldVal, newVal }) => {
+    const span = document.createElement("span");
+    span.innerHTML = oldVal
+      ? `<strong>${label}:</strong> ${oldVal} → ${newVal}`
+      : `<strong>${label}:</strong> ${newVal}`;
+    content.appendChild(span);
+  });
+
+  const buttons = document.createElement("div");
+  buttons.style.cssText = "display:flex;gap:6px;padding:0 12px;align-items:center;";
+  buttons.appendChild(createOverlayButton("✓", "Aplicar cambios", "#5cb85c", () => { onAccept(); overlay.remove(); }));
+  buttons.appendChild(createOverlayButton("✗", "Descartar cambios", "#d9534f", () => { onReject(); overlay.remove(); }));
+
+  overlay.appendChild(content);
+  overlay.appendChild(buttons);
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+async function refreshRowData(row, key, stored) {
+  let productUrl = stored?.productUrl || null;
+
+  if (!productUrl) {
+    productUrl = await resolveProductUrl(row, key);
+  }
+  if (!productUrl) return null;
+
+  const { date, brokenLink } = await fetchDateFromProduct(productUrl);
+
+  const changes = [];
+  const newFields = {};
+
+  // URL resuelta donde no había o brokenLink corregido
+  if (!stored?.productUrl && productUrl) {
+    changes.push({ label: "URL", oldVal: null, newVal: "encontrada" });
+    newFields.productUrl = productUrl;
+  } else if (stored?.brokenLink && !brokenLink) {
+    changes.push({ label: "Enlace", oldVal: "roto", newVal: "corregido" });
+    newFields.brokenLink = false;
+  }
+
+  // Fecha nueva o distinta
+  const storedDate = getStoredDate(stored);
+  if (date && date !== storedDate) {
+    changes.push({ label: "Fecha", oldVal: storedDate || null, newVal: date });
+    newFields.date = date;
+    newFields.brokenLink = false;
+  }
+
+  if (changes.length === 0) return null;
+  return { changes, newFields, productUrl };
+}
+
+async function refreshAllData() {
+  const table = document.getElementById("preorder_list");
+  if (!table) return;
+
+  const rows = Array.from(table.querySelectorAll("tr")).filter(
+    r => r.querySelectorAll("th").length === 0
+  );
+
+  const storageData = await new Promise(resolve =>
+    chrome.storage.local.get(STORAGE_KEY, res => resolve(res[STORAGE_KEY] || {}))
+  );
+
+  const tasks = rows.map(row => {
+    const key = getRowKey(row);
+    if (!key) return null;
+    const cell = row.querySelector(`[${DATA_INSERT}]`);
+    if (!cell) return null;
+    const stored = storageData[key] || {};
+    return { row, key, cell, stored };
+  }).filter(Boolean);
+
+  // Mostrar overlay de carga en todas las filas
+  const overlays = tasks.map(({ row }) => createOverlay(row));
+
+  // Fetch en paralelo
+  const results = await Promise.allSettled(
+    tasks.map(({ row, key, stored }) => refreshRowData(row, key, stored))
+  );
+
+  // Quitar overlays de carga y mostrar info donde haya cambios
+  const pendingOverlays = [];
+  results.forEach((result, i) => {
+    overlays[i].remove();
+    if (result.status !== "fulfilled" || !result.value) return;
+
+    const { changes, newFields, productUrl } = result.value;
+    const { row, key, cell, stored } = tasks[i];
+    const nameCell = row.children[COLUMN_INDEX_KEY];
+
+    pendingOverlays.push(new Promise(resolve => {
+      createInfoOverlay(row, changes,
+        () => {
+          saveToStorage(key, newFields, row);
+          if (newFields.productUrl) linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
+          if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
+          if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
+          resolve();
+        },
+        () => { resolve(); }
+      );
+    }));
+  });
+
+  return Promise.all(pendingOverlays);
+}
+
 // ─── Leyenda ──────────────────────────────────────────────────────────────────
 
 function addLegend() {
@@ -385,7 +672,13 @@ function addLegend() {
   if (!table || document.getElementById("pixelatoy-legend")) return;
 
   const style = document.createElement("style");
-  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }`;
+  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }
+.pixelatoy-dots span { display:inline-block; font-size:3.5em; opacity:0.5; font-weight:400; transition:font-weight 0.2s, opacity 0.2s; }
+.pixelatoy-dots span.active { font-weight:900; opacity:1; }
+.pixelatoy-overlay { position:absolute; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.75); pointer-events:all; cursor:wait; z-index:10; }
+.pixelatoy-info-overlay { background:rgba(217,237,255,0.95); cursor:default; justify-content:space-between; }
+.pixelatoy-btn { font-size:16px;cursor:pointer;color:#fff;border:none;border-radius:3px;padding:4px 8px;transition:opacity 0.2s; }
+.pixelatoy-btn:hover { opacity:0.8; }`;
   document.head.appendChild(style);
 
   const legend = document.createElement("div");
@@ -398,6 +691,18 @@ function addLegend() {
     item.innerHTML = `<span style="width:16px;height:16px;background:${bg};border-radius:3px;display:inline-block;"></span>${label}`;
     legend.appendChild(item);
   });
+
+  const refreshBtn = document.createElement("button");
+  refreshBtn.textContent = "Refrescar datos";
+  refreshBtn.className = "pixelatoy-btn";
+  refreshBtn.style.cssText = "margin-left:auto;font-size:14px;background:#5cb85c;";
+  refreshBtn.addEventListener("click", async () => {
+    refreshBtn.disabled = true;
+    refreshBtn.style.opacity = "0.5";
+    try { await refreshAllData(); }
+    finally { refreshBtn.disabled = false; refreshBtn.style.opacity = "1"; }
+  });
+  legend.appendChild(refreshBtn);
 
   table.insertAdjacentElement("afterend", legend);
 
@@ -420,6 +725,9 @@ function addLegend() {
       <li>Al salir del campo, la fecha se guarda automáticamente y se muestra el tiempo restante hasta el límite (entrada + 3 meses).</li>
       <li>El contador se actualiza automáticamente cada minuto.</li>
       <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
+      <li>El nombre del producto es un enlace a su ficha. Si aparece ⛓️💥, el enlace está roto.</li>
+      <li>La fecha y el enlace se obtienen automáticamente al cargar la página si no están guardados.</li>
+      <li>Usa "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
     </ul>
   `;
   legend.insertAdjacentElement("afterend", instructions);
@@ -437,7 +745,7 @@ function checkOrphanData() {
   const tableKeys = new Set();
   table.querySelectorAll("tr").forEach((row) => {
     if (row.querySelectorAll("th").length > 0) return;
-    const key = row.children[COLUMN_INDEX_KEY]?.textContent.trim();
+    const key = getRowKey(row);
     if (key) tableKeys.add(key);
   });
 
