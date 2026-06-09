@@ -28,10 +28,10 @@ El campo "Entrada en almacén" puede aparecer con distinto nombre si la web est�
 
 ---
 
-## 2. Datos huérfanos
+## 2. Reservas no encontradas
 
-### 2.1 Mostrar imagen y enlace en datos huérfanos
-Aprovechar `img` y `productUrl` del storage para enriquecer la sección de huérfanos: mostrar la miniatura del producto y enlazar el nombre a su página de detalle.
+### 2.1 Mostrar imagen y enlace en reservas no encontradas ✅ Implementado
+Miniatura del producto y enlace a su ficha en la sección de reservas no encontradas, usando `img` y `productUrl` del storage. La sección es colapsable y carga colapsada por defecto.
 
 ### 2.2 Mostrar fila completa en la tabla
 Guardar el `outerHTML` del `<tr>` en el storage (`{ date, html }`) para reinsertar los productos huérfanos directamente en la tabla con un estilo diferenciado, en lugar de mostrarlos en una sección aparte.
