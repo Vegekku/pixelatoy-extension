@@ -42,10 +42,12 @@ La versión se mantiene en `manifest.json` (campo `version`).
 
 ### Merge de develop a main
 
+Cuando haya un conjunto de features listas para release, seguir el flujo Gitflow:
+
 1. Crear rama `release/vX.Y.Z` desde `develop`
 2. Actualizar `CHANGELOG.md` y `version` en `manifest.json` en esa rama
-3. Amazon Q crea PR de `release/vX.Y.Z` → `main` con `Closes #XX` para todos los issues del release
-4. El usuario revisa y mergea
+3. Amazon Q crea PR de `release/vX.Y.Z` → `main` con `Closes #XX` para todos los issues incluidos en el release
+4. El usuario revisa y mergea con **merge commit** (no squash)
 5. Amazon Q crea PR de `release/vX.Y.Z` → `develop`
-6. El usuario revisa y mergea
+6. El usuario revisa y mergea con **merge commit** (no squash)
 7. El tag se crea automáticamente vía GitHub Action
