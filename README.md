@@ -89,6 +89,7 @@ pixelatoy-extension/
 ├── popup.html       # Popup del icono de la extensión
 ├── popup.js         # Lógica del popup
 ├── manifest.json    # Configuración de la extensión
+├── CHANGELOG.md     # Historial de versiones
 ├── IMPROVEMENTS.md  # Ideas y mejoras pendientes
 └── icons/
     ├── icon16.png
