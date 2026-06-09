@@ -728,6 +728,8 @@ function addLegend() {
       <li>El nombre del producto es un enlace a su ficha. Si aparece ⛓️💥, el enlace está roto.</li>
       <li>La fecha y el enlace se obtienen automáticamente al cargar la página si no están guardados.</li>
       <li>Usa "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
+      <li>Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección de aviso debajo con opción de eliminar.</li>
+      <li>El icono de la extensión muestra un resumen de productos agrupados por urgencia.</li>
     </ul>
   `;
   legend.insertAdjacentElement("afterend", instructions);
