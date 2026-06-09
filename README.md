@@ -22,11 +22,11 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 | 🟧 Naranja | Menos de 60 días |
 | 🟩 Verde | 60 días o más |
 
-### Datos huérfanos
-- Si un producto desaparece de la tabla de reservas (enviado o eliminado) pero tiene datos guardados en el almacenamiento, se muestra una sección de aviso debajo de la tabla.
-- Para cada producto huérfano se muestra: nombre, fecha de entrada y estado del límite (tiempo restante o vencido).
-- Se puede eliminar cada producto individualmente o todos a la vez.
-- La sección solo aparece si hay datos huérfanos.
+### Reservas no encontradas
+- Si un producto desaparece de la tabla de reservas (enviado o eliminado) pero tiene datos guardados en el almacenamiento, se muestra una sección <em>Reservas no encontradas</em> debajo de la tabla.
+- Para cada reserva se muestra: miniatura del producto, nombre con enlace a su ficha y estado del límite (tiempo restante o vencido).
+- Se puede eliminar cada reserva individualmente o todas a la vez.
+- La sección solo aparece si hay reservas no encontradas y es colapsable.
 
 ### Popup de estado
 - Al hacer click en el icono de la extensión se muestra un resumen de productos agrupados por urgencia.
