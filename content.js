@@ -715,8 +715,8 @@ function addLegend() {
   const instructions = document.createElement("div");
   instructions.style.cssText = "margin-top:10px;padding:10px 14px;background:#f5f5f5;border-radius:4px;font-size:13px;color:#333;line-height:1.6;";
   instructions.innerHTML = `
-    <strong>Instrucciones de uso</strong>
-    <ul style="margin:6px 0 0 0;padding-left:18px;">
+    <strong style="cursor:pointer;user-select:none;" id="pixelatoy-instr-toggle">&#9654; Instrucciones de uso</strong>
+    <ul id="pixelatoy-instr-list" style="display:none;margin:6px 0 0 0;padding-left:18px;">
       <li>La fecha de entrada y el enlace al producto se obtienen automáticamente al cargar la página. El nombre del producto es un enlace a su ficha. Si aparece <span class="pixelatoy-broken-icon"></span>, el enlace está roto.</li>
       <li>Usa "Refrescar datos" para actualizar la información manualmente y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
       <li>Para introducir o corregir la fecha manualmente, haz click en la celda de <em>En almacén</em>. Formatos aceptados: <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>), con o sin hora (<code>HH:MM</code>).</li>
@@ -728,6 +728,13 @@ function addLegend() {
   const brokenIcon = document.createElement("span");
   brokenIcon.textContent = " ⛓️‍💥";
   instructions.querySelector(".pixelatoy-broken-icon").replaceWith(brokenIcon);
+  const toggle = instructions.querySelector("#pixelatoy-instr-toggle");
+  const list = instructions.querySelector("#pixelatoy-instr-list");
+  toggle.addEventListener("click", () => {
+    const open = list.style.display !== "none";
+    list.style.display = open ? "none" : "block";
+    toggle.innerHTML = (open ? "&#9654;" : "&#9660;") + " Instrucciones de uso";
+  });
   legend.insertAdjacentElement("afterend", instructions);
 }
 
