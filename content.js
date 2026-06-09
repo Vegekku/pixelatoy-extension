@@ -721,7 +721,7 @@ function addLegend() {
       <li>Usa "Refrescar datos" para actualizar la información manualmente y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
       <li>Para introducir o corregir la fecha manualmente, haz click en la celda de <em>En almacén</em>. Formatos aceptados: <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>), con o sin hora (<code>HH:MM</code>).</li>
       <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
-      <li>Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección de aviso debajo con opción de eliminar.</li>
+      <li>Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección <em>Reservas no encontradas</em> debajo con opción de eliminar.</li>
       <li>El icono de la extensión muestra un resumen de productos agrupados por urgencia.</li>
     </ul>
   `;
@@ -738,7 +738,7 @@ function addLegend() {
   legend.insertAdjacentElement("afterend", instructions);
 }
 
-// ─── Datos huérfanos ──────────────────────────────────────────────────────────
+// ─── Reservas no encontradas ──────────────────────────────────────────────
 
 function checkOrphanData() {
   const table = document.getElementById("preorder_list");
@@ -764,14 +764,22 @@ function checkOrphanData() {
     container.style.cssText = "margin-top:14px;padding:12px 14px;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;font-size:13px;color:#333;";
 
     const header = document.createElement("div");
-    header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;";
-    header.innerHTML = `<strong>⚠️ Datos huérfanos (${orphans.length})</strong>`;
+    header.style.cssText = "display:flex;justify-content:space-between;align-items:center;";
+    const toggle = document.createElement("strong");
+    toggle.style.cssText = "cursor:pointer;user-select:none;";
+    toggle.textContent = `▶ Reservas no encontradas (${orphans.length})`;
+    toggle.addEventListener("click", () => {
+      const open = list.style.display !== "none";
+      list.style.display = open ? "none" : "flex";
+      toggle.textContent = `${open ? "▶" : "▼"} Reservas no encontradas (${orphans.length})`;
+    });
+    header.appendChild(toggle);
 
     const deleteAllBtn = document.createElement("button");
     deleteAllBtn.textContent = "Eliminar todos";
     deleteAllBtn.style.cssText = "background:#d9534f;color:#fff;border:none;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:12px;";
     deleteAllBtn.addEventListener("click", () => {
-      if (!confirm("¿Eliminar todos los datos huérfanos?")) return;
+      if (!confirm("¿Eliminar todas las reservas no encontradas?")) return;
       chrome.storage.local.get(STORAGE_KEY, (res) => {
         const d = res[STORAGE_KEY] || {};
         orphans.forEach(([key]) => delete d[key]);
@@ -782,7 +790,7 @@ function checkOrphanData() {
     container.appendChild(header);
 
     const list = document.createElement("div");
-    list.style.cssText = "display:flex;flex-direction:column;gap:6px;";
+    list.style.cssText = "display:none;flex-direction:column;gap:6px;margin-top:8px;";
 
     orphans.forEach(([key, { date: dateStr, img, productUrl }]) => {
       const limitDate = addThreeMonths(dateStr);
@@ -816,7 +824,7 @@ function checkOrphanData() {
             row.remove();
             const remaining = list.children.length;
             if (remaining === 0) container.remove();
-            else header.querySelector("strong").textContent = `⚠️ Datos huérfanos (${remaining})`;
+            else toggle.textContent = `▼ Reservas no encontradas (${remaining})`;
           });
         });
       });
