@@ -784,15 +784,25 @@ function checkOrphanData() {
     const list = document.createElement("div");
     list.style.cssText = "display:flex;flex-direction:column;gap:6px;";
 
-    orphans.forEach(([key, { date: dateStr, img }]) => {
+    orphans.forEach(([key, { date: dateStr, img, productUrl }]) => {
       const limitDate = addThreeMonths(dateStr);
       const status = limitDate ? formatCountdown(limitDate) : "Sin fecha";
 
       const row = document.createElement("div");
-      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;";
+      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;gap:8px;";
+
+      if (img) {
+        const thumb = document.createElement("img");
+        thumb.src = img;
+        thumb.style.cssText = "width:40px;height:40px;object-fit:contain;flex-shrink:0;";
+        row.appendChild(thumb);
+      }
 
       const info = document.createElement("span");
-      info.innerHTML = `<strong>${key}</strong><br><small>Entrada: ${dateStr} · Límite: ${status}</small>`;
+      const nameEl = productUrl
+        ? `<a href="${productUrl}" target="_blank" style="color:inherit;font-weight:bold;">${key}</a>`
+        : `<strong>${key}</strong>`;
+      info.innerHTML = `${nameEl}<br><small>Entrada: ${dateStr} · Límite: ${status}</small>`;
       info.style.cssText = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;";
 
       const delBtn = document.createElement("button");
