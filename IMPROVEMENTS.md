@@ -12,26 +12,7 @@
 
 ## 1. Auto-fetch de datos del producto
 
-### 1.1 Guardar fecha de entrada en almacén ✅ Implementado
-
-### 1.2 Guardar URL del detalle del producto ✅ Implementado
-Se almacena la URL del detalle del producto en el storage. En cargas posteriores se salta el fetch al detalle del pedido y se accede directamente al producto, reduciendo tiempos de respuesta.
-
-### 1.3 Guardar fecha estimada de disponibilidad ✅ Implementado
-Los artículos aún no disponibles muestran la fecha estimada de disponibilidad en la columna "En almacén" (en gris cursiva). La fecha aproximada se usa para ordenar la columna. Cuando el producto pasa a estar disponible, el refresco detecta el cambio.
-
-### 1.4 Enlace al detalle del producto desde la tabla ✅ Implementado
-El nombre del artículo en la tabla de reservas es un enlace que abre el detalle del producto en nueva pestaña, usando la URL guardada en storage.
-
-### 1.5 Indicador visual de fila durante el fetch ✅ Implementado
-
-### 1.6 Botón para refrescar datos manualmente ✅ Implementado
-Botón "Refrescar datos" junto a la leyenda que re-consulta todos los productos. Solo muestra cambios encontrados con overlay informativo y botones de aceptar/rechazar por fila. Los enlaces rotos se reintentan.
-
-### 1.7 Gestión de enlaces rotos al detalle del artículo ✅ Implementado
-Se detectan enlaces rotos verificando la presencia de `h1.page-title[itemprop="name"]` en la página del producto. Si no existe, se marca `brokenLink: true` en storage y se muestra un icono ⛓️💥 junto al nombre. Los enlaces rotos no se reintentan automáticamente.
-
-### 1.8 Auto-fetch en segundo plano
+### 1.1 Auto-fetch en segundo plano
 Programar una alarma (`chrome.alarms`) que se dispare 1-2 veces al día para obtener datos de productos sin fecha o con enlace roto directamente desde el service worker, sin necesidad de tener la página de reservas abierta.
 
 Puntos a definir:
@@ -40,33 +21,22 @@ Puntos a definir:
 - El service worker ya tiene `host_permissions` y acceso a cookies, por lo que puede hacer `fetch()` directamente.
 - `chrome.alarms` despierta el service worker aunque esté dormido.
 
-### 1.9 Soporte multiidioma en la extracción de fecha
+### 1.2 Soporte multiidioma en la extracción de fecha
 El campo "Entrada en almacén" puede aparecer con distinto nombre si la web está en inglés. Identificar el texto equivalente en inglés y contemplarlo en el selector.
 
 ---
 
 ## 2. Tabla de reservas
 
-### 2.1 Ordenación por columnas ✅ Implementado
-
-### 2.2 Coloreado de filas por urgencia ✅ Implementado
-
-### 2.3 Leyenda e instrucciones ✅ Implementado
-
-### 2.4 Rediseño: reservas pendientes vs en almacén
+### 2.1 Rediseño: reservas pendientes vs en almacén
 Separar la tabla en dos secciones diferenciadas: productos con fecha de entrada en almacén (activos, con contador de límite) y productos aún no disponibles (con fecha estimada de disponibilidad). Cambio de mayor calado que afecta a la estructura visual principal.
 
 ---
 
 ## 3. Reservas no encontradas
 
-### 3.1 Sección de aviso con eliminación individual y global ✅ Implementado
-
-### 3.2 Mostrar imagen y enlace en reservas no encontradas ✅ Implementado
-Miniatura del producto y enlace a su ficha en la sección de reservas no encontradas, usando `img` y `productUrl` del storage. La sección es colapsable y carga colapsada por defecto.
-
-### 3.3 Mostrar fila completa en la tabla
-Guardar el `outerHTML` del `<tr>` en el storage para reinsertar los productos huérfanos directamente en la tabla con un estilo diferenciado, en lugar de mostrarlos en una sección aparte.
+### 3.1 Mostrar fila completa en la tabla
+Guardar el `outerHTML` del `<tr>` en el storage para reinsertar los productos no encontrados directamente en la tabla con un estilo diferenciado, en lugar de mostrarlos en una sección aparte.
 
 Cambios necesarios:
 - `saveToStorage`: guardar `{ date, html }` en vez de solo el string de fecha
