@@ -359,29 +359,29 @@ function isValidProductPage(html) {
 }
 
 async function fetchDateFromProduct(productUrl) {
+  const empty = { date: null, brokenLink: false, availableFrom: null, availableFromDate: null };
   const productHTML = await fetchHTML(productUrl);
-  if (!productHTML) return { date: null, brokenLink: false };
+  if (!productHTML) return empty;
 
   if (!isValidProductPage(productHTML)) {
-    return { date: null, brokenLink: true };
+    return { ...empty, brokenLink: true };
   }
 
   const productDoc = parseHTML(productHTML);
   const dts = productDoc.querySelectorAll("dt.name");
+  let date = null, availableFrom = null, availableFromDate = null;
   for (const dt of dts) {
-    if (dt.textContent.trim() === "Entrada en almacén") {
-      const dateText = dt.nextElementSibling?.textContent.trim();
-      if (!dateText) return { date: null, brokenLink: false };
-      const normalized = normalizeDateTime(dateText);
-      return { date: parseDateTime(normalized) ? normalized : null, brokenLink: false };
-    }
-    if (dt.textContent.trim() === "Disponibilidad") {
-      const availableFrom = dt.nextElementSibling?.textContent.trim() || null;
-      const availableFromDate = availableFrom ? parseAvailableFrom(availableFrom) : null;
-      return { date: null, brokenLink: false, availableFrom, availableFromDate };
+    const label = dt.textContent.trim();
+    const value = dt.nextElementSibling?.textContent.trim() || null;
+    if (label === "Entrada en almacén" && value) {
+      const normalized = normalizeDateTime(value);
+      date = parseDateTime(normalized) ? normalized : null;
+    } else if (label === "Disponibilidad" && value) {
+      availableFrom = value;
+      availableFromDate = parseAvailableFrom(value);
     }
   }
-  return { date: null, brokenLink: false };
+  return { date, brokenLink: false, availableFrom, availableFromDate };
 }
 
 async function autoFetchRowData(row, key, cell, stored) {
