@@ -73,7 +73,7 @@ Próximamente disponible.
 
 Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
 
-Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle y `brokenLink` indica si el enlace al producto es inválido.
+Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada y `availableFromDate` la fecha aproximada parseable.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
@@ -89,6 +89,7 @@ pixelatoy-extension/
 ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
 ├── popup.html       # Popup del icono de la extensión
 ├── popup.js         # Lógica del popup
+├── privacy.html     # Política de privacidad
 ├── manifest.json    # Configuración de la extensión
 ├── CHANGELOG.md     # Historial de versiones
 ├── IMPROVEMENTS.md  # Ideas y mejoras pendientes
