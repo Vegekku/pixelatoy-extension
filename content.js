@@ -438,8 +438,7 @@ function autoFetchMissingData(storedTexts) {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
-    if (getStoredDate(stored) && stored.productUrl && !stored.availableFrom) return;
-    if (stored.availableFrom && stored.productUrl) return;
+    if (stored.productUrl && (getStoredDate(stored) || stored.availableFrom)) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
     autoFetchRowData(row, key, cell, stored);
