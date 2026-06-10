@@ -415,7 +415,7 @@ async function autoFetchRowData(row, key, cell, stored) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
       } else if (date) {
-        saveToStorage(key, { date, brokenLink: false, availableFrom: null, availableFromDate: null }, row);
+        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate }, row);
         updateCell(cell, row, addThreeMonths(date));
       } else if (availableFrom) {
         saveToStorage(key, { availableFrom, availableFromDate }, row);
