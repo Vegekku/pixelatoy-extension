@@ -6,6 +6,14 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-05-30
+
+### Added
+
+- Fecha estimada de disponibilidad en columna "En almacén" para productos no disponibles (gris cursiva)
+- Fecha estimada usada como criterio de ordenación
+- Detección automática del cambio de disponibilidad estimada a fecha real al refrescar
+
 ## [1.0.0] - 2025-01-01
 
 ### Added
@@ -23,5 +31,6 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.1.0...v1.2.0
 [1.0.0]: https://github.com/Vegekku/pixelatoy-extension/releases/tag/v1.0.0
