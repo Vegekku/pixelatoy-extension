@@ -6,6 +6,12 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.2.1] - 2025-06-10
+
+### Changed
+
+- Excluidos `.amazonq/` e `icons/image.png` del repositorio
+
 ## [1.2.0] - 2025-05-30
 
 ### Added
@@ -31,6 +37,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.1.0...v1.2.0
 [1.0.0]: https://github.com/Vegekku/pixelatoy-extension/releases/tag/v1.0.0
