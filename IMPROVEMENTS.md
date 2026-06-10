@@ -47,7 +47,8 @@ El campo "Entrada en almacén" puede aparecer con distinto nombre si la web est�
 
 ## 2. Tabla de reservas
 
-### 2.1 Ordenación por columnas ✅ Implementado
+### 2.1 Rediseño: reservas pendientes vs en almacén
+Separar la tabla en dos secciones diferenciadas: productos con fecha de entrada en almacén (activos, con contador de límite) y productos aún no disponibles (con fecha estimada de disponibilidad). Cambio de mayor calado que afecta a la estructura visual principal.
 
 ### 2.2 Coloreado de filas por urgencia ✅ Implementado
 
