@@ -315,12 +315,13 @@ function createOverlay(row) {
   const spans = dotsEl.querySelectorAll("span");
   let frameIndex = 0;
   spans[0].classList.add("active");
-  setInterval(() => {
-    if (!overlayDiv.isConnected) return;
+  const interval = setInterval(() => {
     spans[frameIndex % 3].classList.remove("active");
     frameIndex++;
     spans[frameIndex % 3].classList.add("active");
   }, 400);
+  const originalRemove = overlayDiv.remove.bind(overlayDiv);
+  overlayDiv.remove = () => { clearInterval(interval); originalRemove(); };
   return overlayDiv;
 }
 
