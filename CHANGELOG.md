@@ -6,19 +6,33 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [1.2.1] - 2025-06-10
+## [1.2.1] - 2026-06-10
 
 ### Changed
 
 - Excluidos `.amazonq/` e `icons/image.png` del repositorio
 
-## [1.2.0] - 2025-05-30
+## [1.2.0] - 2026-05-30
 
 ### Added
 
 - Fecha estimada de disponibilidad en columna "En almacén" para productos no disponibles (gris cursiva)
 - Fecha estimada usada como criterio de ordenación
 - Detección automática del cambio de disponibilidad estimada a fecha real al refrescar
+
+## [1.1.0] - 2026-05-30
+
+### Added
+
+- Sección "Reservas no encontradas" enriquecida con miniatura y enlace al producto
+- Sección "Reservas no encontradas" colapsable, cargada colapsada por defecto
+- Instrucciones de uso colapsables, cargadas colapsadas por defecto
+- Iconos personalizados (16x16, 48x48, 128x128)
+
+### Changed
+
+- Sección "Datos huérfanos" renombrada a "Reservas no encontradas"
+- Instrucciones de uso reestructuradas priorizando funcionalidades automáticas
 
 ## [1.0.0] - 2025-01-01
 
@@ -40,4 +54,5 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 [Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...HEAD
 [1.2.1]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Vegekku/pixelatoy-extension/releases/tag/v1.0.0
