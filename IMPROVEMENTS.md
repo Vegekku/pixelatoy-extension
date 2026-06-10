@@ -17,8 +17,8 @@
 ### 1.2 Guardar URL del detalle del producto ✅ Implementado
 Se almacena la URL del detalle del producto en el storage (`{ date, img, productUrl }`). En cargas posteriores se salta el fetch al detalle del pedido y se accede directamente al producto, reduciendo tiempos de respuesta.
 
-### 1.3 Guardar fecha estimada de disponibilidad
-Los artículos aún no disponibles tienen una fecha estimada de disponibilidad en su detalle. Extraerla y guardarla en el storage (`{ date, img, productUrl, availableFrom }`). Útil para saber cuándo se podrá consultar la fecha de entrada real.
+### 1.3 Guardar fecha estimada de disponibilidad ✅ Implementado
+Los artículos aún no disponibles muestran la fecha estimada de disponibilidad en la columna "En almacén" (en gris cursiva). La fecha aproximada se usa para ordenar la columna. Cuando el producto pase a disponible, el refresco detecta el cambio.
 
 ### 1.4 Enlace al detalle del producto desde la tabla ✅ Implementado
 El nombre del artículo en la tabla de reservas es un enlace que abre el detalle del producto en nueva pestaña, usando la URL guardada en storage.
@@ -47,7 +47,8 @@ El campo "Entrada en almacén" puede aparecer con distinto nombre si la web est�
 
 ## 2. Tabla de reservas
 
-### 2.1 Ordenación por columnas ✅ Implementado
+### 2.1 Rediseño: reservas pendientes vs en almacén
+Separar la tabla en dos secciones diferenciadas: productos con fecha de entrada en almacén (activos, con contador de límite) y productos aún no disponibles (con fecha estimada de disponibilidad). Cambio de mayor calado que afecta a la estructura visual principal.
 
 ### 2.2 Coloreado de filas por urgencia ✅ Implementado
 
