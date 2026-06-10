@@ -645,8 +645,8 @@ async function refreshRowData(row, key, stored) {
     changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || null, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
-    newFields.availableFrom = null;
-    newFields.availableFromDate = null;
+    newFields.availableFrom = availableFrom;
+    newFields.availableFromDate = availableFromDate;
   } else if (!date && availableFrom && availableFrom !== stored?.availableFrom) {
     changes.push({ label: "Disponibilidad", oldVal: stored?.availableFrom || null, newVal: availableFrom });
     newFields.availableFrom = availableFrom;
