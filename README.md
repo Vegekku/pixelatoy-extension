@@ -45,7 +45,8 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 ### Obtención automática de datos
 - Al cargar la página, la extensión obtiene automáticamente la URL del producto y la fecha de entrada en almacén para los productos que no tengan estos datos guardados.
 - Durante la consulta se muestra un overlay de carga sobre la fila afectada.
-- Si el producto aún no está disponible, no se extrae fecha pero sí se guarda el enlace para futuras consultas.
+- Si el producto aún no está disponible, se muestra la fecha estimada de disponibilidad en la columna "En almacén" en gris cursiva, y se usa como criterio de ordenación.
+- Cuando un producto pasa a estar disponible, el botón "Refrescar datos" detecta el cambio y permite actualizar la fecha.
 
 ### Enlace al detalle del producto
 - El nombre del producto en la tabla es un enlace que abre su página de detalle en nueva pestaña.

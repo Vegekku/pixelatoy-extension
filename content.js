@@ -143,14 +143,26 @@ function colorRowByDate(row, date) {
   row.style.color = color;
 }
 
-function updateCell(cell, row, limitDate) {
-  cell.setAttribute("data-limit-date", limitDate ?? "");
-  cell.textContent = limitDate ? formatCountdown(limitDate) : "";
-  if (!limitDate) {
+function updateCell(cell, row, limitDate, availableFrom, availableFromDate) {
+  if (limitDate) {
+    cell.setAttribute("data-limit-date", limitDate);
+    cell.removeAttribute("data-available-from");
+    cell.textContent = formatCountdown(limitDate);
+    cell.style.cssText = "";
+    colorRowByDate(row, parseDateTime(limitDate));
+  } else if (availableFrom) {
+    cell.setAttribute("data-limit-date", availableFromDate ?? "");
+    cell.setAttribute("data-available-from", "1");
+    cell.textContent = availableFrom;
+    cell.style.cssText = "color:#888;font-style:italic;font-size:0.9em;";
     row.style.background = "";
     row.style.color = "";
   } else {
-    colorRowByDate(row, parseDateTime(limitDate));
+    cell.setAttribute("data-limit-date", "");
+    cell.textContent = "";
+    cell.style.cssText = "";
+    row.style.background = "";
+    row.style.color = "";
   }
 }
 
@@ -327,6 +339,20 @@ async function resolveProductUrl(row, key) {
   return productLink || null;
 }
 
+function parseAvailableFrom(text) {
+  const MONTHS = {
+    enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
+    julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
+    january:1, february:2, march:3, april:4, may:5, june:6,
+    july:7, august:8, september:9, october:10, november:11, december:12,
+  };
+  const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
+  if (!match) return null;
+  const mm = MONTHS[match[1].toLowerCase()];
+  if (!mm) return null;
+  return toISODateTime(match[2], mm, "01");
+}
+
 function isValidProductPage(html) {
   const doc = parseHTML(html);
   return !!doc.querySelector('h1.page-title[itemprop="name"]');
@@ -349,6 +375,11 @@ async function fetchDateFromProduct(productUrl) {
       const normalized = normalizeDateTime(dateText);
       return { date: parseDateTime(normalized) ? normalized : null, brokenLink: false };
     }
+    if (dt.textContent.trim() === "Disponibilidad") {
+      const availableFrom = dt.nextElementSibling?.textContent.trim() || null;
+      const availableFromDate = availableFrom ? parseAvailableFrom(availableFrom) : null;
+      return { date: null, brokenLink: false, availableFrom, availableFromDate };
+    }
   }
   return { date: null, brokenLink: false };
 }
@@ -358,7 +389,10 @@ async function autoFetchRowData(row, key, cell, stored) {
   const hasUrl = !!(stored && stored.productUrl);
   if (hasDate && hasUrl) return;
 
-  const needsDate = !hasDate && !stored?.brokenLink && row.children[row.children.length - 2]?.querySelector("form");
+  const needsDate = !hasDate && !stored?.brokenLink && (
+    row.children[row.children.length - 2]?.querySelector("form") ||
+    row.children[row.children.length - 2]?.textContent.trim() === "No disponible"
+  );
   if (hasUrl && !needsDate) return;
 
   cell.setAttribute("data-fetching", "1");
@@ -376,13 +410,16 @@ async function autoFetchRowData(row, key, cell, stored) {
     }
 
     if (needsDate && productUrl) {
-      const { date, brokenLink } = await fetchDateFromProduct(productUrl);
+      const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl);
       if (brokenLink) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
       } else if (date) {
-        saveToStorage(key, { date, brokenLink: false }, row);
+        saveToStorage(key, { date, brokenLink: false, availableFrom: null, availableFromDate: null }, row);
         updateCell(cell, row, addThreeMonths(date));
+      } else if (availableFrom) {
+        saveToStorage(key, { availableFrom, availableFromDate }, row);
+        updateCell(cell, row, null, availableFrom, availableFromDate);
       }
     }
   } catch (e) {
@@ -401,7 +438,8 @@ function autoFetchMissingData(storedTexts) {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
-    if (getStoredDate(stored) && stored.productUrl) return;
+    if (getStoredDate(stored) && stored.productUrl && !stored.availableFrom) return;
+    if (stored.availableFrom && stored.productUrl) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
     autoFetchRowData(row, key, cell, stored);
@@ -431,10 +469,13 @@ function applyCustomColumn() {
         return;
       }
 
-      const cell = createEditableCell(key, row);
+      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === "No disponible";
+      const cell = isNotAvailable ? document.createElement("td") : createEditableCell(key, row);
+      cell.setAttribute(DATA_INSERT, "1");
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
-      updateCell(cell, row, limitDate);
+      const { availableFrom, availableFromDate } = storedTexts[key] || {};
+      updateCell(cell, row, limitDate, availableFrom, availableFromDate);
 
       if (storedTexts[key]?.productUrl) {
         linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl, storedTexts[key].brokenLink);
@@ -455,6 +496,7 @@ function refreshCountdowns() {
     if (cell.tagName === "TH" || cell.getAttribute("data-editing") === "1") return;
     const limitDate = cell.getAttribute("data-limit-date");
     if (!limitDate) return;
+    if (cell.getAttribute("data-available-from") === "1") return;
     cell.textContent = formatCountdown(limitDate);
     colorRowByDate(cell.closest("tr"), parseDateTime(limitDate));
   });
@@ -583,7 +625,7 @@ async function refreshRowData(row, key, stored) {
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink } = await fetchDateFromProduct(productUrl);
+  const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl);
 
   const changes = [];
   const newFields = {};
@@ -600,9 +642,15 @@ async function refreshRowData(row, key, stored) {
   // Fecha nueva o distinta
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
-    changes.push({ label: "Fecha", oldVal: storedDate || null, newVal: date });
+    changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || null, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
+    newFields.availableFrom = null;
+    newFields.availableFromDate = null;
+  } else if (!date && availableFrom && availableFrom !== stored?.availableFrom) {
+    changes.push({ label: "Disponibilidad", oldVal: stored?.availableFrom || null, newVal: availableFrom });
+    newFields.availableFrom = availableFrom;
+    newFields.availableFromDate = availableFromDate;
   }
 
   if (changes.length === 0) return null;
@@ -655,6 +703,7 @@ async function refreshAllData() {
           if (newFields.productUrl) linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
           if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
+          else if (newFields.availableFrom) updateCell(cell, row, null, newFields.availableFrom, newFields.availableFromDate);
           resolve();
         },
         () => { resolve(); }
