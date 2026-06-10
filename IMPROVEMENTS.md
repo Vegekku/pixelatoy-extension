@@ -35,14 +35,7 @@ Separar la tabla en dos secciones diferenciadas: productos con fecha de entrada 
 
 ## 3. Reservas no encontradas
 
-### 3.1 Mostrar fila completa en la tabla
-Guardar el `outerHTML` del `<tr>` en el storage para reinsertar los productos no encontrados directamente en la tabla con un estilo diferenciado, en lugar de mostrarlos en una sección aparte.
-
-Cambios necesarios:
-- `saveToStorage`: guardar `{ date, html }` en vez de solo el string de fecha
-- `createEditableCell`: al hacer blur, pasar el `outerHTML` de la fila
-- Todas las lecturas del storage: extraer `.date` del objeto
-- `checkOrphanData`: renderizar el HTML guardado como fila en la tabla
+Sección colapsable debajo de la tabla que muestra las reservas con datos guardados pero que ya no aparecen en la tabla. Permite eliminar cada reserva individualmente o todas a la vez.
 
 ---
 
