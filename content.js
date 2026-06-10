@@ -756,9 +756,6 @@ function addLegend() {
   table.insertAdjacentElement("afterend", legend);
 
   const now = new Date();
-  const exampleDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const exampleDateTime = toISODateTime(now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes());
-  const exampleDMY = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
   const MONTHS_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
   const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const exampleNaturalES = `${now.getDate()} ${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
@@ -767,22 +764,30 @@ function addLegend() {
   const instructions = document.createElement("div");
   instructions.style.cssText = "margin-top:10px;padding:10px 14px;background:#f5f5f5;border-radius:4px;font-size:13px;color:#333;line-height:1.6;";
   instructions.innerHTML = `
-    <strong>Instrucciones de uso</strong>
-    <ul style="margin:6px 0 0 0;padding-left:18px;">
-      <li>Haz click en una celda de <em>En almacén</em> para introducir o editar la fecha de entrada.</li>
-      <li>Formato de fecha esperado: <code>YYYY-MM-DD</code> o <code>YYYY-MM-DD HH:MM</code> (ej: <code>${exampleDate}</code> o <code>${exampleDateTime}</code>). La hora es opcional, si no se indica se asume <code>00:00</code>. También se aceptan los formatos <code>DD/MM/YYYY</code>, <code>DD-MM-YYYY</code> (ej: <code>${exampleDMY}</code>), <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>) y <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>), con o sin hora.</li>
-      <li>Al salir del campo, la fecha se guarda automáticamente y se muestra el tiempo restante hasta el límite (entrada + 3 meses).</li>
-      <li>El contador se actualiza automáticamente cada minuto.</li>
+    <strong style="cursor:pointer;user-select:none;" id="pixelatoy-instr-toggle">▶ Instrucciones de uso</strong>
+    <ul id="pixelatoy-instr-list" style="display:none;margin:6px 0 0 0;padding-left:18px;">
+      <li class="pixelatoy-instr-broken">La fecha de entrada y el enlace al producto se obtienen automáticamente al cargar la página. El nombre del producto es un enlace a su ficha. Si aparece <span class="pixelatoy-broken-icon"></span>, el enlace está roto.</li>
+      <li>Usa "Refrescar datos" para actualizar la información manualmente y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
+      <li>Para introducir o corregir la fecha manualmente, haz click en la celda de <em>En almacén</em>. Formatos aceptados: <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>), con o sin hora (<code>HH:MM</code>).</li>
       <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
-      <li>El nombre del producto es un enlace a su ficha. Si aparece ⛓️💥, el enlace está roto.</li>
-      <li>La fecha y el enlace se obtienen automáticamente al cargar la página si no están guardados.</li>
-      <li>Usa "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
+      <li>Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección <em>Reservas no encontradas</em> debajo con opción de eliminar.</li>
+      <li>El icono de la extensión muestra un resumen de productos agrupados por urgencia.</li>
     </ul>
   `;
+  const brokenIcon = document.createElement("span");
+  brokenIcon.textContent = " ⛓️‍💥";
+  instructions.querySelector(".pixelatoy-broken-icon").replaceWith(brokenIcon);
+  const toggle = instructions.querySelector("#pixelatoy-instr-toggle");
+  const list = instructions.querySelector("#pixelatoy-instr-list");
+  toggle.addEventListener("click", () => {
+    const open = list.style.display !== "none";
+    list.style.display = open ? "none" : "block";
+    toggle.innerHTML = (open ? "&#9654;" : "&#9660;") + " Instrucciones de uso";
+  });
   legend.insertAdjacentElement("afterend", instructions);
 }
 
-// ─── Datos huérfanos ──────────────────────────────────────────────────────────
+// ─── Reservas no encontradas ──────────────────────────────────────────────
 
 function checkOrphanData() {
   const table = document.getElementById("preorder_list");
@@ -808,14 +813,22 @@ function checkOrphanData() {
     container.style.cssText = "margin-top:14px;padding:12px 14px;background:#fff3cd;border:1px solid #ffc107;border-radius:4px;font-size:13px;color:#333;";
 
     const header = document.createElement("div");
-    header.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;";
-    header.innerHTML = `<strong>⚠️ Datos huérfanos (${orphans.length})</strong>`;
+    header.style.cssText = "display:flex;justify-content:space-between;align-items:center;";
+    const toggle = document.createElement("strong");
+    toggle.style.cssText = "cursor:pointer;user-select:none;";
+    toggle.textContent = `▶ Reservas no encontradas (${orphans.length})`;
+    toggle.addEventListener("click", () => {
+      const open = list.style.display !== "none";
+      list.style.display = open ? "none" : "flex";
+      toggle.textContent = `${open ? "▶" : "▼"} Reservas no encontradas (${orphans.length})`;
+    });
+    header.appendChild(toggle);
 
     const deleteAllBtn = document.createElement("button");
     deleteAllBtn.textContent = "Eliminar todos";
     deleteAllBtn.style.cssText = "background:#d9534f;color:#fff;border:none;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:12px;";
     deleteAllBtn.addEventListener("click", () => {
-      if (!confirm("¿Eliminar todos los datos huérfanos?")) return;
+      if (!confirm("¿Eliminar todas las reservas no encontradas?")) return;
       chrome.storage.local.get(STORAGE_KEY, (res) => {
         const d = res[STORAGE_KEY] || {};
         orphans.forEach(([key]) => delete d[key]);
@@ -826,17 +839,27 @@ function checkOrphanData() {
     container.appendChild(header);
 
     const list = document.createElement("div");
-    list.style.cssText = "display:flex;flex-direction:column;gap:6px;";
+    list.style.cssText = "display:none;flex-direction:column;gap:6px;margin-top:8px;";
 
-    orphans.forEach(([key, { date: dateStr, img }]) => {
+    orphans.forEach(([key, { date: dateStr, img, productUrl }]) => {
       const limitDate = addThreeMonths(dateStr);
       const status = limitDate ? formatCountdown(limitDate) : "Sin fecha";
 
       const row = document.createElement("div");
-      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;";
+      row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;gap:8px;";
+
+      if (img) {
+        const thumb = document.createElement("img");
+        thumb.src = img;
+        thumb.style.cssText = "width:40px;height:40px;object-fit:contain;flex-shrink:0;";
+        row.appendChild(thumb);
+      }
 
       const info = document.createElement("span");
-      info.innerHTML = `<strong>${key}</strong><br><small>Entrada: ${dateStr} · Límite: ${status}</small>`;
+      const nameEl = productUrl
+        ? `<a href="${productUrl}" target="_blank" style="color:inherit;font-weight:bold;">${key}</a>`
+        : `<strong>${key}</strong>`;
+      info.innerHTML = `${nameEl}<br><small>Entrada: ${dateStr} · Límite: ${status}</small>`;
       info.style.cssText = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;";
 
       const delBtn = document.createElement("button");
@@ -850,7 +873,7 @@ function checkOrphanData() {
             row.remove();
             const remaining = list.children.length;
             if (remaining === 0) container.remove();
-            else header.querySelector("strong").textContent = `⚠️ Datos huérfanos (${remaining})`;
+            else toggle.textContent = `▼ Reservas no encontradas (${remaining})`;
           });
         });
       });
