@@ -21,8 +21,19 @@ Puntos a definir:
 - El service worker ya tiene `host_permissions` y acceso a cookies, por lo que puede hacer `fetch()` directamente.
 - `chrome.alarms` despierta el service worker aunque esté dormido.
 
-### 1.2 Soporte multiidioma en la extracción de fecha
-El campo "Entrada en almacén" puede aparecer con distinto nombre si la web está en inglés. Identificar el texto equivalente en inglés y contemplarlo en el selector.
+### 1.2 Soporte ES/EN
+La extensión solo carga en español porque el `manifest.json` solo cubre `/es/module/preorder/preorderorderdetails*`. Hay que añadir el match para `/en/module/preorder/preorderorderdetails*`.
+
+Además, todos los textos hardcodeados en español deben soportar inglés:
+
+Implementación mediante fichero `i18n.js` propio (no `chrome.i18n`) porque el criterio de idioma es el de la web de Pixelatoy (`document.documentElement.lang`), no el del navegador.
+
+Cambios necesarios:
+- `manifest.json`: añadir match para `/en/module/preorder/preorderorderdetails*`. Añadir `i18n.js` antes de `content.js` en `content_scripts`.
+- `i18n.js` (nuevo): objeto `MESSAGES` con claves en `es` y `en`. Constante `LANG` detectada por `document.documentElement.lang`. Función `t(key)` con fallback a `es`. Exportada como módulo ES para uso en `popup.js` y `background.js`; cargada como script previo en `content_scripts` para `content.js`.
+- `content.js`: sustituir todos los literales por llamadas a `t()`. Textos afectados: cabecera de columna, `THRESHOLDS.label`, botón "Refrescar datos", instrucciones de uso, sección orphans, contador "Vencido", tooltips, placeholder, `confirm()` de borrado. Selectores de la ficha del producto: `"Entrada en almacén"` y `"Disponibilidad"` → verificar equivalentes EN en la web antes de implementar. Selector `"No disponible"` en `autoFetchRowData` → ídem.
+- `popup.js`: importar `i18n.js` como módulo ES y sustituir literales.
+- `background.js`: importar `i18n.js` como módulo ES y sustituir literales de notificaciones.
 
 ---
 
