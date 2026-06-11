@@ -4,9 +4,8 @@
 
 - [1. Auto-fetch de datos del producto](#1-auto-fetch-de-datos-del-producto)
 - [2. Tabla de reservas](#2-tabla-de-reservas)
-- [3. Reservas no encontradas](#3-reservas-no-encontradas)
-- [4. Configuración de la extensión](#4-configuración-de-la-extensión)
-- [5. Infraestructura y código](#5-infraestructura-y-código)
+- [3. Configuración de la extensión](#3-configuración-de-la-extensión)
+- [4. Infraestructura y código](#4-infraestructura-y-código)
 
 ---
 
@@ -54,15 +53,9 @@ Implementación: tabla única con filas ocultas/mostradas por `display:none/bloc
 
 ---
 
-## 3. Reservas no encontradas
+## 3. Configuración de la extensión
 
-Sección colapsable debajo de la tabla que muestra las reservas con datos guardados pero que ya no aparecen en la tabla. Permite eliminar cada reserva individualmente o todas a la vez.
-
----
-
-## 4. Configuración de la extensión
-
-### 4.1 Página de opciones
+### 3.1 Página de opciones
 Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones separada (`options.html` + `options.js`).
 
 Config guardada en `pixelatoyConfig` en `chrome.storage.local`: `{ notificaciones: true, popup: true }`. Si la clave no existe, se asumen ambos valores `true` para no romper el comportamiento actual.
@@ -73,14 +66,14 @@ Cambios necesarios:
 - `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
 - `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
 
-### 4.2 Exportar e importar datos
+### 3.2 Exportar e importar datos
 Botón en la página de opciones para exportar los datos del storage a un fichero JSON y para importarlos. Útil como copia de seguridad antes de desinstalar o migrar a otro perfil de Chrome.
 
 ---
 
-## 5. Infraestructura y código
+## 4. Infraestructura y código
 
-### 5.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
+### 4.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
 `content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...).
