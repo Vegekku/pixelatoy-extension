@@ -5,10 +5,12 @@
 - [1. Auto-fetch de datos del producto](#1-auto-fetch-de-datos-del-producto)
 - [2. Tabla de reservas](#2-tabla-de-reservas)
 - [3. Configuración de la extensión](#3-configuración-de-la-extensión)
-- [4. Icono y notificaciones](#4-icono-y-notificaciones)
-- [5. Historial de fechas](#5-historial-de-fechas)
-- [6. UX](#6-ux)
-- [7. Infraestructura y código](#7-infraestructura-y-código)
+- [4. Favoritos y detalle de producto](#4-favoritos-y-detalle-de-producto)
+- [5. Catálogo y detalle de producto](#5-catálogo-y-detalle-de-producto)
+- [6. Icono y notificaciones](#6-icono-y-notificaciones)
+- [7. Historial de fechas](#7-historial-de-fechas)
+- [8. UX](#8-ux)
+- [9. Infraestructura y código](#9-infraestructura-y-código)
 
 ---
 
@@ -84,7 +86,48 @@ Botón en la página de opciones para exportar los datos del storage a un ficher
 
 ---
 
-## 4. Icono y notificaciones
+## 4. Favoritos y detalle de producto
+
+### 4.1 Enriquecimiento de la tabla de favoritos
+Pixelatoy tiene una página de favoritos propia (`/es/module/wkwishlist/viewwishlist`) con una tabla de 3 columnas (imagen, nombre, acciones). Los favoritos se almacenan en el servidor de Pixelatoy, por lo que la extensión no necesita su propio storage para ellos: simplemente lee y enriquece lo que ya está en la página.
+
+Datos a incorporar a la tabla (obtenidos del detalle del producto via auto-fetch):
+- Disponibilidad / fecha estimada.
+- Precio actual.
+- Precio más bajo registrado.
+- Cualquier otro dato relevante que aparezca en el detalle del producto.
+
+Cambios necesarios:
+- `manifest.json`: añadir match para `/es/module/wkwishlist/viewwishlist*` (y `/en/` equivalente).
+- Nuevo script o sección en `content.js` para detectar la página de favoritos y enriquecer la tabla.
+
+### 4.2 Indicador de favorito en el detalle del producto
+El botón de guardar favorito en la página de detalle no indica si el producto ya está en la lista. Modificar su aspecto para reflejarlo visualmente sin desentonar con el diseño de Pixelatoy.
+
+Implementación: al cargar la página de detalle, consultar la lista de favoritos (fetch a la página de favoritos o via API si existe) y cambiar el estilo/texto/icono del botón según el resultado.
+
+Cambios necesarios:
+- `manifest.json`: añadir match para las páginas de detalle de producto si no está ya cubierto.
+
+---
+
+## 5. Catálogo y detalle de producto
+
+### 5.1 Resaltar productos en reserva o favoritos en el catálogo
+Mientras el usuario navega el catálogo, resaltar visualmente las tarjetas de productos que ya tiene en reserva o en favoritos.
+
+### 5.2 Precio más bajo en tarjetas del catálogo
+Mostrar el precio más bajo histórico directamente en las tarjetas del listado sin necesidad de entrar al detalle.
+
+### 5.3 Alerta de bajada de precio en favoritos
+Notificar si el precio de un producto en favoritos baja respecto al último valor guardado. Depende del auto-fetch en segundo plano (punto 1.1).
+
+### 5.4 Historial de precios en el detalle del producto
+Mostrar un historial de precios (lista o minigráfico) directamente en la página de detalle del producto.
+
+---
+
+## 6. Icono y notificaciones
 
 ### 4.1 Badge en el icono de la extensión
 Mostrar un badge numérico en el icono con el número de productos que tienen menos de X días para el límite (umbral configurable). Permite ver de un vistazo cuántos productos son urgentes sin abrir el popup.
@@ -98,7 +141,7 @@ Depende de que el punto 1.1 esté implementado.
 
 ---
 
-## 5. Historial de fechas
+## 7. Historial de fechas
 
 Guardar un log de las fechas que ha tenido cada producto: fecha estimada de disponibilidad (según auto-fetch) y fecha real de entrada en almacén. Permite ver si Pixelatoy cumple sus plazos estimados.
 
@@ -108,7 +151,7 @@ Puntos a definir:
 
 ---
 
-## 6. UX
+## 8. UX
 
 ### 6.1 Persistencia del tab activo
 Si el usuario está en el tab "No disponible" y recarga la página, restaurar ese tab en lugar de volver siempre a "En almacén". Guardar el tab activo en `chrome.storage.local` o `sessionStorage`.
@@ -118,19 +161,19 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 
 ---
 
-## 7. Infraestructura y código
+## 9. Infraestructura y código
 
-### 7.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
+### 9.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 7.2).
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 9.2).
 
-### 7.2 Minificación y ofuscación del código
+### 9.2 Minificación y ofuscación del código
 El código de una extensión instalada es completamente legible desde `chrome://extensions/`. 
 
 - **Minificar**: reduce el tamaño del `.zip` y añade algo de fricción para leer el código. Recomendable.
 - **Ofuscar**: Google lo mira con lupa en la revisión de la Chrome Web Store y puede rechazar la extensión; además obliga a subir el código fuente original. Como barrera anti-copia es fácilmente reversible por alguien con experiencia. Pendiente de decidir si compensa.
 
-Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 7.1.
+Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 9.1.
 
 
