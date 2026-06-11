@@ -5,7 +5,10 @@
 - [1. Auto-fetch de datos del producto](#1-auto-fetch-de-datos-del-producto)
 - [2. Tabla de reservas](#2-tabla-de-reservas)
 - [3. Configuración de la extensión](#3-configuración-de-la-extensión)
-- [4. Infraestructura y código](#4-infraestructura-y-código)
+- [4. Icono y notificaciones](#4-icono-y-notificaciones)
+- [5. Historial de fechas](#5-historial-de-fechas)
+- [6. UX](#6-ux)
+- [7. Infraestructura y código](#7-infraestructura-y-código)
 
 ---
 
@@ -81,19 +84,53 @@ Botón en la página de opciones para exportar los datos del storage a un ficher
 
 ---
 
-## 4. Infraestructura y código
+## 4. Icono y notificaciones
 
-### 4.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
+### 4.1 Badge en el icono de la extensión
+Mostrar un badge numérico en el icono con el número de productos que tienen menos de X días para el límite (umbral configurable). Permite ver de un vistazo cuántos productos son urgentes sin abrir el popup.
+
+Implementación: `chrome.action.setBadgeText` y `chrome.action.setBadgeBackgroundColor` desde `background.js`. Se actualiza al cargar la página y al recibir cambios en `chrome.storage.onChanged`.
+
+### 4.2 Notificación al detectar cambios en auto-fetch
+Cuando el auto-fetch en segundo plano (punto 1.1) detecta que un producto "No disponible" ha pasado a tener fecha de entrada en almacén, lanzar una notificación push al usuario sin que tenga que abrir la página.
+
+Depende de que el punto 1.1 esté implementado.
+
+---
+
+## 5. Historial de fechas
+
+Guardar un log de las fechas que ha tenido cada producto: fecha estimada de disponibilidad (según auto-fetch) y fecha real de entrada en almacén. Permite ver si Pixelatoy cumple sus plazos estimados.
+
+Puntos a definir:
+- Dónde mostrar el historial (tooltip en la celda, sección en la página de opciones, etc.).
+- Límite de entradas por producto para no crecer indefinidamente el storage.
+
+---
+
+## 6. UX
+
+### 6.1 Persistencia del tab activo
+Si el usuario está en el tab "No disponible" y recarga la página, restaurar ese tab en lugar de volver siempre a "En almacén". Guardar el tab activo en `chrome.storage.local` o `sessionStorage`.
+
+### 6.2 Modo oscuro
+Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión: leyenda, instrucciones de uso y sección de orphans. Los colores de las filas de la tabla ya son configurables (punto 3.1) y quedan fuera de este alcance.
+
+---
+
+## 7. Infraestructura y código
+
+### 7.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 4.2).
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 7.2).
 
-### 4.2 Minificación y ofuscación del código
+### 7.2 Minificación y ofuscación del código
 El código de una extensión instalada es completamente legible desde `chrome://extensions/`. 
 
 - **Minificar**: reduce el tamaño del `.zip` y añade algo de fricción para leer el código. Recomendable.
 - **Ofuscar**: Google lo mira con lupa en la revisión de la Chrome Web Store y puede rechazar la extensión; además obliga a subir el código fuente original. Como barrera anti-copia es fácilmente reversible por alguien con experiencia. Pendiente de decidir si compensa.
 
-Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 4.1.
+Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 7.1.
 
 
