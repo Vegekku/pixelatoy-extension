@@ -86,4 +86,14 @@ Botón en la página de opciones para exportar los datos del storage a un ficher
 ### 4.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...).
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 4.2).
+
+### 4.2 Minificación y ofuscación del código
+El código de una extensión instalada es completamente legible desde `chrome://extensions/`. 
+
+- **Minificar**: reduce el tamaño del `.zip` y añade algo de fricción para leer el código. Recomendable.
+- **Ofuscar**: Google lo mira con lupa en la revisión de la Chrome Web Store y puede rechazar la extensión; además obliga a subir el código fuente original. Como barrera anti-copia es fácilmente reversible por alguien con experiencia. Pendiente de decidir si compensa.
+
+Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 4.1.
+
+
