@@ -39,8 +39,18 @@ Cambios necesarios:
 
 ## 2. Tabla de reservas
 
-### 2.1 Rediseño: reservas pendientes vs en almacén
-Separar la tabla en dos secciones diferenciadas: productos con fecha de entrada en almacén (activos, con contador de límite) y productos aún no disponibles (con fecha estimada de disponibilidad). Cambio de mayor calado que afecta a la estructura visual principal.
+### 2.1 Rediseño: tabs "En almacén" / "No disponible"
+Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
+
+Cada tab muestra un contador de productos en el título, ej: `En almacén (5)` / `No disponible (3)`.
+
+Las dos tablas son idénticas en estructura y número de columnas. Solo cambia la columna de fecha, que aparece en la misma posición en ambas:
+- Tab "En almacén": header `En almacén`, contenido = contador de límite (fecha entrada + 3 meses).
+- Tab "No disponible": header `Disponibilidad estimada`, contenido = fecha estimada en gris cursiva.
+
+La ordenación, coloreado de filas y resto de funcionalidades se aplican de forma independiente en cada tabla.
+
+Implementación: tabla única con filas ocultas/mostradas por `display:none/block` según el tab activo. Al cambiar de tab solo cambia el texto del header de la columna de fecha. La ordenación afecta a todas las filas (visibles y ocultas); queda pendiente decidir si en el futuro debe operar solo sobre las filas visibles.
 
 ---
 
