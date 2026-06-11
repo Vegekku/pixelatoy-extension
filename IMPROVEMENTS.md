@@ -1,5 +1,18 @@
 # Mejoras pendientes
 
+## Priorización
+
+| Bloque | Descripción | Puntos | Notas |
+|--------|-------------|--------|-------|
+| 1 — Base técnica | Antes de cualquier cosa | [9.1](#91-refactor-módulo-compartido--bundler-%EF%B8%8F-parcialmente-implementado) + [9.2](#92-minificación-y-ofuscación-del-código) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
+| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
+| Sin bloque definido | | [9.2](#92-minificación-y-ofuscación-del-código) (ofuscación) | Pendiente de decidir si compensa el riesgo de rechazo en la Store |
+
+---
+
 ## Índice
 
 - [1. Auto-fetch de datos del producto](#1-auto-fetch-de-datos-del-producto)
@@ -129,12 +142,12 @@ Mostrar un historial de precios (lista o minigráfico) directamente en la págin
 
 ## 6. Icono y notificaciones
 
-### 4.1 Badge en el icono de la extensión
+### 6.1 Badge en el icono de la extensión
 Mostrar un badge numérico en el icono con el número de productos que tienen menos de X días para el límite (umbral configurable). Permite ver de un vistazo cuántos productos son urgentes sin abrir el popup.
 
 Implementación: `chrome.action.setBadgeText` y `chrome.action.setBadgeBackgroundColor` desde `background.js`. Se actualiza al cargar la página y al recibir cambios en `chrome.storage.onChanged`.
 
-### 4.2 Notificación al detectar cambios en auto-fetch
+### 6.2 Notificación al detectar cambios en auto-fetch
 Cuando el auto-fetch en segundo plano (punto 1.1) detecta que un producto "No disponible" ha pasado a tener fecha de entrada en almacén, lanzar una notificación push al usuario sin que tenga que abrir la página.
 
 Depende de que el punto 1.1 esté implementado.
@@ -153,27 +166,25 @@ Puntos a definir:
 
 ## 8. UX
 
-### 6.1 Persistencia del tab activo
+### 8.1 Persistencia del tab activo
 Si el usuario está en el tab "No disponible" y recarga la página, restaurar ese tab en lugar de volver siempre a "En almacén". Guardar el tab activo en `chrome.storage.local` o `sessionStorage`.
 
-### 6.2 Modo oscuro
+### 8.2 Modo oscuro
 Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión: leyenda, instrucciones de uso y sección de orphans. Los colores de las filas de la tabla ya son configurables (punto 3.1) y quedan fuera de este alcance.
 
 ---
 
 ## 9. Infraestructura y código
 
-### 9.1 Refactor: módulo compartido ⚠️ Parcialmente implementado
+### 9.1 Refactor: módulo compartido + bundler ⚠️ Parcialmente implementado
 `helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
 
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación sería necesario introducir un bundler (esbuild, rollup...), lo que además es requisito si se adopta minificación u ofuscación (punto 9.2).
+`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación es necesario introducir un bundler (esbuild, rollup...). Conviene adelantarlo antes de que la extensión crezca más, ya que también es requisito para la minificación (punto 9.2) y facilita cualquier nuevo script que se añada.
 
 ### 9.2 Minificación y ofuscación del código
-El código de una extensión instalada es completamente legible desde `chrome://extensions/`. 
+El código de una extensión instalada es completamente legible desde `chrome://extensions/`.
 
 - **Minificar**: reduce el tamaño del `.zip` y añade algo de fricción para leer el código. Recomendable.
 - **Ofuscar**: Google lo mira con lupa en la revisión de la Chrome Web Store y puede rechazar la extensión; además obliga a subir el código fuente original. Como barrera anti-copia es fácilmente reversible por alguien con experiencia. Pendiente de decidir si compensa.
 
-Si se adopta alguna de las dos opciones, sería necesario introducir un bundler (esbuild, rollup...), lo que también resolvería el problema de duplicación de código del punto 9.1.
-
-
+Si se adopta alguna de las dos opciones, el bundler del punto 9.1 es requisito previo.
