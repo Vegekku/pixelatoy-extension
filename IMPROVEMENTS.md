@@ -56,15 +56,25 @@ Implementación: tabla única con filas ocultas/mostradas por `display:none/bloc
 ## 3. Configuración de la extensión
 
 ### 3.1 Página de opciones
-Permitir al usuario activar/desactivar notificaciones push y popup de forma independiente desde una página de opciones separada (`options.html` + `options.js`).
+Permitir al usuario configurar el comportamiento y apariencia de la extensión desde una página de opciones separada (`options.html` + `options.js`).
 
-Config guardada en `pixelatoyConfig` en `chrome.storage.local`: `{ notificaciones: true, popup: true }`. Si la clave no existe, se asumen ambos valores `true` para no romper el comportamiento actual.
+Config guardada en `pixelatoyConfig` en `chrome.storage.local`. Si la clave no existe, se asumen los valores por defecto para no romper el comportamiento actual.
+
+Opciones configurables:
+- **Notificaciones push**: activar/desactivar.
+- **Popup**: activar/desactivar.
+- **Colores de los 4 rangos**: color de fondo y texto para cada umbral.
+- **Días de los umbrales**: valores de los 3 cortes (actualmente 7, 30, 60). El cuarto rango es siempre "el resto".
+- **Límite de reserva**: número de meses desde la fecha de entrada (máximo 3, que es la política actual de Pixelatoy).
+- **Tab por defecto**: "En almacén" o "No disponible".
+- **Instrucciones de uso**: mostrar expandidas o colapsadas por defecto.
 
 Cambios necesarios:
-- `options.html` + `options.js`: página de opciones con dos toggles
-- `manifest.json`: añadir `options_page`
-- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`
-- `popup.js`: si `popup: false`, no renderizar nada (defensa extra)
+- `options.html` + `options.js`: página de opciones con los controles correspondientes.
+- `manifest.json`: añadir `options_page`.
+- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`.
+- `popup.js`: si `popup: false`, no renderizar nada (defensa extra).
+- `content.js`: leer config al iniciar y aplicar umbrales, colores, límite, tab por defecto e instrucciones.
 
 ### 3.2 Exportar e importar datos
 Botón en la página de opciones para exportar los datos del storage a un fichero JSON y para importarlos. Útil como copia de seguridad antes de desinstalar o migrar a otro perfil de Chrome.
