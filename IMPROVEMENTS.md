@@ -4,7 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.1](#91-refactor-módulo-compartido--bundler-%EF%B8%8F-parcialmente-implementado) + [9.2](#92-minificación-y-ofuscación-del-código) + [9.3](#93-automatización-de-procesos) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 1 — Base técnica | Antes de cualquier cosa | [9.2](#92-minificación-y-ofuscación-del-código) + [9.3](#93-automatización-de-procesos) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
 | 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
@@ -175,11 +175,6 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 ---
 
 ## 9. Infraestructura y código
-
-### 9.1 Refactor: módulo compartido + bundler ⚠️ Parcialmente implementado
-`helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
-
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación es necesario introducir un bundler (esbuild, rollup...). Conviene adelantarlo antes de que la extensión crezca más, ya que también es requisito para la minificación (punto 9.2) y facilita cualquier nuevo script que se añada.
 
 ### 9.2 Minificación y ofuscación del código
 El código de una extensión instalada es completamente legible desde `chrome://extensions/`.

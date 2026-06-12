@@ -1,10 +1,11 @@
+import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+
 console.log("Pixelatoy content script activo");
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const COLUMN_INDEX_KEY = 2;
 const INSERT_COLUMN_INDEX = 4;
-const STORAGE_KEY = "pixelatoyTexts";
 const DATA_INSERT = "data-pixelatoy-insert";
 const PLACEHOLDER = "YYYY-MM-DD\n(hora opcional)";
 const TOOLTIP_FORMATS = "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026";
@@ -12,35 +13,7 @@ const TOOLTIP_ERROR = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 
 
 const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
 
-const THRESHOLDS = [
-  { days: 7,        bg: "#000",    color: "#fff", label: "Menos de 7 días" },
-  { days: 30,       bg: "#d9534f", color: "#fff", label: "Menos de 30 días" },
-  { days: 60,       bg: "#f0ad4e", color: "#000", label: "Menos de 60 días" },
-  { days: Infinity, bg: "#5cb85c", color: "#000", label: "60 días o más" },
-];
-
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-
-function parseDateTime(value) {
-  if (!value) return null;
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
-  if (!match) return null;
-  const [, y, m, d, h, min] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min));
-}
-
-function addThreeMonths(dateStr) {
-  const date = parseDateTime(dateStr);
-  if (!date) return null;
-  date.setMonth(date.getMonth() + 3);
-  return toISODateTime(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    date.getHours(),
-    date.getMinutes()
-  );
-}
 
 function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
   return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
@@ -630,7 +603,6 @@ async function refreshRowData(row, key, stored) {
   const changes = [];
   const newFields = {};
 
-  // URL resuelta donde no había o brokenLink corregido
   if (!stored?.productUrl && productUrl) {
     changes.push({ label: "URL", oldVal: null, newVal: "encontrada" });
     newFields.productUrl = productUrl;
@@ -639,7 +611,6 @@ async function refreshRowData(row, key, stored) {
     newFields.brokenLink = false;
   }
 
-  // Fecha nueva o distinta
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
     changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || null, newVal: date });
@@ -678,15 +649,12 @@ async function refreshAllData() {
     return { row, key, cell, stored };
   }).filter(Boolean);
 
-  // Mostrar overlay de carga en todas las filas
   const overlays = tasks.map(({ row }) => createOverlay(row));
 
-  // Fetch en paralelo
   const results = await Promise.allSettled(
     tasks.map(({ row, key, stored }) => refreshRowData(row, key, stored))
   );
 
-  // Quitar overlays de carga y mostrar info donde haya cambios
   const pendingOverlays = [];
   results.forEach((result, i) => {
     overlays[i].remove();
