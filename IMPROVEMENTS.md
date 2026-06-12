@@ -193,6 +193,7 @@ El código de una extensión instalada es completamente legible desde `chrome://
 - Generación automática del `.zip` listo para subir a la Chrome Web Store en cada push a `main` o al crear un tag de versión. Con bundler incluiría el paso de build.
 - Release automático al crear un tag `v1.x.x`: genera el release con el `.zip` adjunto y el contenido de `CHANGELOG.md` como descripción.
 - Branch protection en `main`: evitar pushes directos y obligar a pasar por PR.
+- Auto-creación de la PR de sync `release/vX.Y.Z` → `develop` al detectar el merge de esa rama a `main`. Pendiente de decidir si compensa frente al control manual actual.
 
 **Flujo de trabajo**
 - **Conventional Commits**: adoptar el estándar `feat:`, `fix:`, `chore:`... desde ya. Coste cero, mejora la legibilidad del historial y habilita el changelog y bump de versión automáticos.
