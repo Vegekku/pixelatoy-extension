@@ -4,7 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.1](#91-refactor-módulo-compartido--bundler-%EF%B8%8F-parcialmente-implementado) + [9.2](#92-minificación-y-ofuscación-del-código) + [9.3](#93-automatización-de-procesos) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 1 — Base técnica | Antes de cualquier cosa | [9.2](#92-minificación-y-ofuscación-del-código) + [9.3](#93-automatización-de-procesos) + [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
 | 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
@@ -176,11 +176,6 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 
 ## 9. Infraestructura y código
 
-### 9.1 Refactor: módulo compartido + bundler ⚠️ Parcialmente implementado
-`helpers.js` centraliza las constantes y funciones compartidas (`STORAGE_KEY`, `PREORDER_URL`, `THRESHOLDS`, `parseDateTime`, `addThreeMonths`) y es importado por `background.js` y `popup.js` como módulo ES.
-
-`content.js` mantiene sus propias definiciones duplicadas porque los content scripts de Chrome MV3 no soportan `import/export`. Para eliminar la duplicación es necesario introducir un bundler (esbuild, rollup...). Conviene adelantarlo antes de que la extensión crezca más, ya que también es requisito para la minificación (punto 9.2) y facilita cualquier nuevo script que se añada.
-
 ### 9.2 Minificación y ofuscación del código
 El código de una extensión instalada es completamente legible desde `chrome://extensions/`.
 
@@ -199,3 +194,62 @@ El código de una extensión instalada es completamente legible desde `chrome://
 - **Conventional Commits**: adoptar el estándar `feat:`, `fix:`, `chore:`... desde ya. Coste cero, mejora la legibilidad del historial y habilita el changelog y bump de versión automáticos.
 - **Bump de versión automático**: actualizar `manifest.json` al hacer release sin tocarlo a mano.
 - **CHANGELOG.md automático**: generar o actualizar el changelog a partir de los mensajes de commit.
+
+### 9.4 Refactor: helpers compartidos
+
+Oportunidades de refactor identificadas tras introducir el bundler. Ordenadas por prioridad:
+
+**🔴 Bug**
+- `background.js` usa `chrome.tabs.create()` pero `"tabs"` no está declarado en `permissions` del `manifest.json`. Falla silenciosamente al hacer click en una notificación.
+
+**🟠 Deuda técnica (duplicación real)**
+- El objeto `MONTHS` (`{ enero:1, ..., january:1, ... }`) está duplicado en `parseNaturalDate` y `parseAvailableFrom` dentro de `content.js`. Moverlo a `helpers.js` como constante exportada.
+- `toISODateTime` existe en `content.js` pero `addThreeMonths` en `helpers.js` reimplementa el mismo padding inline. Mover `toISODateTime` a `helpers.js` y usarla en `addThreeMonths`.
+
+**🟡 Legibilidad**
+- El filtro `Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0)` se repite 6 veces en `content.js`. Extraer como `getDataRows(table)` en `helpers.js`.
+- El patrón `new Promise(resolve => chrome.storage.local.get(STORAGE_KEY, res => resolve(...)))` se repite varias veces. Extraer como `getStorage()` en `helpers.js`.
+- La lógica de agrupar productos por umbral está duplicada entre `popup.js` y `background.js`. Extraer como `groupByThreshold(data)` en `helpers.js`.
+
+**🟢 Nice to have**
+- Los estilos CSS están embebidos como string en `addLegend` dentro de `content.js`. Moverlos a un fichero `src/content.css` e importarlo (requiere plugin esbuild para CSS o inyección manual).
+
+### 9.5 Refactor estructural: content.js
+
+Refactors de mayor calado para mejorar rendimiento, legibilidad y mantenibilidad a largo plazo.
+
+**Separación de responsabilidades — partir content.js en módulos**
+
+`content.js` tiene ~900 líneas mezclando parsing, DOM, storage, fetching, overlays, ordenación y leyenda. Propuesta:
+
+```
+src/
+├── content.js          # solo init + orquestación
+└── modules/
+    ├── column.js       # applyCustomColumn, createEditableCell, updateCell
+    ├── fetch.js        # autoFetch, resolveProductUrl, fetchDateFromProduct
+    ├── sort.js         # sortTable, applyColumnSorting
+    ├── refresh.js      # refreshAllData, refreshRowData
+    ├── legend.js       # addLegend, instrucciones
+    └── orphans.js      # checkOrphanData
+```
+
+**Estado global implícito**
+
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+
+**`createOverlay` / `createInfoOverlay` — abstracción incompleta**
+
+Ambas duplican la lógica de posicionamiento sobre filas (`rect`, `style.cssText`). Una función base `createRowOverlay(row, className)` que devuelva el div posicionado, y cada variante añade su contenido encima.
+
+**`saveToStorage` — lectura + escritura en cada llamada**
+
+Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
+
+**Estilos inline — mantenibilidad**
+
+Decenas de `style.cssText = "..."` repartidos por `content.js` dificultan cambiar el diseño. Solución sin plugins: definir todas las clases en el string CSS de `addLegend` y asignar `className` en lugar de `style.cssText`.
+
+**`normalizeDateTime` + `parseNaturalDate` — complejidad ciclomática alta**
+
+7 ramas condicionales en total. Difícil razonar sobre qué formatos acepta. Un array de `[regex, handler]` haría el código más declarativo y extensible.

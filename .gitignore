@@ -2,4 +2,6 @@
 .amazonq
 icons/image.png
 test-helpers.js
+node_modules/
 dist/
+releases/

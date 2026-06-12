@@ -6,7 +6,7 @@
   "permissions": ["storage", "notifications", "alarms"],
   "host_permissions": ["https://www.pixelatoy.com/*"],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "dist/background.js",
     "type": "module"
   },
   "icons": {
@@ -15,7 +15,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "dist/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -27,7 +27,7 @@
       "matches": [
         "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*"
       ],
-      "js": ["content.js"]
+      "js": ["dist/content.js"]
     }
   ]
 }
