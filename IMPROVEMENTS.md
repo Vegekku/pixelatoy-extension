@@ -187,7 +187,7 @@ Oportunidades de refactor identificadas tras introducir el bundler. Ordenadas po
 
 **🟡 Legibilidad**
 - El filtro `Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0)` se repite 6 veces en `content.js`. Extraer como `getDataRows(table)` en `helpers.js`.
-- El patrón `new Promise(resolve => chrome.storage.local.get(STORAGE_KEY, res => resolve(...)))` se repite varias veces. Extraer como `getStorage()` en `helpers.js`.
+- El patrón `new Promise(resolve => chrome.storage.local.get(STORAGE_KEY, res => resolve(...)))` se repite varias veces. Extraer como `getStorage()` en `helpers.js`. Requiere convertir todos los callbacks a `async/await`, lo que implica refactorizar bastante lógica. Pendiente de abordar con más calma.
 - La lógica de agrupar productos por umbral está duplicada entre `popup.js` y `background.js`. Extraer como `groupByThreshold(data)` en `helpers.js`.
 
 **🟢 Nice to have**
