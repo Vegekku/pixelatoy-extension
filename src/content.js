@@ -1,4 +1,4 @@
-import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime } from "./helpers.js";
 
 console.log("Pixelatoy content script activo");
 
@@ -14,10 +14,6 @@ const TOOLTIP_ERROR = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 
 const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
-
-function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
-  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
 
 function parseNaturalDate(dateStr) {
   const MONTHS = {

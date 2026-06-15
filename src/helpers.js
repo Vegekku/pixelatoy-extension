@@ -8,6 +8,10 @@ export const THRESHOLDS = [
   { days: Infinity, label: "60 días o más",      bg: "#5cb85c", color: "#000" },
 ];
 
+export function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
+  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
 export function parseDateTime(value) {
   if (!value) return null;
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
@@ -20,6 +24,5 @@ export function addThreeMonths(dateStr) {
   const date = parseDateTime(dateStr);
   if (!date) return null;
   date.setMonth(date.getMonth() + 3);
-  const pad = n => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return toISODateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes());
 }
