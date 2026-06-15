@@ -61,7 +61,7 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 ## Instalación
 
 ### Desde la Chrome Web Store
-Próximamente disponible.
+Instala la extensión directamente desde la [Chrome Web Store](https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej?hl=es).
 
 ### Instalación manual (modo desarrollador)
 1. Descarga o clona este repositorio.
@@ -111,7 +111,7 @@ Requiere Node 22 (ver `.nvmrc`).
 ```bash
 npm install
 npm run dev    # watch: regenera dist/ al guardar
-npm run build  # build único
+npm run build  # build único, minificado
 ```
 
 Carga la extensión en Chrome apuntando a la carpeta raíz del proyecto (donde está `manifest.json`).

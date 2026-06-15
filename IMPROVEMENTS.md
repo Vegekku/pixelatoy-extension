@@ -4,7 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.3](#93-automatización-de-procesos) + [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 1 — Base técnica | Antes de cualquier cosa | [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
 | 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
@@ -23,7 +23,6 @@
 - [7. Historial de fechas](#7-historial-de-fechas)
 - [8. UX](#8-ux)
 - [9. Infraestructura y código](#9-infraestructura-y-código)
-
 ---
 
 ## 1. Auto-fetch de datos del producto
@@ -174,12 +173,6 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 ---
 
 ## 9. Infraestructura y código
-
-### 9.3 Automatización de procesos
-
-**GitHub Actions**
-- Auto-creación de la PR de sync `release/vX.Y.Z` → `develop` al mergear `release/*` → `main`.
-- GitHub Release automático al crear el tag `vX.Y.Z`: título = versión, descripción = sección correspondiente del `CHANGELOG.md`. Sin zip adjunto.
 
 ### 9.4 Refactor: helpers compartidos
 
