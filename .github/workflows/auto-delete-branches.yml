@@ -1,0 +1,26 @@
+name: Auto-delete merged branches
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  delete-branch:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete branch
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "$BRANCH" == release/* ]]; then
+            if [[ "$BASE" == "develop" ]]; then
+              gh api repos/${{ github.repository }}/git/refs/heads/${BRANCH} -X DELETE
+            fi
+          else
+            gh api repos/${{ github.repository }}/git/refs/heads/${BRANCH} -X DELETE
+          fi

@@ -61,7 +61,7 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 ## Instalación
 
 ### Desde la Chrome Web Store
-Próximamente disponible.
+Instala la extensión directamente desde la [Chrome Web Store](https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej?hl=es).
 
 ### Instalación manual (modo desarrollador)
 1. Descarga o clona este repositorio.
@@ -84,20 +84,37 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 
 ```
 pixelatoy-extension/
-├── content.js       # Lógica principal de la extensión
-├── background.js    # Service worker para notificaciones y alarmas
-├── helpers.js       # Constantes y funciones compartidas (módulo ES)
-├── popup.html       # Popup del icono de la extensión
-├── popup.js         # Lógica del popup
-├── privacy.html     # Política de privacidad
-├── manifest.json    # Configuración de la extensión
-├── CHANGELOG.md     # Historial de versiones
-├── IMPROVEMENTS.md  # Ideas y mejoras pendientes
-└── icons/
-    ├── icon16.png
-    ├── icon48.png
-    └── icon128.png
+├── src/
+│   ├── content.js       # Lógica principal de la extensión
+│   ├── background.js    # Service worker para notificaciones y alarmas
+│   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
+│   ├── popup.html       # Popup del icono de la extensión
+│   ├── popup.js         # Lógica del popup
+│   └── privacy.html     # Política de privacidad
+├── dist/                # Generado por el bundler (no se commitea)
+├── icons/
+│   ├── icon16.png
+│   ├── icon48.png
+│   └── icon128.png
+├── build.js             # Script de build (esbuild)
+├── manifest.json        # Configuración de la extensión
+├── package.json         # Dependencias y scripts npm
+├── .nvmrc               # Versión de Node (22 LTS)
+├── CHANGELOG.md         # Historial de versiones
+└── IMPROVEMENTS.md      # Ideas y mejoras pendientes
 ```
+
+## Desarrollo
+
+Requiere Node 22 (ver `.nvmrc`).
+
+```bash
+npm install
+npm run dev    # watch: regenera dist/ al guardar
+npm run build  # build único, minificado
+```
+
+Carga la extensión en Chrome apuntando a la carpeta raíz del proyecto (donde está `manifest.json`).
 
 ## Compatibilidad
 

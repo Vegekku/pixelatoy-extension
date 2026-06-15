@@ -6,7 +6,26 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
-## [1.3.0] - 2026-06-10
+## [v1.4.0] - 2026-06-15
+
+### Added
+
+- Bundler esbuild: fuentes en `src/`, bundles generados en `dist/`
+- Minificación del código en build de producción (`npm run build`)
+- GitHub Action: borrado automático de ramas mergeadas a `develop`
+- GitHub Action: creación automática de PR sync `release/*` → `develop` tras merge a `main`
+- GitHub Action: GitHub Release automático al crear tag `vX.Y.Z` con sección del CHANGELOG como descripción
+
+### Fixed
+
+- Permisos `contents: write` en action de borrado automático de ramas
+
+### Changed
+
+- Prefijo `v` añadido a todas las versiones del CHANGELOG para alinear con el formato de los tags
+- README actualizado: enlace a Chrome Web Store y nota sobre build minificado
+
+## [v1.3.0] - 2026-06-10
 
 ### Fixed
 
@@ -26,13 +45,13 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Política de privacidad (`privacy.html`) para la Chrome Web Store
 - Carpeta `dist/` para ZIPs de la extensión (ignorada por git)
 
-## [1.2.1] - 2026-06-10
+## [v1.2.1] - 2026-06-10
 
 ### Changed
 
 - Excluidos `.amazonq/` e `icons/image.png` del repositorio
 
-## [1.2.0] - 2026-05-30
+## [v1.2.0] - 2026-05-30
 
 ### Added
 
@@ -40,7 +59,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Fecha estimada usada como criterio de ordenación
 - Detección automática del cambio de disponibilidad estimada a fecha real al refrescar
 
-## [1.1.0] - 2026-05-30
+## [v1.1.0] - 2026-05-30
 
 ### Added
 
@@ -54,7 +73,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Sección "Datos huérfanos" renombrada a "Reservas no encontradas"
 - Instrucciones de uso reestructuradas priorizando funcionalidades automáticas
 
-## [1.0.0] - 2025-01-01
+## [v1.0.0] - 2025-01-01
 
 ### Added
 
@@ -71,9 +90,10 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.3.0...HEAD
-[1.3.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...v1.3.0
-[1.2.1]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...v1.2.1
-[1.2.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/Vegekku/pixelatoy-extension/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...HEAD
+[v1.4.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.3.0...v1.4.0
+[v1.3.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...v1.3.0
+[v1.2.1]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...v1.2.1
+[v1.2.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.1.0...v1.2.0
+[v1.1.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.0.0...v1.1.0
+[v1.0.0]: https://github.com/Vegekku/pixelatoy-extension/releases/tag/v1.0.0
