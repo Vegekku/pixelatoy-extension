@@ -1,3 +1,7 @@
+export function getDataRows(table) {
+  return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
+}
+
 export const STORAGE_KEY = "pixelatoyTexts";
 export const PREORDER_URL = "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails";
 

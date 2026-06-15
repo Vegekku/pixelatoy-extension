@@ -1,4 +1,4 @@
-import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS } from "./helpers.js";
+import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows } from "./helpers.js";
 
 console.log("Pixelatoy content script activo");
 
@@ -391,8 +391,7 @@ async function autoFetchRowData(row, key, cell, stored) {
 function autoFetchMissingData(storedTexts) {
   const table = document.getElementById("preorder_list");
   if (!table) return;
-  table.querySelectorAll("tr").forEach((row) => {
-    if (row.querySelectorAll("th").length > 0) return;
+  getDataRows(table).forEach((row) => {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
@@ -484,7 +483,7 @@ function sortTable(colIndex) {
   const tbody = table.tBodies[0] || table;
   const headerRow = table.querySelector("tr:first-child");
   const rows = Array.from(tbody.querySelectorAll("tr")).filter(
-    r => r !== headerRow && r.querySelectorAll("th").length === 0
+    r => r !== headerRow && !r.querySelector("th")
   );
 
   if (sortState.colIndex === colIndex) {
@@ -519,9 +518,7 @@ function applyColumnSorting() {
   const headerRow = table.querySelector("tr:first-child");
   if (!headerRow) return;
 
-  const rows = Array.from(table.querySelectorAll("tr")).filter(
-    r => r !== headerRow && r.querySelectorAll("th").length === 0
-  );
+  const rows = getDataRows(table).filter(r => r !== headerRow);
   rows.forEach((r, i) => r.setAttribute("data-original-index", i));
 
   Array.from(headerRow.children).forEach((th, i) => {
@@ -616,15 +613,11 @@ async function refreshAllData() {
   const table = document.getElementById("preorder_list");
   if (!table) return;
 
-  const rows = Array.from(table.querySelectorAll("tr")).filter(
-    r => r.querySelectorAll("th").length === 0
-  );
-
   const storageData = await new Promise(resolve =>
     chrome.storage.local.get(STORAGE_KEY, res => resolve(res[STORAGE_KEY] || {}))
   );
 
-  const tasks = rows.map(row => {
+  const tasks = getDataRows(table).map(row => {
     const key = getRowKey(row);
     if (!key) return null;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
@@ -749,8 +742,7 @@ function checkOrphanData() {
   if (existing) existing.remove();
 
   const tableKeys = new Set();
-  table.querySelectorAll("tr").forEach((row) => {
-    if (row.querySelectorAll("th").length > 0) return;
+  getDataRows(table).forEach((row) => {
     const key = getRowKey(row);
     if (key) tableKeys.add(key);
   });
