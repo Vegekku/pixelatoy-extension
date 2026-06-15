@@ -16,6 +16,7 @@ const ctx = await esbuild.context({
     "popup":      "src/popup.js",
   },
   bundle: true,
+  minify: !watch,
   outdir: "dist",
   format: "esm",
   platform: "browser",

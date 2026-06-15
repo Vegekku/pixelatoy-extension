@@ -4,12 +4,11 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.2](#92-minificación-y-ofuscación-del-código) + [9.3](#93-automatización-de-procesos) + [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 1 — Base técnica | Antes de cualquier cosa | [9.3](#93-automatización-de-procesos) + [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
 | 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
-| Sin bloque definido | | [9.2](#92-minificación-y-ofuscación-del-código) (ofuscación) | Pendiente de decidir si compensa el riesgo de rechazo en la Store |
 
 ---
 
@@ -175,12 +174,6 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 ---
 
 ## 9. Infraestructura y código
-
-### 9.2 Minificación y ofuscación del código
-El código de una extensión instalada es completamente legible desde `chrome://extensions/`.
-
-- **Minificar**: reduce el tamaño del `.zip` y añade algo de fricción para leer el código. Recomendable.
-- **Ofuscar**: Google lo mira con lupa en la revisión de la Chrome Web Store y puede rechazar la extensión; además obliga a subir el código fuente original. Como barrera anti-copia es fácilmente reversible por alguien con experiencia. Pendiente de decidir si compensa.
 
 ### 9.3 Automatización de procesos
 
