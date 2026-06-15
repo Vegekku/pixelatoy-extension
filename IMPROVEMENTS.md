@@ -178,15 +178,8 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 ### 9.3 Automatización de procesos
 
 **GitHub Actions**
-- Generación automática del `.zip` listo para subir a la Chrome Web Store en cada push a `main` o al crear un tag de versión. Con bundler incluiría el paso de build.
-- Release automático al crear un tag `v1.x.x`: genera el release con el `.zip` adjunto y el contenido de `CHANGELOG.md` como descripción.
-- Branch protection en `main`: evitar pushes directos y obligar a pasar por PR.
-- Auto-creación de la PR de sync `release/vX.Y.Z` → `develop` al detectar el merge de esa rama a `main`. Pendiente de decidir si compensa frente al control manual actual.
-
-**Flujo de trabajo**
-- **Conventional Commits**: adoptar el estándar `feat:`, `fix:`, `chore:`... desde ya. Coste cero, mejora la legibilidad del historial y habilita el changelog y bump de versión automáticos.
-- **Bump de versión automático**: actualizar `manifest.json` al hacer release sin tocarlo a mano.
-- **CHANGELOG.md automático**: generar o actualizar el changelog a partir de los mensajes de commit.
+- Auto-creación de la PR de sync `release/vX.Y.Z` → `develop` al mergear `release/*` → `main`.
+- GitHub Release automático al crear el tag `vX.Y.Z`: título = versión, descripción = sección correspondiente del `CHANGELOG.md`. Sin zip adjunto.
 
 ### 9.4 Refactor: helpers compartidos
 
