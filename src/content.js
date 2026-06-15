@@ -1,4 +1,4 @@
-import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime } from "./helpers.js";
+import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS } from "./helpers.js";
 
 console.log("Pixelatoy content script activo");
 
@@ -16,12 +16,6 @@ const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
 
 function parseNaturalDate(dateStr) {
-  const MONTHS = {
-    enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
-    julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
-    january:1, february:2, march:3, april:4, may:5, june:6,
-    july:7, august:8, september:9, october:10, november:11, december:12,
-  };
   const matchDD = dateStr.match(/^(\d{1,2})\s+([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{4})$/i);
   if (matchDD) {
     const [, dd, monthName, yyyy] = matchDD;
@@ -310,12 +304,6 @@ async function resolveProductUrl(row, key) {
 }
 
 function parseAvailableFrom(text) {
-  const MONTHS = {
-    enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
-    julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
-    january:1, february:2, march:3, april:4, may:5, june:6,
-    july:7, august:8, september:9, october:10, november:11, december:12,
-  };
   const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
   if (!match) return null;
   const mm = MONTHS[match[1].toLowerCase()];
