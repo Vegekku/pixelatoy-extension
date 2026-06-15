@@ -1,4 +1,4 @@
-import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows } from "./helpers.js";
 
 console.log("Pixelatoy content script activo");
 
@@ -15,17 +15,7 @@ const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
 
-function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
-  return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
-
 function parseNaturalDate(dateStr) {
-  const MONTHS = {
-    enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
-    julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
-    january:1, february:2, march:3, april:4, may:5, june:6,
-    july:7, august:8, september:9, october:10, november:11, december:12,
-  };
   const matchDD = dateStr.match(/^(\d{1,2})\s+([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{4})$/i);
   if (matchDD) {
     const [, dd, monthName, yyyy] = matchDD;
@@ -314,12 +304,6 @@ async function resolveProductUrl(row, key) {
 }
 
 function parseAvailableFrom(text) {
-  const MONTHS = {
-    enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
-    julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
-    january:1, february:2, march:3, april:4, may:5, june:6,
-    july:7, august:8, september:9, october:10, november:11, december:12,
-  };
   const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
   if (!match) return null;
   const mm = MONTHS[match[1].toLowerCase()];
@@ -407,8 +391,7 @@ async function autoFetchRowData(row, key, cell, stored) {
 function autoFetchMissingData(storedTexts) {
   const table = document.getElementById("preorder_list");
   if (!table) return;
-  table.querySelectorAll("tr").forEach((row) => {
-    if (row.querySelectorAll("th").length > 0) return;
+  getDataRows(table).forEach((row) => {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
@@ -500,7 +483,7 @@ function sortTable(colIndex) {
   const tbody = table.tBodies[0] || table;
   const headerRow = table.querySelector("tr:first-child");
   const rows = Array.from(tbody.querySelectorAll("tr")).filter(
-    r => r !== headerRow && r.querySelectorAll("th").length === 0
+    r => r !== headerRow && !r.querySelector("th")
   );
 
   if (sortState.colIndex === colIndex) {
@@ -535,9 +518,7 @@ function applyColumnSorting() {
   const headerRow = table.querySelector("tr:first-child");
   if (!headerRow) return;
 
-  const rows = Array.from(table.querySelectorAll("tr")).filter(
-    r => r !== headerRow && r.querySelectorAll("th").length === 0
-  );
+  const rows = getDataRows(table).filter(r => r !== headerRow);
   rows.forEach((r, i) => r.setAttribute("data-original-index", i));
 
   Array.from(headerRow.children).forEach((th, i) => {
@@ -632,15 +613,11 @@ async function refreshAllData() {
   const table = document.getElementById("preorder_list");
   if (!table) return;
 
-  const rows = Array.from(table.querySelectorAll("tr")).filter(
-    r => r.querySelectorAll("th").length === 0
-  );
-
   const storageData = await new Promise(resolve =>
     chrome.storage.local.get(STORAGE_KEY, res => resolve(res[STORAGE_KEY] || {}))
   );
 
-  const tasks = rows.map(row => {
+  const tasks = getDataRows(table).map(row => {
     const key = getRowKey(row);
     if (!key) return null;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
@@ -765,8 +742,7 @@ function checkOrphanData() {
   if (existing) existing.remove();
 
   const tableKeys = new Set();
-  table.querySelectorAll("tr").forEach((row) => {
-    if (row.querySelectorAll("th").length > 0) return;
+  getDataRows(table).forEach((row) => {
     const key = getRowKey(row);
     if (key) tableKeys.add(key);
   });

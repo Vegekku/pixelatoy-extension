@@ -1,29 +1,16 @@
-import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
 const NOTIFICATION_THRESHOLDS = THRESHOLDS.filter(t => t.days !== Infinity);
 
 function buildNotificationMessage(data) {
-  const now = new Date();
-  const counts = NOTIFICATION_THRESHOLDS.map(() => 0);
-
-  for (const entry of Object.values(data)) {
-    const dateStr = entry.date;
-    const limit = parseDateTime(addThreeMonths(dateStr));
-    if (!limit) continue;
-    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
-    for (let i = 0; i < NOTIFICATION_THRESHOLDS.length; i++) {
-      if (diffDays < NOTIFICATION_THRESHOLDS[i].days) {
-        counts[i]++;
-        break;
-      }
-    }
-  }
-
-  const lines = NOTIFICATION_THRESHOLDS
-    .map((t, i) => counts[i] > 0 ? `${t.label}: ${counts[i]}` : null)
-    .filter(Boolean);
-
+  const groups = groupByThreshold(data);
+  const lines = THRESHOLDS
+    .filter((t, i) => t.days !== Infinity && groups[i].length > 0)
+    .map(t => {
+      const i = THRESHOLDS.indexOf(t);
+      return `${t.label}: ${groups[i].length}`;
+    });
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
