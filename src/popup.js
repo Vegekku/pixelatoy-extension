@@ -1,25 +1,9 @@
-import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, groupByThreshold } from "./helpers.js";
 
 chrome.storage.local.get(STORAGE_KEY, (res) => {
   const data = res[STORAGE_KEY] || {};
   const content = document.getElementById("content");
-  const now = new Date();
-  const groups = THRESHOLDS.map(() => []);
-
-  for (const [name, entry] of Object.entries(data)) {
-    const dateStr = entry.date;
-    const img = entry.img || "";
-    const limit = parseDateTime(addThreeMonths(dateStr));
-    if (!limit) continue;
-    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
-    for (let i = 0; i < THRESHOLDS.length; i++) {
-      if (diffDays < THRESHOLDS[i].days) {
-        groups[i].push({ name, img });
-        break;
-      }
-    }
-  }
-
+  const groups = groupByThreshold(data);
   const hasAny = groups.some(g => g.length > 0);
 
   if (!hasAny) {

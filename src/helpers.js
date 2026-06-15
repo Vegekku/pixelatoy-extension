@@ -1,3 +1,20 @@
+export function groupByThreshold(data) {
+  const now = new Date();
+  const groups = THRESHOLDS.map(() => []);
+  for (const [name, entry] of Object.entries(data)) {
+    const limit = parseDateTime(addThreeMonths(entry.date));
+    if (!limit) continue;
+    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
+    for (let i = 0; i < THRESHOLDS.length; i++) {
+      if (diffDays < THRESHOLDS[i].days) {
+        groups[i].push({ name, img: entry.img || "", limit });
+        break;
+      }
+    }
+  }
+  return groups;
+}
+
 export function getDataRows(table) {
   return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
 }
