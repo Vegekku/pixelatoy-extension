@@ -7,7 +7,10 @@ function buildNotificationMessage(data) {
   const groups = groupByThreshold(data);
   const lines = THRESHOLDS
     .filter((t, i) => t.days !== Infinity && groups[i].length > 0)
-    .map((t, i) => `${t.label}: ${groups[THRESHOLDS.indexOf(t)].length}`);
+    .map(t => {
+      const i = THRESHOLDS.indexOf(t);
+      return `${t.label}: ${groups[i].length}`;
+    });
   return lines.length > 0 ? lines.join("\n") : null;
 }
 

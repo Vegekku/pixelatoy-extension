@@ -4,9 +4,9 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.4](#94-refactor-helpers-compartidos) + [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
+| 1 — Base técnica | Antes de cualquier cosa | [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -176,19 +176,8 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 
 ### 9.4 Refactor: helpers compartidos
 
-Oportunidades de refactor identificadas tras introducir el bundler. Ordenadas por prioridad:
-
-**🔴 Bug**
-- `background.js` usa `chrome.tabs.create()` pero `"tabs"` no está declarado en `permissions` del `manifest.json`. Falla silenciosamente al hacer click en una notificación.
-
-**🟠 Deuda técnica (duplicación real)**
-- El objeto `MONTHS` (`{ enero:1, ..., january:1, ... }`) está duplicado en `parseNaturalDate` y `parseAvailableFrom` dentro de `content.js`. Moverlo a `helpers.js` como constante exportada.
-- `toISODateTime` existe en `content.js` pero `addThreeMonths` en `helpers.js` reimplementa el mismo padding inline. Mover `toISODateTime` a `helpers.js` y usarla en `addThreeMonths`.
-
 **🟡 Legibilidad**
-- El filtro `Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0)` se repite 6 veces en `content.js`. Extraer como `getDataRows(table)` en `helpers.js`.
 - El patrón `new Promise(resolve => chrome.storage.local.get(STORAGE_KEY, res => resolve(...)))` se repite varias veces. Extraer como `getStorage()` en `helpers.js`. Requiere convertir todos los callbacks a `async/await`, lo que implica refactorizar bastante lógica. Pendiente de abordar con más calma.
-- La lógica de agrupar productos por umbral está duplicada entre `popup.js` y `background.js`. Extraer como `groupByThreshold(data)` en `helpers.js`.
 
 **🟢 Nice to have**
 - Los estilos CSS están embebidos como string en `addLegend` dentro de `content.js`. Moverlos a un fichero `src/content.css` e importarlo (requiere plugin esbuild para CSS o inyección manual).
