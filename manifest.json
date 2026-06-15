@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pixelatoy Preorder Manager",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Mejora la tabla de reservas de Pixelatoy: fechas de almacén, enlaces a productos, detección de enlaces rotos y refresco de datos.",
   "permissions": ["storage", "notifications", "alarms"],
   "host_permissions": ["https://www.pixelatoy.com/*"],
