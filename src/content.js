@@ -2,7 +2,7 @@ import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, 
 import { applyColumnSorting } from "./modules/sort.js";
 import { checkOrphanData } from "./modules/orphans.js";
 
-console.log("Pixelatoy content script activo");
+if (typeof __BUILD_TIME__ !== "undefined") console.log(`[Pixelatoy] build: ${__BUILD_TIME__}`);
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 

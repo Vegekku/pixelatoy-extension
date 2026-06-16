@@ -30,6 +30,7 @@ const ctx = await esbuild.context({
   entryPoints,
   bundle: true,
   minify: !watch,
+  define: watch ? { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString("es-ES")) } : {},
   outdir: "dist",
   format: "esm",
   platform: "browser",
