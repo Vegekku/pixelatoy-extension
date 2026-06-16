@@ -65,9 +65,10 @@ Instala la extensión directamente desde la [Chrome Web Store](https://chromeweb
 
 ### Instalación manual (modo desarrollador)
 1. Descarga o clona este repositorio.
-2. Abre Chrome y ve a `chrome://extensions/`.
-3. Activa el **Modo desarrollador** (esquina superior derecha).
-4. Haz click en **Cargar descomprimida** y selecciona la carpeta del proyecto.
+2. Ejecuta `npm install` + `npm run build`.
+3. Abre Chrome y ve a `chrome://extensions/`.
+4. Activa el **Modo desarrollador** (esquina superior derecha).
+5. Haz click en **Cargar descomprimida** y selecciona la carpeta `dist/` del proyecto.
 
 ## Almacenamiento de datos
 
@@ -114,7 +115,7 @@ npm run dev    # watch: regenera dist/ al guardar
 npm run build  # build único, minificado
 ```
 
-Carga la extensión en Chrome apuntando a la carpeta raíz del proyecto (donde está `manifest.json`).
+Carga la extensión en Chrome apuntando a la carpeta `dist/` del proyecto (donde está el `manifest.json` generado).
 
 ## Compatibilidad
 
