@@ -15,6 +15,19 @@ export function groupByThreshold(data) {
   return groups;
 }
 
+export function formatCountdown(dateStr) {
+  const date = parseDateTime(dateStr);
+  if (!date) return "";
+  const diffMs = date - new Date();
+  if (diffMs <= 0) return "Vencido";
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const months = Math.floor(totalMinutes / (60 * 24 * 30));
+  const days = Math.floor((totalMinutes % (60 * 24 * 30)) / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  return `${months}m ${days}d ${hours}h ${minutes}min`;
+}
+
 export function getDataRows(table) {
   return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
 }
