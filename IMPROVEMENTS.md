@@ -5,7 +5,7 @@
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
 | 1 — Base técnica | Antes de cualquier cosa | [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
-| 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
+| 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web), [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
 | 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
@@ -53,6 +53,9 @@ Cambios necesarios:
 ---
 
 ## 2. Tabla de reservas
+
+### 2.0 Bug: enlaces de productos con estilos de la web
+Los enlaces al producto inyectados por la extensión heredan los estilos CSS de la web (`color: #000` en normal/visitado, `color: #ffbd2e` en hover), lo que los hace ilegibles sobre las filas coloreadas (negro, rojo, naranja). Hay que forzar un color de enlace que contraste con todos los fondos, o usar el color del texto de la fila (`color: inherit`).
 
 ### 2.1 Rediseño: tabs "En almacén" / "No disponible"
 Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
