@@ -187,39 +187,37 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 
 ### 9.5 Refactor estructural: content.js
 
-Refactors de mayor calado para mejorar rendimiento, legibilidad y mantenibilidad a largo plazo.
-
-**Separación de responsabilidades — partir content.js en módulos**
-
-`content.js` tiene ~900 líneas mezclando parsing, DOM, storage, fetching, overlays, ordenación y leyenda. Propuesta:
+La separación en módulos ya está completada. Estructura actual:
 
 ```
 src/
-├── content.js          # solo init + orquestación
+├── content.js          # solo init + orquestación (~16 líneas)
 └── modules/
-    ├── column.js       # applyCustomColumn, createEditableCell, updateCell
-    ├── fetch.js        # autoFetch, resolveProductUrl, fetchDateFromProduct
+    ├── column.js       # columna, celda editable, auto-fetch, storage, UI helpers
+    ├── fetch.js        # red: fetchHTML, createOverlay, resolveProductUrl, fetchDateFromProduct
     ├── sort.js         # sortTable, applyColumnSorting
-    ├── refresh.js      # refreshAllData, refreshRowData
-    ├── legend.js       # addLegend, instrucciones
+    ├── refresh.js      # refreshAllData, refreshRowData, info overlay
+    ├── legend.js       # leyenda de colores, botón refrescar, instrucciones
     └── orphans.js      # checkOrphanData
 ```
 
-**Estado global implícito**
+Refactors pendientes tras la auditoría post-extracción:
 
-`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+**Eliminar inyección de dependencias entre módulos**
 
-**`addLegend` recibe `refreshAllData` como parámetro**
+`refreshAllData` recibe 8 dependencias como objeto desde `content.js`; `fetchDateFromProduct` recibe `normalizeDateTime` como parámetro; `addLegend` recibe `refreshAllData` como parámetro. Solución: mover `normalizeDateTime` (y `parseNaturalDate`) a `helpers.js`, de modo que `fetch.js` y `refresh.js` lo importen directamente. Después, `refresh.js` importa `getRowKey`, `saveToStorage`, etc. de `column.js`; `legend.js` importa `refreshAllData` de `refresh.js`. Resultado: `content.js` pierde el wrapper y toda la fontanería de inyección.
 
-Cuando se extraiga `refresh.js`, cambiar el parámetro por un import directo en `legend.js` y eliminar la inyección desde `content.js`. Actualmente `content.js` tiene un wrapper que cierra las dependencias de `refreshAllData`; al hacer el import directo en `legend.js`, eliminar también ese wrapper.
+**Duplicación de código: `COLUMN_INDEX_KEY` y `getRowKey`**
 
-**Auditoría post-refactor**
-
-Una vez completada la extracción de todos los módulos, hacer una revisión global del código resultante para detectar nueva refactorización o limpieza (dependencias innecesarias, imports no usados, simplificación de interfaces entre módulos, etc.).
+Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` e importar en `orphans.js`.
 
 **`createOverlay` / `createInfoOverlay` — abstracción incompleta**
 
-Ambas duplican la lógica de posicionamiento sobre filas (`rect`, `style.cssText`). Una función base `createRowOverlay(row, className)` que devuelva el div posicionado, y cada variante añade su contenido encima.
+Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
+
+**Estilos CSS — dependencia implícita**
+
+Los estilos de `.pixelatoy-overlay`, `.pixelatoy-dots`, `.pixelatoy-btn` están en `legend.js` pero los usan `fetch.js` y `refresh.js`. Funciona por orden de ejecución, pero es frágil. Mover a una función `injectStyles()` en su propio módulo, ejecutada explícitamente desde `content.js` al inicio.
 
 **`saveToStorage` — lectura + escritura en cada llamada**
 
@@ -227,11 +225,19 @@ Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambi
 
 **Estilos inline — mantenibilidad**
 
-Decenas de `style.cssText = "..."` repartidos por `content.js` dificultan cambiar el diseño. Solución sin plugins: definir todas las clases en el string CSS de `addLegend` y asignar `className` en lugar de `style.cssText`.
+Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambiar el diseño. Definir todas las clases en el string CSS centralizado y asignar `className` en lugar de `style.cssText`.
 
 **`normalizeDateTime` + `parseNaturalDate` — complejidad ciclomática alta**
 
 7 ramas condicionales en total. Difícil razonar sobre qué formatos acepta. Un array de `[regex, handler]` haría el código más declarativo y extensible.
+
+**Estado global implícito en `sort.js`**
+
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+
+**`column.js` sigue siendo grande (~270 líneas)**
+
+Mezcla parsing de fechas, UI helpers, storage y orquestación de columna + auto-fetch. Si crece más (i18n, tabs), candidatos a extraer: `date-parse.js`, `storage.js`.
 
 ### 9.6 Automatización de subida a Chrome Web Store
 Usar la [Chrome Web Store API](https://developer.chrome.com/docs/webstore/using-api) para automatizar el envío a revisión tras cada release, ya sea desde GitHub Actions o desde un script local (`npm run deploy`). Requiere configurar credenciales OAuth2 (`CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`). La publicación final sigue dependiendo de la revisión manual de Google.
