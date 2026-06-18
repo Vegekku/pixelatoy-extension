@@ -2,6 +2,7 @@ import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, 
 import { applyColumnSorting } from "./modules/sort.js";
 import { checkOrphanData } from "./modules/orphans.js";
 import { addLegend } from "./modules/legend.js";
+import { fetchHTML, parseHTML, createOverlay, resolveProductUrl, parseAvailableFrom, fetchDateFromProduct } from "./modules/fetch.js";
 
 if (typeof __BUILD_TIME__ !== "undefined") console.log(`[Pixelatoy] build: ${__BUILD_TIME__}`);
 
@@ -241,95 +242,6 @@ function createEditableCell(key, row) {
 
 // ─── Auto-fetch fecha desde detalle del producto ─────────────────────────────
 
-function fetchHTML(url) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ type: "fetch", url }, (res) => {
-      resolve(res?.html ?? null);
-    });
-  });
-}
-
-function parseHTML(html) {
-  return new DOMParser().parseFromString(html, "text/html");
-}
-
-function createOverlay(row) {
-  const rect = row.getBoundingClientRect();
-  const overlayDiv = document.createElement("div");
-  overlayDiv.className = "pixelatoy-overlay";
-  overlayDiv.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
-  const dotsEl = document.createElement("span");
-  dotsEl.className = "pixelatoy-dots";
-  dotsEl.innerHTML = "<span>&bull;</span><span>&bull;</span><span>&bull;</span>";
-  overlayDiv.appendChild(dotsEl);
-  document.body.appendChild(overlayDiv);
-  const spans = dotsEl.querySelectorAll("span");
-  let frameIndex = 0;
-  spans[0].classList.add("active");
-  const interval = setInterval(() => {
-    spans[frameIndex % 3].classList.remove("active");
-    frameIndex++;
-    spans[frameIndex % 3].classList.add("active");
-  }, 400);
-  const originalRemove = overlayDiv.remove.bind(overlayDiv);
-  overlayDiv.remove = () => { clearInterval(interval); originalRemove(); };
-  return overlayDiv;
-}
-
-async function resolveProductUrl(row, key) {
-  const rowCells = row.children;
-  const lastCell = rowCells[rowCells.length - 1];
-  const orderLink = lastCell.querySelector("a")?.href;
-  if (!orderLink) return null;
-
-  const orderHTML = await fetchHTML(orderLink);
-  if (!orderHTML) return null;
-
-  const orderDoc = parseHTML(orderHTML);
-  const productLink = Array.from(orderDoc.querySelectorAll("a"))
-    .find(a => a.textContent.trim() === key)?.href;
-  return productLink || null;
-}
-
-function parseAvailableFrom(text) {
-  const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
-  if (!match) return null;
-  const mm = MONTHS[match[1].toLowerCase()];
-  if (!mm) return null;
-  return toISODateTime(match[2], mm, "01");
-}
-
-function isValidProductPage(html) {
-  const doc = parseHTML(html);
-  return !!doc.querySelector('h1.page-title[itemprop="name"]');
-}
-
-async function fetchDateFromProduct(productUrl) {
-  const empty = { date: null, brokenLink: false, availableFrom: null, availableFromDate: null };
-  const productHTML = await fetchHTML(productUrl);
-  if (!productHTML) return empty;
-
-  if (!isValidProductPage(productHTML)) {
-    return { ...empty, brokenLink: true };
-  }
-
-  const productDoc = parseHTML(productHTML);
-  const dts = productDoc.querySelectorAll("dt.name");
-  let date = null, availableFrom = null, availableFromDate = null;
-  for (const dt of dts) {
-    const label = dt.textContent.trim();
-    const value = dt.nextElementSibling?.textContent.trim() || null;
-    if (label === "Entrada en almacén" && value) {
-      const normalized = normalizeDateTime(value);
-      date = parseDateTime(normalized) ? normalized : null;
-    } else if (label === "Disponibilidad" && value) {
-      availableFrom = value;
-      availableFromDate = parseAvailableFrom(value);
-    }
-  }
-  return { date, brokenLink: false, availableFrom, availableFromDate };
-}
-
 async function autoFetchRowData(row, key, cell, stored) {
   const hasDate = !!getStoredDate(stored);
   const hasUrl = !!(stored && stored.productUrl);
@@ -356,7 +268,7 @@ async function autoFetchRowData(row, key, cell, stored) {
     }
 
     if (needsDate && productUrl) {
-      const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl);
+      const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
       if (brokenLink) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
@@ -493,7 +405,7 @@ async function refreshRowData(row, key, stored) {
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl);
+  const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
 
   const changes = [];
   const newFields = {};
