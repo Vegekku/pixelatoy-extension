@@ -1,7 +1,8 @@
 import esbuild from "esbuild";
-import { copyFileSync, mkdirSync } from "fs";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 
-const watch = process.argv.includes("--watch");
+const watch = process.argv.includes("--watch") || process.argv.includes("--test");
+const test = process.argv.includes("--test");
 
 mkdirSync("dist/icons", { recursive: true });
 
@@ -9,14 +10,27 @@ mkdirSync("dist/icons", { recursive: true });
   copyFileSync(f, `dist/${f.replace("src/", "")}`);
 });
 
+if (test) {
+  const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf8"));
+  manifest.content_scripts[0].js.push("test-helpers.js");
+  writeFileSync("dist/manifest.json", JSON.stringify(manifest, null, 2));
+}
+
+const entryPoints = {
+  "content":    "src/content.js",
+  "background": "src/background.js",
+  "popup":      "src/popup.js",
+};
+
+if (test) {
+  entryPoints["test-helpers"] = "test-helpers.js";
+}
+
 const ctx = await esbuild.context({
-  entryPoints: {
-    "content":    "src/content.js",
-    "background": "src/background.js",
-    "popup":      "src/popup.js",
-  },
+  entryPoints,
   bundle: true,
   minify: !watch,
+  define: watch ? { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString("es-ES")) } : {},
   outdir: "dist",
   format: "esm",
   platform: "browser",

@@ -4,9 +4,8 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
-| 2 — Fixes y soporte básico | | [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web), [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de i18n o tabs |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -53,6 +52,9 @@ Cambios necesarios:
 ---
 
 ## 2. Tabla de reservas
+
+### 2.0 Bug: enlaces de productos con estilos de la web
+Los enlaces al producto inyectados por la extensión heredan los estilos CSS de la web (`color: #000` en normal/visitado, `color: #ffbd2e` en hover), lo que los hace ilegibles sobre las filas coloreadas (negro, rojo, naranja). Hay que forzar un color de enlace que contraste con todos los fondos, o usar el color del texto de la fila (`color: inherit`).
 
 ### 2.1 Rediseño: tabs "En almacén" / "No disponible"
 Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
@@ -182,33 +184,29 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 **🟢 Nice to have**
 - Los estilos CSS están embebidos como string en `addLegend` dentro de `content.js`. Moverlos a un fichero `src/content.css` e importarlo (requiere plugin esbuild para CSS o inyección manual).
 
-### 9.5 Refactor estructural: content.js
+### 9.7 Refactor post-extracción de módulos
 
-Refactors de mayor calado para mejorar rendimiento, legibilidad y mantenibilidad a largo plazo.
+Mejoras de calidad interna detectadas en la auditoría posterior a la extracción de módulos. Ninguna bloquea funcionalidad, pero reducen fragilidad y facilitan futuros cambios (i18n, tabs, opciones).
 
-**Separación de responsabilidades — partir content.js en módulos**
+**Centralizar constantes compartidas en `constants.js`**
 
-`content.js` tiene ~900 líneas mezclando parsing, DOM, storage, fetching, overlays, ordenación y leyenda. Propuesta:
+Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`. Crear `src/modules/constants.js` para las constantes usadas por más de un módulo (STORAGE_KEY, THRESHOLDS, MONTHS, COLUMN_INDEX_KEY, DATA_INSERT, INSERT_COLUMN_INDEX). Las constantes locales (SORTABLE_COLUMNS) se quedan donde están. Los textos de UI se resolverán con i18n (punto 1.2).
 
-```
-src/
-├── content.js          # solo init + orquestación
-└── modules/
-    ├── column.js       # applyCustomColumn, createEditableCell, updateCell
-    ├── fetch.js        # autoFetch, resolveProductUrl, fetchDateFromProduct
-    ├── sort.js         # sortTable, applyColumnSorting
-    ├── refresh.js      # refreshAllData, refreshRowData
-    ├── legend.js       # addLegend, instrucciones
-    └── orphans.js      # checkOrphanData
-```
+**Eliminar inyección de dependencias entre módulos**
 
-**Estado global implícito**
+`refreshAllData` recibe 8 dependencias como objeto desde `content.js`; `fetchDateFromProduct` recibe `normalizeDateTime` como parámetro; `addLegend` recibe `refreshAllData` como parámetro. Solución: mover `normalizeDateTime` (y `parseNaturalDate`) a `helpers.js`, de modo que `fetch.js` y `refresh.js` lo importen directamente. Después, `refresh.js` importa `getRowKey`, `saveToStorage`, etc. de `column.js`; `legend.js` importa `refreshAllData` de `refresh.js`. Resultado: `content.js` pierde el wrapper y toda la fontanería de inyección.
 
-`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+**Duplicación de código: `COLUMN_INDEX_KEY` y `getRowKey`**
+
+Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
 **`createOverlay` / `createInfoOverlay` — abstracción incompleta**
 
-Ambas duplican la lógica de posicionamiento sobre filas (`rect`, `style.cssText`). Una función base `createRowOverlay(row, className)` que devuelva el div posicionado, y cada variante añade su contenido encima.
+Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
+
+**Estilos CSS — dependencia implícita**
+
+Los estilos de `.pixelatoy-overlay`, `.pixelatoy-dots`, `.pixelatoy-btn` están en `legend.js` pero los usan `fetch.js` y `refresh.js`. Funciona por orden de ejecución, pero es frágil. Mover a una función `injectStyles()` en su propio módulo, ejecutada explícitamente desde `content.js` al inicio.
 
 **`saveToStorage` — lectura + escritura en cada llamada**
 
@@ -216,8 +214,19 @@ Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambi
 
 **Estilos inline — mantenibilidad**
 
-Decenas de `style.cssText = "..."` repartidos por `content.js` dificultan cambiar el diseño. Solución sin plugins: definir todas las clases en el string CSS de `addLegend` y asignar `className` en lugar de `style.cssText`.
+Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambiar el diseño. Definir todas las clases en el string CSS centralizado y asignar `className` en lugar de `style.cssText`.
 
 **`normalizeDateTime` + `parseNaturalDate` — complejidad ciclomática alta**
 
 7 ramas condicionales en total. Difícil razonar sobre qué formatos acepta. Un array de `[regex, handler]` haría el código más declarativo y extensible.
+
+**Estado global implícito en `sort.js`**
+
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+
+**`column.js` sigue siendo grande (~270 líneas)**
+
+Mezcla parsing de fechas, UI helpers, storage y orquestación de columna + auto-fetch. Si crece más (i18n, tabs), candidatos a extraer: `date-parse.js`, `storage.js`.
+
+### 9.6 Automatización de subida a Chrome Web Store
+Usar la [Chrome Web Store API](https://developer.chrome.com/docs/webstore/using-api) para automatizar el envío a revisión tras cada release, ya sea desde GitHub Actions o desde un script local (`npm run deploy`). Requiere configurar credenciales OAuth2 (`CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`). La publicación final sigue dependiendo de la revisión manual de Google.
