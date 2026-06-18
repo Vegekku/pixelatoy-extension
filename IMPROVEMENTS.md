@@ -4,9 +4,8 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 1 — Base técnica | Antes de cualquier cosa | [9.5](#95-refactor-estructural-contentjs) | Desbloquea todo lo demás. Sin esto, cada nueva funcionalidad añade más deuda técnica |
 | 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web), [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de i18n o tabs |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -185,23 +184,13 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 **🟢 Nice to have**
 - Los estilos CSS están embebidos como string en `addLegend` dentro de `content.js`. Moverlos a un fichero `src/content.css` e importarlo (requiere plugin esbuild para CSS o inyección manual).
 
-### 9.5 Refactor estructural: content.js
+### 9.7 Refactor post-extracción de módulos
 
-La separación en módulos ya está completada. Estructura actual:
+Mejoras de calidad interna detectadas en la auditoría posterior a la extracción de módulos. Ninguna bloquea funcionalidad, pero reducen fragilidad y facilitan futuros cambios (i18n, tabs, opciones).
 
-```
-src/
-├── content.js          # solo init + orquestación (~16 líneas)
-└── modules/
-    ├── column.js       # columna, celda editable, auto-fetch, storage, UI helpers
-    ├── fetch.js        # red: fetchHTML, createOverlay, resolveProductUrl, fetchDateFromProduct
-    ├── sort.js         # sortTable, applyColumnSorting
-    ├── refresh.js      # refreshAllData, refreshRowData, info overlay
-    ├── legend.js       # leyenda de colores, botón refrescar, instrucciones
-    └── orphans.js      # checkOrphanData
-```
+**Centralizar constantes compartidas en `constants.js`**
 
-Refactors pendientes tras la auditoría post-extracción:
+Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`. Crear `src/modules/constants.js` para las constantes usadas por más de un módulo (STORAGE_KEY, THRESHOLDS, MONTHS, COLUMN_INDEX_KEY, DATA_INSERT, INSERT_COLUMN_INDEX). Las constantes locales (SORTABLE_COLUMNS) se quedan donde están. Los textos de UI se resolverán con i18n (punto 1.2).
 
 **Eliminar inyección de dependencias entre módulos**
 
@@ -209,7 +198,7 @@ Refactors pendientes tras la auditoría post-extracción:
 
 **Duplicación de código: `COLUMN_INDEX_KEY` y `getRowKey`**
 
-Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` e importar en `orphans.js`.
+Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
 **`createOverlay` / `createInfoOverlay` — abstracción incompleta**
 
