@@ -211,7 +211,11 @@ src/
 
 **`addLegend` recibe `refreshAllData` como parámetro**
 
-Cuando se extraiga `refresh.js`, cambiar el parámetro por un import directo en `legend.js` y eliminar la inyección desde `content.js`.
+Cuando se extraiga `refresh.js`, cambiar el parámetro por un import directo en `legend.js` y eliminar la inyección desde `content.js`. Actualmente `content.js` tiene un wrapper que cierra las dependencias de `refreshAllData`; al hacer el import directo en `legend.js`, eliminar también ese wrapper.
+
+**Auditoría post-refactor**
+
+Una vez completada la extracción de todos los módulos, hacer una revisión global del código resultante para detectar nueva refactorización o limpieza (dependencias innecesarias, imports no usados, simplificación de interfaces entre módulos, etc.).
 
 **`createOverlay` / `createInfoOverlay` — abstracción incompleta**
 
