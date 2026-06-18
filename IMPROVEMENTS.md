@@ -209,6 +209,10 @@ src/
 
 `sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
 
+**`addLegend` recibe `refreshAllData` como parámetro**
+
+Cuando se extraiga `refresh.js`, cambiar el parámetro por un import directo en `legend.js` y eliminar la inyección desde `content.js`.
+
 **`createOverlay` / `createInfoOverlay` — abstracción incompleta**
 
 Ambas duplican la lógica de posicionamiento sobre filas (`rect`, `style.cssText`). Una función base `createRowOverlay(row, className)` que devuelva el div posicionado, y cada variante añade su contenido encima.
