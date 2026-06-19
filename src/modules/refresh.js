@@ -1,5 +1,6 @@
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { t } from "../i18n.js";
 
 function createOverlayButton(text, title, bg, onClick) {
   const btn = document.createElement("button");
@@ -29,8 +30,8 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 
   const buttons = document.createElement("div");
   buttons.style.cssText = "display:flex;gap:6px;padding:0 12px;align-items:center;";
-  buttons.appendChild(createOverlayButton("✓", "Aplicar cambios", "#5cb85c", () => { onAccept(); overlay.remove(); }));
-  buttons.appendChild(createOverlayButton("✗", "Descartar cambios", "#d9534f", () => { onReject(); overlay.remove(); }));
+  buttons.appendChild(createOverlayButton("✓", t("overlay_accept"), "#5cb85c", () => { onAccept(); overlay.remove(); }));
+  buttons.appendChild(createOverlayButton("✗", t("overlay_reject"), "#d9534f", () => { onReject(); overlay.remove(); }));
 
   overlay.appendChild(content);
   overlay.appendChild(buttons);

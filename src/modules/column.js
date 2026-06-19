@@ -1,15 +1,16 @@
 import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { t } from "../i18n.js";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const COLUMN_INDEX_KEY = 2;
 const INSERT_COLUMN_INDEX = 4;
 const DATA_INSERT = "data-pixelatoy-insert";
-const PLACEHOLDER = "YYYY-MM-DD\n(hora opcional)";
-const TOOLTIP_FORMATS = "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026";
-const TOOLTIP_ERROR = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 2024 o February 23 2026";
+const PLACEHOLDER = () => t("placeholder");
+const TOOLTIP_FORMATS = () => t("tooltip_formats");
+const TOOLTIP_ERROR = () => t("tooltip_error");
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
 
@@ -123,7 +124,7 @@ function addBrokenLinkWarning(cell) {
   if (!cell || cell.querySelector("span[title]")) return;
   const warn = document.createElement("span");
   warn.textContent = " ⛓️‍💥";
-  warn.title = "Este enlace puede no apuntar al producto correcto";
+  warn.title = t("broken_link_tooltip");
   warn.style.cursor = "help";
   cell.appendChild(warn);
 }
@@ -184,20 +185,20 @@ function createEditableCell(key, row) {
       chrome.storage.local.get(STORAGE_KEY, (res) => {
         const stored = getStoredDate((res[STORAGE_KEY] || {})[key]);
         cell.textContent = stored;
-        if (!stored) cell.setAttribute("data-placeholder", PLACEHOLDER);
-        cell.title = TOOLTIP_FORMATS;
+        if (!stored) cell.setAttribute("data-placeholder", PLACEHOLDER());
+        cell.title = TOOLTIP_FORMATS();
         cell.focus();
       });
     } catch (e) {
       cell.textContent = "";
-      cell.setAttribute("data-placeholder", PLACEHOLDER);
+      cell.setAttribute("data-placeholder", PLACEHOLDER());
       cell.focus();
     }
   });
 
   cell.addEventListener("input", () => {
     if (cell.textContent.trim()) cell.removeAttribute("data-placeholder");
-    else cell.setAttribute("data-placeholder", PLACEHOLDER);
+    else cell.setAttribute("data-placeholder", PLACEHOLDER());
   });
 
   cell.addEventListener("paste", (e) => {
@@ -215,7 +216,7 @@ function createEditableCell(key, row) {
 
     if (value && !parseDateTime(value)) {
       cell.style.outlineColor = "#d9534f";
-      cell.title = TOOLTIP_ERROR;
+      cell.title = TOOLTIP_ERROR();
       cell.contentEditable = "true";
       cell.setAttribute("data-editing", "1");
       cell.focus();
@@ -245,7 +246,7 @@ async function autoFetchRowData(row, key, cell, stored) {
 
   const needsDate = !hasDate && !stored?.brokenLink && (
     row.children[row.children.length - 2]?.querySelector("form") ||
-    row.children[row.children.length - 2]?.textContent.trim() === "No disponible"
+    row.children[row.children.length - 2]?.textContent.trim() === t("not_available")
   );
   if (hasUrl && !needsDate) return;
 
@@ -318,12 +319,12 @@ export function applyCustomColumn() {
       if (isHeader) {
         const th = document.createElement("th");
         th.setAttribute(DATA_INSERT, "1");
-        th.textContent = "En almacén";
+        th.textContent = t("col_header");
         row.insertBefore(th, cells[INSERT_COLUMN_INDEX] || null);
         return;
       }
 
-      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === "No disponible";
+      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === t("not_available");
       const cell = isNotAvailable ? document.createElement("td") : createEditableCell(key, row);
       cell.setAttribute(DATA_INSERT, "1");
       const storedDate = getStoredDate(storedTexts[key]);

@@ -1,4 +1,5 @@
 import { STORAGE_KEY, addThreeMonths, formatCountdown, getDataRows } from "../helpers.js";
+import { t } from "../i18n.js";
 
 const COLUMN_INDEX_KEY = 2;
 
@@ -33,19 +34,19 @@ export function checkOrphanData() {
     header.style.cssText = "display:flex;justify-content:space-between;align-items:center;";
     const toggle = document.createElement("strong");
     toggle.style.cssText = "cursor:pointer;user-select:none;";
-    toggle.textContent = `▶ Reservas no encontradas (${orphans.length})`;
+    toggle.textContent = `\u25b6 ${t("orphans_title")} (${orphans.length})`;
     toggle.addEventListener("click", () => {
       const open = list.style.display !== "none";
       list.style.display = open ? "none" : "flex";
-      toggle.textContent = `${open ? "▶" : "▼"} Reservas no encontradas (${orphans.length})`;
+      toggle.textContent = `${open ? "\u25b6" : "\u25bc"} ${t("orphans_title")} (${orphans.length})`;
     });
     header.appendChild(toggle);
 
     const deleteAllBtn = document.createElement("button");
-    deleteAllBtn.textContent = "Eliminar todos";
+    deleteAllBtn.textContent = t("orphans_delete_all");
     deleteAllBtn.style.cssText = "background:#d9534f;color:#fff;border:none;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:12px;";
     deleteAllBtn.addEventListener("click", () => {
-      if (!confirm("¿Eliminar todas las reservas no encontradas?")) return;
+      if (!confirm(t("orphans_confirm"))) return;
       chrome.storage.local.get(STORAGE_KEY, (res) => {
         const d = res[STORAGE_KEY] || {};
         orphans.forEach(([key]) => delete d[key]);
@@ -60,7 +61,7 @@ export function checkOrphanData() {
 
     orphans.forEach(([key, { date: dateStr, img, productUrl }]) => {
       const limitDate = addThreeMonths(dateStr);
-      const status = limitDate ? formatCountdown(limitDate) : "Sin fecha";
+      const status = limitDate ? formatCountdown(limitDate) : t("orphans_no_date");
 
       const row = document.createElement("div");
       row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;gap:8px;";
@@ -76,11 +77,11 @@ export function checkOrphanData() {
       const nameEl = productUrl
         ? `<a href="${productUrl}" target="_blank" style="color:inherit;font-weight:bold;">${key}</a>`
         : `<strong>${key}</strong>`;
-      info.innerHTML = `${nameEl}<br><small>Entrada: ${dateStr} · Límite: ${status}</small>`;
+      info.innerHTML = `${nameEl}<br><small>${t("orphans_entry")}: ${dateStr} \u00b7 ${t("orphans_limit")}: ${status}</small>`;
       info.style.cssText = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;";
 
       const delBtn = document.createElement("button");
-      delBtn.textContent = "✕";
+      delBtn.textContent = "\u2715";
       delBtn.style.cssText = "background:#d9534f;color:#fff;border:none;width:24px;height:24px;border-radius:3px;cursor:pointer;font-size:14px;flex-shrink:0;margin-left:8px;";
       delBtn.addEventListener("click", () => {
         chrome.storage.local.get(STORAGE_KEY, (res) => {
@@ -90,7 +91,7 @@ export function checkOrphanData() {
             row.remove();
             const remaining = list.children.length;
             if (remaining === 0) container.remove();
-            else toggle.textContent = `▼ Reservas no encontradas (${remaining})`;
+            else toggle.textContent = `\u25bc ${t("orphans_title")} (${remaining})`;
           });
         });
       });

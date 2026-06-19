@@ -1,45 +1,13 @@
-export function groupByThreshold(data) {
-  const now = new Date();
-  const groups = THRESHOLDS.map(() => []);
-  for (const [name, entry] of Object.entries(data)) {
-    const limit = parseDateTime(addThreeMonths(entry.date));
-    if (!limit) continue;
-    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
-    for (let i = 0; i < THRESHOLDS.length; i++) {
-      if (diffDays < THRESHOLDS[i].days) {
-        groups[i].push({ name, img: entry.img || "", limit });
-        break;
-      }
-    }
-  }
-  return groups;
-}
-
-export function formatCountdown(dateStr) {
-  const date = parseDateTime(dateStr);
-  if (!date) return "";
-  const diffMs = date - new Date();
-  if (diffMs <= 0) return "Vencido";
-  const totalMinutes = Math.floor(diffMs / (1000 * 60));
-  const months = Math.floor(totalMinutes / (60 * 24 * 30));
-  const days = Math.floor((totalMinutes % (60 * 24 * 30)) / (60 * 24));
-  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-  const minutes = totalMinutes % 60;
-  return `${months}m ${days}d ${hours}h ${minutes}min`;
-}
-
-export function getDataRows(table) {
-  return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
-}
+import { t, LANG } from "./i18n.js";
 
 export const STORAGE_KEY = "pixelatoyTexts";
-export const PREORDER_URL = "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails";
+export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
 
 export const THRESHOLDS = [
-  { days: 7,        label: "Menos de 7 días",   bg: "#000",    color: "#fff" },
-  { days: 30,       label: "Menos de 30 días",  bg: "#d9534f", color: "#fff" },
-  { days: 60,       label: "Menos de 60 días",  bg: "#f0ad4e", color: "#000" },
-  { days: Infinity, label: "60 días o más",      bg: "#5cb85c", color: "#000" },
+  { days: 7,        label: t("threshold_7"),   bg: "#000",    color: "#fff" },
+  { days: 30,       label: t("threshold_30"),  bg: "#d9534f", color: "#fff" },
+  { days: 60,       label: t("threshold_60"),  bg: "#f0ad4e", color: "#000" },
+  { days: Infinity, label: t("threshold_inf"), bg: "#5cb85c", color: "#000" },
 ];
 
 export const MONTHS = {
@@ -66,4 +34,38 @@ export function addThreeMonths(dateStr) {
   if (!date) return null;
   date.setMonth(date.getMonth() + 3);
   return toISODateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes());
+}
+
+export function groupByThreshold(data) {
+  const now = new Date();
+  const groups = THRESHOLDS.map(() => []);
+  for (const [name, entry] of Object.entries(data)) {
+    const limit = parseDateTime(addThreeMonths(entry.date));
+    if (!limit) continue;
+    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
+    for (let i = 0; i < THRESHOLDS.length; i++) {
+      if (diffDays < THRESHOLDS[i].days) {
+        groups[i].push({ name, img: entry.img || "", limit });
+        break;
+      }
+    }
+  }
+  return groups;
+}
+
+export function formatCountdown(dateStr) {
+  const date = parseDateTime(dateStr);
+  if (!date) return "";
+  const diffMs = date - new Date();
+  if (diffMs <= 0) return t("expired");
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const months = Math.floor(totalMinutes / (60 * 24 * 30));
+  const days = Math.floor((totalMinutes % (60 * 24 * 30)) / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+  return `${months}m ${days}d ${hours}h ${minutes}min`;
+}
+
+export function getDataRows(table) {
+  return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
 }

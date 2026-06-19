@@ -1,4 +1,5 @@
 import { THRESHOLDS } from "../helpers.js";
+import { t } from "../i18n.js";
 
 export function addLegend(refreshAllData) {
   const table = document.getElementById("preorder_list");
@@ -26,7 +27,7 @@ export function addLegend(refreshAllData) {
   });
 
   const refreshBtn = document.createElement("button");
-  refreshBtn.textContent = "Refrescar datos";
+  refreshBtn.textContent = t("refresh_btn");
   refreshBtn.className = "pixelatoy-btn";
   refreshBtn.style.cssText = "margin-left:auto;font-size:14px;background:#5cb85c;";
   refreshBtn.addEventListener("click", async () => {
@@ -45,28 +46,34 @@ export function addLegend(refreshAllData) {
   const exampleNaturalES = `${now.getDate()} ${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
   const exampleNaturalEN = `${MONTHS_EN[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 
+  const colHeader = t("col_header");
+  const instr1 = t("instr_1").replace("BROKEN_ICON", "BROKEN_ICON_PLACEHOLDER");
+  const instr3 = `${t("instr_3_a")} <em>${colHeader}</em>${t("instr_3_b")} <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>)${t("instr_3_c")} (<code>HH:MM</code>).`;
+
   const instructions = document.createElement("div");
   instructions.style.cssText = "margin-top:10px;padding:10px 14px;background:#f5f5f5;border-radius:4px;font-size:13px;color:#333;line-height:1.6;";
   instructions.innerHTML = `
-    <strong style="cursor:pointer;user-select:none;" id="pixelatoy-instr-toggle">▶ Instrucciones de uso</strong>
+    <strong style="cursor:pointer;user-select:none;" id="pixelatoy-instr-toggle">▶ ${t("instr_toggle")}</strong>
     <ul id="pixelatoy-instr-list" style="display:none;margin:6px 0 0 0;padding-left:18px;">
-      <li class="pixelatoy-instr-broken">La fecha de entrada y el enlace al producto se obtienen automáticamente al cargar la página. El nombre del producto es un enlace a su ficha. Si aparece <span class="pixelatoy-broken-icon"></span>, el enlace está roto.</li>
-      <li>Usa "Refrescar datos" para actualizar la información manualmente y reintentar enlaces rotos. Solo se muestran filas con cambios.</li>
-      <li>Para introducir o corregir la fecha manualmente, haz click en la celda de <em>En almacén</em>. Formatos aceptados: <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>), con o sin hora (<code>HH:MM</code>).</li>
-      <li>Las columnas con &#9650;&#9660; permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.</li>
-      <li>Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección <em>Reservas no encontradas</em> debajo con opción de eliminar.</li>
-      <li>El icono de la extensión muestra un resumen de productos agrupados por urgencia.</li>
+      <li class="pixelatoy-instr-broken">${instr1}</li>
+      <li>${t("instr_2")}</li>
+      <li>${instr3}</li>
+      <li>${t("instr_4")}</li>
+      <li>${t("instr_5")}</li>
+      <li>${t("instr_6")}</li>
     </ul>
   `;
   const brokenIcon = document.createElement("span");
   brokenIcon.textContent = " ⛓️‍💥";
-  instructions.querySelector(".pixelatoy-broken-icon").replaceWith(brokenIcon);
+  instructions.querySelector(".pixelatoy-instr-broken").innerHTML =
+    instructions.querySelector(".pixelatoy-instr-broken").innerHTML.replace("BROKEN_ICON_PLACEHOLDER", brokenIcon.outerHTML);
+
   const toggle = instructions.querySelector("#pixelatoy-instr-toggle");
   const list = instructions.querySelector("#pixelatoy-instr-list");
   toggle.addEventListener("click", () => {
     const open = list.style.display !== "none";
     list.style.display = open ? "none" : "block";
-    toggle.innerHTML = (open ? "&#9654;" : "&#9660;") + " Instrucciones de uso";
+    toggle.innerHTML = (open ? "&#9654;" : "&#9660;") + ` ${t("instr_toggle")}`;
   });
   legend.insertAdjacentElement("afterend", instructions);
 }

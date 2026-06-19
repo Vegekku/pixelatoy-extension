@@ -1,4 +1,5 @@
 import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
+import { t } from "./i18n.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
 const NOTIFICATION_THRESHOLDS = THRESHOLDS.filter(t => t.days !== Infinity);
@@ -23,7 +24,7 @@ function checkAndNotify() {
     chrome.notifications.create("pixelatoy-alert", {
       type: "basic",
       iconUrl: "icons/icon128.png",
-      title: "Pixelatoy — Reservas en almacén",
+      title: t("notif_title"),
       message,
       priority: 2,
       requireInteraction: true,

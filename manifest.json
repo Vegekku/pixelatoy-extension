@@ -25,7 +25,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*"
+        "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*",
+        "https://www.pixelatoy.com/en/module/preorder/preorderorderdetails*"
       ],
       "js": ["content.js"]
     }

@@ -1,4 +1,5 @@
 import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, groupByThreshold } from "./helpers.js";
+import { t } from "./i18n.js";
 
 chrome.storage.local.get(STORAGE_KEY, (res) => {
   const data = res[STORAGE_KEY] || {};
@@ -7,7 +8,7 @@ chrome.storage.local.get(STORAGE_KEY, (res) => {
   const hasAny = groups.some(g => g.length > 0);
 
   if (!hasAny) {
-    content.innerHTML = '<div class="empty">No hay productos con urgencia</div>';
+    content.innerHTML = `<div class="empty">${t("popup_empty")}</div>`;
   } else {
     THRESHOLDS.forEach((t, i) => {
       if (groups[i].length === 0) return;
@@ -47,7 +48,7 @@ chrome.storage.local.get(STORAGE_KEY, (res) => {
 
   const btn = document.createElement("a");
   btn.className = "btn";
-  btn.textContent = "Ver reservas";
+  btn.textContent = t("popup_btn");
   btn.href = PREORDER_URL;
   btn.target = "_blank";
   content.appendChild(btn);

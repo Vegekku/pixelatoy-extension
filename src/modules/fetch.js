@@ -1,4 +1,5 @@
 import { MONTHS, parseDateTime, toISODateTime } from "../helpers.js";
+import { t } from "../i18n.js";
 
 export function fetchHTML(url) {
   return new Promise((resolve) => {
@@ -78,10 +79,10 @@ export async function fetchDateFromProduct(productUrl, normalizeDateTime) {
   for (const dt of dts) {
     const label = dt.textContent.trim();
     const value = dt.nextElementSibling?.textContent.trim() || null;
-    if (label === "Entrada en almacén" && value) {
+    if (label === t("fetch_label_date") && value) {
       const normalized = normalizeDateTime(value);
       date = parseDateTime(normalized) ? normalized : null;
-    } else if (label === "Disponibilidad" && value) {
+    } else if (label === t("fetch_label_avail") && value) {
       availableFrom = value;
       availableFromDate = parseAvailableFrom(value);
     }
