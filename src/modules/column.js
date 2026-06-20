@@ -23,7 +23,7 @@ function parseNaturalDate(dateStr) {
     return new Date(Number(yyyy), mm - 1, Number(dd));
   }
 
-  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2}),?\s+(\d{4})$/i);
+  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2})\s*,?\s*(\d{4})$/i);
   if (matchEN) {
     const [, monthName, dd, yyyy] = matchEN;
     const mm = MONTHS[monthName.toLowerCase()];
@@ -58,7 +58,7 @@ export function normalizeDateTime(value) {
 
   const naturalMatch =
     value.match(/^\d{1,2}\s+[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i) ||
-    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
+    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2}\s*,?\s*\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
   if (naturalMatch) {
     const timeMatch = value.match(/(\d{1,2}):(\d{2})$/);
     const datePart = timeMatch ? value.replace(timeMatch[0], "").trim() : value;

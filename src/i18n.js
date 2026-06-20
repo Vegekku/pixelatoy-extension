@@ -65,7 +65,7 @@ const MESSAGES = {
     expired:            "Expired",
 
     col_header:         "In warehouse",
-    not_available:      "Not available",
+    not_available:      "Not Allowed For Now",
     placeholder:        "YYYY-MM-DD\n(time optional)",
     tooltip_formats:    "Accepted formats: 2024-03-15, 15/03/2024, 15 March 2024, February 23 2026",
     tooltip_error:      "Invalid format. E.g.: 2024-03-15, 15/03/2024, 15 March 2024 or February 23 2026",

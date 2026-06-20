@@ -78,7 +78,7 @@ export async function fetchDateFromProduct(productUrl, normalizeDateTime) {
   let date = null, availableFrom = null, availableFromDate = null;
   for (const dt of dts) {
     const label = dt.textContent.trim();
-    const value = dt.nextElementSibling?.textContent.trim() || null;
+    const value = dt.nextElementSibling?.textContent.trim().replace(/\s+,/g, ",") || null;
     if (label === t("fetch_label_date") && value) {
       const normalized = normalizeDateTime(value);
       date = parseDateTime(normalized) ? normalized : null;
