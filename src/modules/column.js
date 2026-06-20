@@ -1,7 +1,7 @@
 import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t } from "../i18n.js";
+import { t, LANG, translateAvailableFrom } from "../i18n.js";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -260,7 +260,7 @@ async function autoFetchRowData(row, key, cell, stored) {
       productUrl = await resolveProductUrl(row, key);
       if (productUrl) {
         saveToStorage(key, { productUrl }, row);
-        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl);
+        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
       }
     }
 
@@ -274,7 +274,7 @@ async function autoFetchRowData(row, key, cell, stored) {
         updateCell(cell, row, addThreeMonths(date));
       } else if (availableFrom) {
         saveToStorage(key, { availableFrom, availableFromDate }, row);
-        updateCell(cell, row, null, availableFrom, availableFromDate);
+        updateCell(cell, row, null, translateAvailableFrom(availableFrom), availableFromDate);
       }
     }
   } catch (e) {
@@ -330,10 +330,10 @@ export function applyCustomColumn() {
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
       const { availableFrom, availableFromDate } = storedTexts[key] || {};
-      updateCell(cell, row, limitDate, availableFrom, availableFromDate);
+      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom), availableFromDate);
 
       if (storedTexts[key]?.productUrl) {
-        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl, storedTexts[key].brokenLink);
+        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
       }
 
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);

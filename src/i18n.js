@@ -106,3 +106,26 @@ const MESSAGES = {
 export function t(key) {
   return (MESSAGES[LANG] ?? MESSAGES.es)[key] ?? MESSAGES.es[key] ?? key;
 }
+
+const MONTHS_BY_NUM = {
+  es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+  en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+};
+
+const MONTHS_TO_NUM = {};
+for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
+  arr.forEach((m, i) => { MONTHS_TO_NUM[m.toLowerCase()] = i + 1; });
+}
+
+export function translateAvailableFrom(text) {
+  if (!text) return text;
+  const match = text.match(/([a-z\u00e0-\u00ff]+)\s+(\d{4})/i);
+  if (!match) return text;
+  const mm = MONTHS_TO_NUM[match[1].toLowerCase()];
+  if (!mm) return text;
+  const yyyy = match[2];
+  const monthName = (MONTHS_BY_NUM[LANG] ?? MONTHS_BY_NUM.es)[mm - 1];
+  return LANG === "en"
+    ? `Estimated availability in ${monthName} ${yyyy}`
+    : `Disponibilidad estimada en ${monthName} de ${yyyy}`;
+}

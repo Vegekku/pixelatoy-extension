@@ -1,5 +1,5 @@
 import { STORAGE_KEY, addThreeMonths, formatCountdown, getDataRows } from "../helpers.js";
-import { t } from "../i18n.js";
+import { t, translateAvailableFrom } from "../i18n.js";
 
 const COLUMN_INDEX_KEY = 2;
 
@@ -59,9 +59,10 @@ export function checkOrphanData() {
     const list = document.createElement("div");
     list.style.cssText = "display:none;flex-direction:column;gap:6px;margin-top:8px;";
 
-    orphans.forEach(([key, { date: dateStr, img, productUrl }]) => {
+    orphans.forEach(([key, { date: dateStr, img, productUrl, availableFrom }]) => {
       const limitDate = addThreeMonths(dateStr);
-      const status = limitDate ? formatCountdown(limitDate) : t("orphans_no_date");
+      const status = limitDate ? formatCountdown(limitDate) : (availableFrom ? translateAvailableFrom(availableFrom) : t("orphans_no_date"));
+      const adaptedUrl = productUrl?.replace(/\/(es|en)\//, `/${LANG}/`);
 
       const row = document.createElement("div");
       row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:3px;gap:8px;";
@@ -74,8 +75,8 @@ export function checkOrphanData() {
       }
 
       const info = document.createElement("span");
-      const nameEl = productUrl
-        ? `<a href="${productUrl}" target="_blank" style="color:inherit;font-weight:bold;">${key}</a>`
+      const nameEl = adaptedUrl
+        ? `<a href="${adaptedUrl}" target="_blank" style="color:inherit;font-weight:bold;">${key}</a>`
         : `<strong>${key}</strong>`;
       info.innerHTML = `${nameEl}<br><small>${t("orphans_entry")}: ${dateStr} \u00b7 ${t("orphans_limit")}: ${status}</small>`;
       info.style.cssText = "flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;";
