@@ -62,19 +62,21 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
 
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
-    changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || stored?.comingSoon || null, newVal: date });
+    const oldDisplay = storedDate || translateAvailableFrom(stored?.availableFrom) || translateComingSoon(stored?.comingSoon) || null;
+    changes.push({ label: "Fecha", oldVal: oldDisplay, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
     newFields.comingSoon = null;
   } else if (!date && comingSoon && comingSoon !== stored?.comingSoon) {
-    changes.push({ label: "Disponibilidad", oldVal: stored?.comingSoon || stored?.availableFrom || null, newVal: comingSoon });
+    const oldDisplay = translateComingSoon(stored?.comingSoon) || translateAvailableFrom(stored?.availableFrom) || null;
+    changes.push({ label: "Disponibilidad", oldVal: oldDisplay, newVal: translateComingSoon(comingSoon) });
     newFields.comingSoon = comingSoon;
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
   } else if (!date && !comingSoon && availableFrom && availableFrom !== stored?.availableFrom) {
-    changes.push({ label: "Disponibilidad", oldVal: stored?.availableFrom || null, newVal: availableFrom });
+    changes.push({ label: "Disponibilidad", oldVal: translateAvailableFrom(stored?.availableFrom) || null, newVal: translateAvailableFrom(availableFrom) });
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
   }
