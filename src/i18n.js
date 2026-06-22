@@ -42,6 +42,7 @@ const MESSAGES = {
     // fetch — selectores en la ficha del producto
     fetch_label_date:   "Entrada en almacén",
     fetch_label_avail:  "Disponibilidad",
+    coming_soon:        "Muy pronto (Llegada en 1-2 semanas aproximadamente)",
 
     // popup
     popup_empty:        "No hay productos con urgencia",
@@ -90,6 +91,7 @@ const MESSAGES = {
 
     fetch_label_date:   "Warehouse entry",
     fetch_label_avail:  "Availability",
+    coming_soon:        "Coming soon (Arrival in approximately 1-2 weeks)",
 
     popup_empty:        "No urgent products",
     popup_btn:          "View preorders",
@@ -103,8 +105,9 @@ const MESSAGES = {
   },
 };
 
-export function t(key) {
-  return (MESSAGES[LANG] ?? MESSAGES.es)[key] ?? MESSAGES.es[key] ?? key;
+export function t(key, lang) {
+  const l = lang ?? LANG;
+  return (MESSAGES[l] ?? MESSAGES.es)[key] ?? MESSAGES.es[key] ?? key;
 }
 
 const MONTHS_BY_NUM = {
@@ -128,4 +131,10 @@ export function translateAvailableFrom(text) {
   return LANG === "en"
     ? `Estimated availability in ${monthName} ${yyyy}`
     : `Disponibilidad estimada en ${monthName} de ${yyyy}`;
+}
+
+export function translateComingSoon(text) {
+  if (!text) return text;
+  if (text === t("coming_soon", "es") || text === t("coming_soon", "en")) return t("coming_soon");
+  return text;
 }

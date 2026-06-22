@@ -49,9 +49,10 @@ Cambios necesarios:
 - `popup.js`: importar `i18n.js` como módulo ES y sustituir literales.
 - `background.js`: importar `i18n.js` como módulo ES y sustituir literales de notificaciones.
 
----
+### 1.3 Variantes de texto en campos i18n
+Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo. Si Pixelatoy cambia o añade variantes de estos textos, la traducción fallará silenciosamente y se mostrará el texto en el idioma original. Revisar y ampliar los mapeos en `translateAvailableFrom` y `translateComingSoon` en `i18n.js` si se detectan nuevas variantes.
 
-## 2. Tabla de reservas
+---
 
 ### 2.0 Bug: enlaces de productos con estilos de la web
 Los enlaces al producto inyectados por la extensión heredan los estilos CSS de la web (`color: #000` en normal/visitado, `color: #ffbd2e` en hover), lo que los hace ilegibles sobre las filas coloreadas (negro, rojo, naranja). Hay que forzar un color de enlace que contraste con todos los fondos, o usar el color del texto de la fila (`color: inherit`).

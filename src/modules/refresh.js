@@ -1,6 +1,6 @@
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t } from "../i18n.js";
+import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 function createOverlayButton(text, title, bg, onClick) {
   const btn = document.createElement("button");
@@ -47,7 +47,7 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
 
   const changes = [];
   const newFields = {};
@@ -62,12 +62,18 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
 
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
-    changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || null, newVal: date });
+    changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || stored?.comingSoon || null, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
-  } else if (!date && availableFrom && availableFrom !== stored?.availableFrom) {
+    newFields.comingSoon = null;
+  } else if (!date && comingSoon && comingSoon !== stored?.comingSoon) {
+    changes.push({ label: "Disponibilidad", oldVal: stored?.comingSoon || stored?.availableFrom || null, newVal: comingSoon });
+    newFields.comingSoon = comingSoon;
+    newFields.availableFrom = availableFrom;
+    newFields.availableFromDate = availableFromDate;
+  } else if (!date && !comingSoon && availableFrom && availableFrom !== stored?.availableFrom) {
     changes.push({ label: "Disponibilidad", oldVal: stored?.availableFrom || null, newVal: availableFrom });
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
@@ -116,7 +122,8 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
           if (newFields.productUrl) linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
           if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
-          else if (newFields.availableFrom) updateCell(cell, row, null, newFields.availableFrom, newFields.availableFromDate);
+          else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
+          else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom), newFields.availableFromDate);
           resolve();
         },
         () => { resolve(); }

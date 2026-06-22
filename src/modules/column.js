@@ -1,7 +1,7 @@
 import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t, LANG, translateAvailableFrom } from "../i18n.js";
+import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -92,13 +92,20 @@ function colorRowByDate(row, date) {
   row.style.color = color;
 }
 
-export function updateCell(cell, row, limitDate, availableFrom, availableFromDate) {
+export function updateCell(cell, row, limitDate, availableFrom, availableFromDate, comingSoon) {
   if (limitDate) {
     cell.setAttribute("data-limit-date", limitDate);
     cell.removeAttribute("data-available-from");
     cell.textContent = formatCountdown(limitDate);
     cell.style.cssText = "";
     colorRowByDate(row, parseDateTime(limitDate));
+  } else if (comingSoon) {
+    cell.setAttribute("data-limit-date", "");
+    cell.removeAttribute("data-available-from");
+    cell.textContent = translateComingSoon(comingSoon);
+    cell.style.cssText = "color:#888;font-style:italic;font-size:0.9em;";
+    row.style.background = "";
+    row.style.color = "";
   } else if (availableFrom) {
     cell.setAttribute("data-limit-date", availableFromDate ?? "");
     cell.setAttribute("data-available-from", "1");
@@ -248,7 +255,7 @@ async function autoFetchRowData(row, key, cell, stored) {
     row.children[row.children.length - 2]?.querySelector("form") ||
     row.children[row.children.length - 2]?.textContent.trim() === t("not_available")
   );
-  if (hasUrl && !needsDate) return;
+  if (hasUrl && !needsDate && (stored?.availableFrom || stored?.comingSoon)) return;
 
   cell.setAttribute("data-fetching", "1");
   const overlayDiv = createOverlay(row);
@@ -265,13 +272,16 @@ async function autoFetchRowData(row, key, cell, stored) {
     }
 
     if (needsDate && productUrl) {
-      const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+      const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
       if (brokenLink) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
       } else if (date) {
-        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate }, row);
+        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate, comingSoon: null }, row);
         updateCell(cell, row, addThreeMonths(date));
+      } else if (comingSoon) {
+        saveToStorage(key, { comingSoon, availableFrom, availableFromDate }, row);
+        updateCell(cell, row, null, null, null, comingSoon);
       } else if (availableFrom) {
         saveToStorage(key, { availableFrom, availableFromDate }, row);
         updateCell(cell, row, null, translateAvailableFrom(availableFrom), availableFromDate);
@@ -292,7 +302,10 @@ function autoFetchMissingData(storedTexts) {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
-    if (stored.productUrl && (getStoredDate(stored) || stored.availableFrom)) return;
+    if (stored.productUrl && getStoredDate(stored)) return;
+    const hasNonDateData = stored.availableFrom || stored.comingSoon;
+    const rowHasForm = row.children[row.children.length - 2]?.querySelector("form");
+    if (stored.productUrl && hasNonDateData && !rowHasForm) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
     autoFetchRowData(row, key, cell, stored);
@@ -329,8 +342,8 @@ export function applyCustomColumn() {
       cell.setAttribute(DATA_INSERT, "1");
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
-      const { availableFrom, availableFromDate } = storedTexts[key] || {};
-      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom), availableFromDate);
+      const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
+      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom), availableFromDate, comingSoon);
 
       if (storedTexts[key]?.productUrl) {
         linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
