@@ -4,10 +4,10 @@ export const STORAGE_KEY = "pixelatoyTexts";
 export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
 
 export const THRESHOLDS = [
-  { days: 7,        label: t("threshold_7"),   bg: "#000",    color: "#fff" },
-  { days: 30,       label: t("threshold_30"),  bg: "#d9534f", color: "#fff" },
-  { days: 60,       label: t("threshold_60"),  bg: "#f0ad4e", color: "#000" },
-  { days: Infinity, label: t("threshold_inf"), bg: "#5cb85c", color: "#000" },
+  { days: 7,        labelKey: "threshold_7",   label: t("threshold_7"),   bg: "#000",    color: "#fff" },
+  { days: 30,       labelKey: "threshold_30",  label: t("threshold_30"),  bg: "#d9534f", color: "#fff" },
+  { days: 60,       labelKey: "threshold_60",  label: t("threshold_60"),  bg: "#f0ad4e", color: "#000" },
+  { days: Infinity, labelKey: "threshold_inf", label: t("threshold_inf"), bg: "#5cb85c", color: "#000" },
 ];
 
 export const MONTHS = {

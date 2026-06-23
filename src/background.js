@@ -1,30 +1,29 @@
 import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
-import { t } from "./i18n.js";
+import { t, getLang } from "./i18n.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
-const NOTIFICATION_THRESHOLDS = THRESHOLDS.filter(t => t.days !== Infinity);
-
-function buildNotificationMessage(data) {
+function buildNotificationMessage(data, lang) {
   const groups = groupByThreshold(data);
   const lines = THRESHOLDS
-    .filter((t, i) => t.days !== Infinity && groups[i].length > 0)
-    .map(t => {
-      const i = THRESHOLDS.indexOf(t);
-      return `${t.label}: ${groups[i].length}`;
+    .filter((th, i) => th.days !== Infinity && groups[i].length > 0)
+    .map(th => {
+      const i = THRESHOLDS.indexOf(th);
+      return `${t(th.labelKey, lang)}: ${groups[i].length}`;
     });
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
-function checkAndNotify() {
+async function checkAndNotify() {
+  const lang = await getLang();
   chrome.storage.local.get(STORAGE_KEY, (res) => {
     const data = res[STORAGE_KEY] || {};
-    const message = buildNotificationMessage(data);
+    const message = buildNotificationMessage(data, lang);
     if (!message) return;
 
     chrome.notifications.create("pixelatoy-alert", {
       type: "basic",
       iconUrl: "icons/icon128.png",
-      title: t("notif_title"),
+      title: t("notif_title", lang),
       message,
       priority: 2,
       requireInteraction: true,

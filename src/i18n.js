@@ -1,7 +1,18 @@
-export const LANG = (typeof document !== "undefined"
-  ? document.documentElement.lang
-  : "es"
+export const LANG = (
+  typeof document !== "undefined" && document.documentElement.lang
+    ? document.documentElement.lang
+    : "en"
 ).slice(0, 2).toLowerCase();
+
+export function getLang() {
+  return new Promise(resolve => {
+    chrome.storage.local.get("pixelatoyLang", res => resolve(res.pixelatoyLang || "en"));
+  });
+}
+
+export function saveLang() {
+  chrome.storage.local.set({ pixelatoyLang: LANG });
+}
 
 const MESSAGES = {
   es: {
@@ -45,6 +56,7 @@ const MESSAGES = {
     coming_soon:        "Muy pronto (Llegada en 1-2 semanas aproximadamente)",
 
     // popup
+    popup_title:        "Reservas en almacén",
     popup_empty:        "No hay productos con urgencia",
     popup_btn:          "Ver reservas",
 
@@ -93,6 +105,7 @@ const MESSAGES = {
     fetch_label_avail:  "Availability",
     coming_soon:        "Coming soon (Arrival in approximately 1-2 weeks)",
 
+    popup_title:        "Preorders in warehouse",
     popup_empty:        "No urgent products",
     popup_btn:          "View preorders",
 
@@ -107,7 +120,7 @@ const MESSAGES = {
 
 export function t(key, lang) {
   const l = lang ?? LANG;
-  return (MESSAGES[l] ?? MESSAGES.es)[key] ?? MESSAGES.es[key] ?? key;
+  return (MESSAGES[l] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
 }
 
 const MONTHS_BY_NUM = {
