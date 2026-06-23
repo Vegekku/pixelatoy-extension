@@ -79,7 +79,7 @@ Instala la extensión directamente desde la [Chrome Web Store](https://chromeweb
 
 Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
 
-Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada y `availableFromDate` la fecha aproximada parseable.
+Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate, comingSoon }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada, `availableFromDate` la fecha aproximada parseable y `comingSoon` el texto de próxima llegada cuando el producto aún no tiene fecha.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
@@ -91,8 +91,15 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 ```
 pixelatoy-extension/
 ├── src/
-│   ├── content.js       # Lógica principal de la extensión
-│   ├── background.js    # Service worker para notificaciones y alarmas
+│   ├── modules/
+│   │   ├── column.js    # Columna personalizada, celdas editables, auto-fetch
+│   │   ├── fetch.js     # Fetch delegado, parsing de HTML de producto
+│   │   ├── legend.js    # Leyenda de colores e instrucciones
+│   │   ├── orphans.js   # Reservas no encontradas
+│   │   ├── refresh.js   # Refresco manual de datos
+│   │   └── sort.js      # Ordenación por columnas
+│   ├── content.js       # Punto de entrada del content script
+│   ├── background.js    # Service worker: notificaciones, alarmas y fetch delegado
 │   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
 │   ├── i18n.js          # Internacionalización (ES/EN)
 │   ├── popup.html       # Popup del icono de la extensión
