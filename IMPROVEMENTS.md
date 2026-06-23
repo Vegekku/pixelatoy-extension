@@ -4,8 +4,8 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web), [1.2](#12-soporte-esen) | La extensión no funciona en inglés, es un bug. Fácil una vez esté el bundler |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de i18n o tabs |
+| 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web) | |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -34,20 +34,6 @@ Puntos a definir:
 - Si los datos obtenidos se aplican directamente al storage o se guardan como "pendientes" para que el usuario los confirme al entrar a la página.
 - El service worker ya tiene `host_permissions` y acceso a cookies, por lo que puede hacer `fetch()` directamente.
 - `chrome.alarms` despierta el service worker aunque esté dormido.
-
-### 1.2 Soporte ES/EN
-La extensión solo carga en español porque el `manifest.json` solo cubre `/es/module/preorder/preorderorderdetails*`. Hay que añadir el match para `/en/module/preorder/preorderorderdetails*`.
-
-Además, todos los textos hardcodeados en español deben soportar inglés:
-
-Implementación mediante fichero `i18n.js` propio (no `chrome.i18n`) porque el criterio de idioma es el de la web de Pixelatoy (`document.documentElement.lang`), no el del navegador.
-
-Cambios necesarios:
-- `manifest.json`: añadir match para `/en/module/preorder/preorderorderdetails*`. Añadir `i18n.js` antes de `content.js` en `content_scripts`.
-- `i18n.js` (nuevo): objeto `MESSAGES` con claves en `es` y `en`. Constante `LANG` detectada por `document.documentElement.lang`. Función `t(key)` con fallback a `es`. Exportada como módulo ES para uso en `popup.js` y `background.js`; cargada como script previo en `content_scripts` para `content.js`.
-- `content.js`: sustituir todos los literales por llamadas a `t()`. Textos afectados: cabecera de columna, `THRESHOLDS.label`, botón "Refrescar datos", instrucciones de uso, sección orphans, contador "Vencido", tooltips, placeholder, `confirm()` de borrado. Selectores de la ficha del producto: `"Entrada en almacén"` y `"Disponibilidad"` → verificar equivalentes EN en la web antes de implementar. Selector `"No disponible"` en `autoFetchRowData` → ídem.
-- `popup.js`: importar `i18n.js` como módulo ES y sustituir literales.
-- `background.js`: importar `i18n.js` como módulo ES y sustituir literales de notificaciones.
 
 ### 1.3 Variantes de texto en campos i18n
 Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo. Si Pixelatoy cambia o añade variantes de estos textos, la traducción fallará silenciosamente y se mostrará el texto en el idioma original. Revisar y ampliar los mapeos en `translateAvailableFrom` y `translateComingSoon` en `i18n.js` si se detectan nuevas variantes.
@@ -191,7 +177,7 @@ Mejoras de calidad interna detectadas en la auditoría posterior a la extracció
 
 **Centralizar constantes compartidas en `constants.js`**
 
-Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`. Crear `src/modules/constants.js` para las constantes usadas por más de un módulo (STORAGE_KEY, THRESHOLDS, MONTHS, COLUMN_INDEX_KEY, DATA_INSERT, INSERT_COLUMN_INDEX). Las constantes locales (SORTABLE_COLUMNS) se quedan donde están. Los textos de UI se resolverán con i18n (punto 1.2).
+Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`. Crear `src/modules/constants.js` para las constantes usadas por más de un módulo (STORAGE_KEY, THRESHOLDS, MONTHS, COLUMN_INDEX_KEY, DATA_INSERT, INSERT_COLUMN_INDEX). Las constantes locales (SORTABLE_COLUMNS) se quedan donde están.
 
 **Eliminar inyección de dependencias entre módulos**
 
