@@ -1,5 +1,6 @@
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 function createOverlayButton(text, title, bg, onClick) {
   const btn = document.createElement("button");
@@ -29,8 +30,8 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 
   const buttons = document.createElement("div");
   buttons.style.cssText = "display:flex;gap:6px;padding:0 12px;align-items:center;";
-  buttons.appendChild(createOverlayButton("✓", "Aplicar cambios", "#5cb85c", () => { onAccept(); overlay.remove(); }));
-  buttons.appendChild(createOverlayButton("✗", "Descartar cambios", "#d9534f", () => { onReject(); overlay.remove(); }));
+  buttons.appendChild(createOverlayButton("✓", t("overlay_accept"), "#5cb85c", () => { onAccept(); overlay.remove(); }));
+  buttons.appendChild(createOverlayButton("✗", t("overlay_reject"), "#d9534f", () => { onReject(); overlay.remove(); }));
 
   overlay.appendChild(content);
   overlay.appendChild(buttons);
@@ -46,7 +47,7 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
 
   const changes = [];
   const newFields = {};
@@ -61,13 +62,21 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
 
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
-    changes.push({ label: "Fecha", oldVal: storedDate || stored?.availableFrom || null, newVal: date });
+    const oldDisplay = storedDate || translateAvailableFrom(stored?.availableFrom) || translateComingSoon(stored?.comingSoon) || null;
+    changes.push({ label: "Fecha", oldVal: oldDisplay, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
-  } else if (!date && availableFrom && availableFrom !== stored?.availableFrom) {
-    changes.push({ label: "Disponibilidad", oldVal: stored?.availableFrom || null, newVal: availableFrom });
+    newFields.comingSoon = null;
+  } else if (!date && comingSoon && comingSoon !== stored?.comingSoon) {
+    const oldDisplay = translateComingSoon(stored?.comingSoon) || translateAvailableFrom(stored?.availableFrom) || null;
+    changes.push({ label: "Disponibilidad", oldVal: oldDisplay, newVal: translateComingSoon(comingSoon) });
+    newFields.comingSoon = comingSoon;
+    newFields.availableFrom = availableFrom;
+    newFields.availableFromDate = availableFromDate;
+  } else if (!date && !comingSoon && availableFrom && availableFrom !== stored?.availableFrom) {
+    changes.push({ label: "Disponibilidad", oldVal: translateAvailableFrom(stored?.availableFrom) || null, newVal: translateAvailableFrom(availableFrom) });
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
   }
@@ -115,7 +124,8 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
           if (newFields.productUrl) linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
           if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
-          else if (newFields.availableFrom) updateCell(cell, row, null, newFields.availableFrom, newFields.availableFromDate);
+          else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
+          else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom), newFields.availableFromDate);
           resolve();
         },
         () => { resolve(); }

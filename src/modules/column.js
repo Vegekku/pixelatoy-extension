@@ -1,15 +1,16 @@
 import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const COLUMN_INDEX_KEY = 2;
 const INSERT_COLUMN_INDEX = 4;
 const DATA_INSERT = "data-pixelatoy-insert";
-const PLACEHOLDER = "YYYY-MM-DD\n(hora opcional)";
-const TOOLTIP_FORMATS = "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026";
-const TOOLTIP_ERROR = "Formato no válido. Ej: 2024-03-15, 15/03/2024, 15 marzo 2024 o February 23 2026";
+const PLACEHOLDER = () => t("placeholder");
+const TOOLTIP_FORMATS = () => t("tooltip_formats");
+const TOOLTIP_ERROR = () => t("tooltip_error");
 
 // ─── Helpers de fecha ─────────────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ function parseNaturalDate(dateStr) {
     return new Date(Number(yyyy), mm - 1, Number(dd));
   }
 
-  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2}),?\s+(\d{4})$/i);
+  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2})\s*,?\s*(\d{4})$/i);
   if (matchEN) {
     const [, monthName, dd, yyyy] = matchEN;
     const mm = MONTHS[monthName.toLowerCase()];
@@ -57,7 +58,7 @@ export function normalizeDateTime(value) {
 
   const naturalMatch =
     value.match(/^\d{1,2}\s+[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i) ||
-    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
+    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2}\s*,?\s*\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
   if (naturalMatch) {
     const timeMatch = value.match(/(\d{1,2}):(\d{2})$/);
     const datePart = timeMatch ? value.replace(timeMatch[0], "").trim() : value;
@@ -91,13 +92,20 @@ function colorRowByDate(row, date) {
   row.style.color = color;
 }
 
-export function updateCell(cell, row, limitDate, availableFrom, availableFromDate) {
+export function updateCell(cell, row, limitDate, availableFrom, availableFromDate, comingSoon) {
   if (limitDate) {
     cell.setAttribute("data-limit-date", limitDate);
     cell.removeAttribute("data-available-from");
     cell.textContent = formatCountdown(limitDate);
     cell.style.cssText = "";
     colorRowByDate(row, parseDateTime(limitDate));
+  } else if (comingSoon) {
+    cell.setAttribute("data-limit-date", "");
+    cell.removeAttribute("data-available-from");
+    cell.textContent = translateComingSoon(comingSoon);
+    cell.style.cssText = "color:#888;font-style:italic;font-size:0.9em;";
+    row.style.background = "";
+    row.style.color = "";
   } else if (availableFrom) {
     cell.setAttribute("data-limit-date", availableFromDate ?? "");
     cell.setAttribute("data-available-from", "1");
@@ -123,7 +131,7 @@ function addBrokenLinkWarning(cell) {
   if (!cell || cell.querySelector("span[title]")) return;
   const warn = document.createElement("span");
   warn.textContent = " ⛓️‍💥";
-  warn.title = "Este enlace puede no apuntar al producto correcto";
+  warn.title = t("broken_link_tooltip");
   warn.style.cursor = "help";
   cell.appendChild(warn);
 }
@@ -184,20 +192,20 @@ function createEditableCell(key, row) {
       chrome.storage.local.get(STORAGE_KEY, (res) => {
         const stored = getStoredDate((res[STORAGE_KEY] || {})[key]);
         cell.textContent = stored;
-        if (!stored) cell.setAttribute("data-placeholder", PLACEHOLDER);
-        cell.title = TOOLTIP_FORMATS;
+        if (!stored) cell.setAttribute("data-placeholder", PLACEHOLDER());
+        cell.title = TOOLTIP_FORMATS();
         cell.focus();
       });
     } catch (e) {
       cell.textContent = "";
-      cell.setAttribute("data-placeholder", PLACEHOLDER);
+      cell.setAttribute("data-placeholder", PLACEHOLDER());
       cell.focus();
     }
   });
 
   cell.addEventListener("input", () => {
     if (cell.textContent.trim()) cell.removeAttribute("data-placeholder");
-    else cell.setAttribute("data-placeholder", PLACEHOLDER);
+    else cell.setAttribute("data-placeholder", PLACEHOLDER());
   });
 
   cell.addEventListener("paste", (e) => {
@@ -215,7 +223,7 @@ function createEditableCell(key, row) {
 
     if (value && !parseDateTime(value)) {
       cell.style.outlineColor = "#d9534f";
-      cell.title = TOOLTIP_ERROR;
+      cell.title = TOOLTIP_ERROR();
       cell.contentEditable = "true";
       cell.setAttribute("data-editing", "1");
       cell.focus();
@@ -245,9 +253,9 @@ async function autoFetchRowData(row, key, cell, stored) {
 
   const needsDate = !hasDate && !stored?.brokenLink && (
     row.children[row.children.length - 2]?.querySelector("form") ||
-    row.children[row.children.length - 2]?.textContent.trim() === "No disponible"
+    row.children[row.children.length - 2]?.textContent.trim() === t("not_available")
   );
-  if (hasUrl && !needsDate) return;
+  if (hasUrl && !needsDate && (stored?.availableFrom || stored?.comingSoon)) return;
 
   cell.setAttribute("data-fetching", "1");
   const overlayDiv = createOverlay(row);
@@ -259,21 +267,24 @@ async function autoFetchRowData(row, key, cell, stored) {
       productUrl = await resolveProductUrl(row, key);
       if (productUrl) {
         saveToStorage(key, { productUrl }, row);
-        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl);
+        linkifyProductName(row.children[COLUMN_INDEX_KEY], productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
       }
     }
 
     if (needsDate && productUrl) {
-      const { date, brokenLink, availableFrom, availableFromDate } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+      const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
       if (brokenLink) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
       } else if (date) {
-        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate }, row);
+        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate, comingSoon: null }, row);
         updateCell(cell, row, addThreeMonths(date));
+      } else if (comingSoon) {
+        saveToStorage(key, { comingSoon, availableFrom, availableFromDate }, row);
+        updateCell(cell, row, null, null, null, comingSoon);
       } else if (availableFrom) {
         saveToStorage(key, { availableFrom, availableFromDate }, row);
-        updateCell(cell, row, null, availableFrom, availableFromDate);
+        updateCell(cell, row, null, translateAvailableFrom(availableFrom), availableFromDate);
       }
     }
   } catch (e) {
@@ -291,7 +302,10 @@ function autoFetchMissingData(storedTexts) {
     const key = getRowKey(row);
     if (!key) return;
     const stored = storedTexts[key] || {};
-    if (stored.productUrl && (getStoredDate(stored) || stored.availableFrom)) return;
+    if (stored.productUrl && getStoredDate(stored)) return;
+    const hasNonDateData = stored.availableFrom || stored.comingSoon;
+    const rowHasForm = row.children[row.children.length - 2]?.querySelector("form");
+    if (stored.productUrl && hasNonDateData && !rowHasForm) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
     autoFetchRowData(row, key, cell, stored);
@@ -318,21 +332,21 @@ export function applyCustomColumn() {
       if (isHeader) {
         const th = document.createElement("th");
         th.setAttribute(DATA_INSERT, "1");
-        th.textContent = "En almacén";
+        th.textContent = t("col_header");
         row.insertBefore(th, cells[INSERT_COLUMN_INDEX] || null);
         return;
       }
 
-      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === "No disponible";
+      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === t("not_available");
       const cell = isNotAvailable ? document.createElement("td") : createEditableCell(key, row);
       cell.setAttribute(DATA_INSERT, "1");
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
-      const { availableFrom, availableFromDate } = storedTexts[key] || {};
-      updateCell(cell, row, limitDate, availableFrom, availableFromDate);
+      const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
+      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom), availableFromDate, comingSoon);
 
       if (storedTexts[key]?.productUrl) {
-        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl, storedTexts[key].brokenLink);
+        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
       }
 
       row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);

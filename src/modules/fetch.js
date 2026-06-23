@@ -1,4 +1,5 @@
 import { MONTHS, parseDateTime, toISODateTime } from "../helpers.js";
+import { t } from "../i18n.js";
 
 export function fetchHTML(url) {
   return new Promise((resolve) => {
@@ -73,18 +74,25 @@ export async function fetchDateFromProduct(productUrl, normalizeDateTime) {
   }
 
   const productDoc = parseHTML(productHTML);
+  const urlLang = productUrl.match(/\/(es|en)\//)?.[1] ?? null;
+  const labelDate = t("fetch_label_date", urlLang);
+  const labelAvail = t("fetch_label_avail", urlLang);
   const dts = productDoc.querySelectorAll("dt.name");
-  let date = null, availableFrom = null, availableFromDate = null;
+  let date = null, availableFrom = null, availableFromDate = null, comingSoon = null;
   for (const dt of dts) {
     const label = dt.textContent.trim();
-    const value = dt.nextElementSibling?.textContent.trim() || null;
-    if (label === "Entrada en almacén" && value) {
+    const value = dt.nextElementSibling?.textContent.trim().replace(/\s+,/g, ",") || null;
+    if (label === labelDate && value) {
       const normalized = normalizeDateTime(value);
-      date = parseDateTime(normalized) ? normalized : null;
-    } else if (label === "Disponibilidad" && value) {
+      if (parseDateTime(normalized)) {
+        date = normalized;
+      } else {
+        comingSoon = value;
+      }
+    } else if (label === labelAvail && value) {
       availableFrom = value;
       availableFromDate = parseAvailableFrom(value);
     }
   }
-  return { date, brokenLink: false, availableFrom, availableFromDate };
+  return { date, brokenLink: false, availableFrom, availableFromDate, comingSoon };
 }
