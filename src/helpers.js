@@ -1,8 +1,17 @@
+/**
+ * @module helpers
+ * @description Shared constants and pure utility functions used across the extension.
+ */
+
 import { t, LANG } from "./i18n.js";
 
+/** Chrome storage key for all product data. */
 export const STORAGE_KEY = "pixelatoyTexts";
+
+/** URL of the preorder details page in the current language. */
 export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
 
+/** Urgency thresholds with associated colours and i18n keys. */
 export const THRESHOLDS = [
   { days: 7,        labelKey: "threshold_7",   label: t("threshold_7"),   bg: "#000",    color: "#fff" },
   { days: 30,       labelKey: "threshold_30",  label: t("threshold_30"),  bg: "#d9534f", color: "#fff" },
@@ -10,6 +19,7 @@ export const THRESHOLDS = [
   { days: Infinity, labelKey: "threshold_inf", label: t("threshold_inf"), bg: "#5cb85c", color: "#000" },
 ];
 
+/** Map of month names (ES + EN) to 1-based month numbers. */
 export const MONTHS = {
   enero:1, febrero:2, marzo:3, abril:4, mayo:5, junio:6,
   julio:7, agosto:8, septiembre:9, octubre:10, noviembre:11, diciembre:12,
@@ -17,10 +27,24 @@ export const MONTHS = {
   july:7, august:8, september:9, october:10, november:11, december:12,
 };
 
+/**
+ * Formats date components into `YYYY-MM-DD HH:MM`.
+ * @param {string|number} yyyy
+ * @param {string|number} mm
+ * @param {string|number} dd
+ * @param {string|number} [hh="00"]
+ * @param {string|number} [min="00"]
+ * @returns {string}
+ */
 export function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
   return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
+/**
+ * Parses a `YYYY-MM-DD HH:MM` string into a Date object.
+ * @param {string|null|undefined} value
+ * @returns {Date|null}
+ */
 export function parseDateTime(value) {
   if (!value) return null;
   const match = value.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
@@ -29,6 +53,11 @@ export function parseDateTime(value) {
   return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min));
 }
 
+/**
+ * Returns the limit date (entry + 3 months) as `YYYY-MM-DD HH:MM`.
+ * @param {string|null} dateStr - Entry date in `YYYY-MM-DD HH:MM` format.
+ * @returns {string|null}
+ */
 export function addThreeMonths(dateStr) {
   const date = parseDateTime(dateStr);
   if (!date) return null;
@@ -36,6 +65,11 @@ export function addThreeMonths(dateStr) {
   return toISODateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes());
 }
 
+/**
+ * Groups stored products by urgency threshold.
+ * @param {Object} data - Storage object keyed by product name.
+ * @returns {Array<Array<{name: string, img: string, limit: Date}>>}
+ */
 export function groupByThreshold(data) {
   const now = new Date();
   const groups = THRESHOLDS.map(() => []);
@@ -53,6 +87,11 @@ export function groupByThreshold(data) {
   return groups;
 }
 
+/**
+ * Returns a human-readable countdown string (`Xm Xd Xh Xmin`) or "Expired".
+ * @param {string|null} dateStr - Limit date in `YYYY-MM-DD HH:MM` format.
+ * @returns {string}
+ */
 export function formatCountdown(dateStr) {
   const date = parseDateTime(dateStr);
   if (!date) return "";
@@ -66,6 +105,11 @@ export function formatCountdown(dateStr) {
   return `${months}m ${days}d ${hours}h ${minutes}min`;
 }
 
+/**
+ * Returns all data rows (non-header) from a table element.
+ * @param {HTMLTableElement} table
+ * @returns {HTMLTableRowElement[]}
+ */
 export function getDataRows(table) {
   return Array.from(table.querySelectorAll("tr")).filter(r => r.querySelectorAll("th").length === 0);
 }

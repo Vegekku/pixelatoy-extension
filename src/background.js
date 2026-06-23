@@ -1,7 +1,21 @@
+/**
+ * @module background
+ * @description Service worker responsible for:
+ * - Daily alarm to check urgency and send notifications.
+ * - Handling fetch requests delegated from content scripts (to avoid CORS).
+ */
+
 import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
 import { t, getLang } from "./i18n.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
+
+/**
+ * Builds a notification body summarising products by urgency.
+ * @param {Object} data - Storage data keyed by product name.
+ * @param {string} lang - Language code for labels.
+ * @returns {string|null} Multi-line message or null if nothing to report.
+ */
 function buildNotificationMessage(data, lang) {
   const groups = groupByThreshold(data);
   const lines = THRESHOLDS
@@ -13,6 +27,7 @@ function buildNotificationMessage(data, lang) {
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
+/** Checks stored data and sends a Chrome notification if products need attention. */
 async function checkAndNotify() {
   const lang = await getLang();
   chrome.storage.local.get(STORAGE_KEY, (res) => {
@@ -58,6 +73,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_NAME) checkAndNotify();
 });
 
+// Delegated fetch for content scripts (avoids CORS restrictions)
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "fetch") {
     fetch(msg.url)

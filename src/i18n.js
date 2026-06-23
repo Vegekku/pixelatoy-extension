@@ -1,15 +1,31 @@
+/**
+ * @module i18n
+ * @description Internationalisation support (ES/EN).
+ *
+ * - In content scripts: LANG is derived from the page's `document.documentElement.lang`.
+ * - In popup/background (no page context): LANG falls back to "en".
+ * - The popup and background read the actual language via `getLang()` from storage.
+ */
+
+/** Current language code detected from the page or fallback. */
 export const LANG = (
   typeof document !== "undefined" && document.documentElement.lang
     ? document.documentElement.lang
     : "en"
 ).slice(0, 2).toLowerCase();
 
+/**
+ * Reads the saved page language from storage (set by content.js).
+ * Used by popup and background where document.lang is unavailable.
+ * @returns {Promise<string>} Language code ("es" or "en").
+ */
 export function getLang() {
   return new Promise(resolve => {
     chrome.storage.local.get("pixelatoyLang", res => resolve(res.pixelatoyLang || "en"));
   });
 }
 
+/** Persists the current page language to storage. Called by content.js on load. */
 export function saveLang() {
   chrome.storage.local.set({ pixelatoyLang: LANG });
 }
@@ -50,7 +66,7 @@ const MESSAGES = {
     orphans_entry:      "Entrada",
     orphans_limit:      "Límite",
 
-    // fetch — selectores en la ficha del producto
+    // fetch — product page labels
     fetch_label_date:   "Entrada en almacén",
     fetch_label_avail:  "Disponibilidad",
     coming_soon:        "Muy pronto (Llegada en 1-2 semanas aproximadamente)",
@@ -118,6 +134,12 @@ const MESSAGES = {
   },
 };
 
+/**
+ * Returns the translated string for the given key.
+ * @param {string} key - Message key from MESSAGES.
+ * @param {string|null} [lang] - Language override; defaults to LANG.
+ * @returns {string}
+ */
 export function t(key, lang) {
   const l = lang ?? LANG;
   return (MESSAGES[l] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
@@ -133,6 +155,11 @@ for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
   arr.forEach((m, i) => { MONTHS_TO_NUM[m.toLowerCase()] = i + 1; });
 }
 
+/**
+ * Translates an availability text (e.g. "enero 2025") to the current page language.
+ * @param {string|null|undefined} text - Raw availability text from the product page.
+ * @returns {string|null|undefined} Translated text or original if unparseable.
+ */
 export function translateAvailableFrom(text) {
   if (!text) return text;
   const match = text.match(/([a-z\u00e0-\u00ff]+)\s+(\d{4})/i);
@@ -146,6 +173,11 @@ export function translateAvailableFrom(text) {
     : `Disponibilidad estimada en ${monthName} de ${yyyy}`;
 }
 
+/**
+ * Translates a "coming soon" text to the current page language.
+ * @param {string|null|undefined} text - Raw coming-soon text.
+ * @returns {string|null|undefined}
+ */
 export function translateComingSoon(text) {
   if (!text) return text;
   if (text === t("coming_soon", "es") || text === t("coming_soon", "en")) return t("coming_soon");

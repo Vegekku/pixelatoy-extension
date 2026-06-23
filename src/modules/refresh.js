@@ -1,3 +1,9 @@
+/**
+ * @module modules/refresh
+ * @description Manual refresh of all product data. Shows info overlays for rows with changes,
+ * allowing the user to accept or reject each change individually.
+ */
+
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
@@ -12,6 +18,14 @@ function createOverlayButton(text, title, bg, onClick) {
   return btn;
 }
 
+/**
+ * Creates an informational overlay showing detected changes with accept/reject buttons.
+ * @param {HTMLTableRowElement} row
+ * @param {Array<{label: string, oldVal: string|null, newVal: string}>} changes
+ * @param {function} onAccept
+ * @param {function} onReject
+ * @returns {HTMLDivElement}
+ */
 function createInfoOverlay(row, changes, onAccept, onReject) {
   const rect = row.getBoundingClientRect();
   const overlay = document.createElement("div");
@@ -39,6 +53,10 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
   return overlay;
 }
 
+/**
+ * Fetches fresh data for a single row and compares with stored values.
+ * @returns {Promise<{changes: Array, newFields: Object, productUrl: string}|null>}
+ */
 async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDate }) {
   let productUrl = stored?.productUrl || null;
 
@@ -85,6 +103,11 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
   return { changes, newFields, productUrl };
 }
 
+/**
+ * Refreshes all rows in the table: fetches fresh data, shows overlays for changes.
+ * @param {Object} deps - Injected dependencies from column.js.
+ * @returns {Promise<void>}
+ */
 export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductName, updateCell, normalizeDateTime, getStoredDate, COLUMN_INDEX_KEY, DATA_INSERT }) {
   const table = document.getElementById("preorder_list");
   if (!table) return;

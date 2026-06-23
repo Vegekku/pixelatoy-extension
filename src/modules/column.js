@@ -1,9 +1,16 @@
+/**
+ * @module modules/column
+ * @description Core module: adds the custom "In warehouse" column to the preorder table,
+ * handles editable date cells, auto-fetches missing product data, and manages
+ * row colouring based on urgency thresholds.
+ */
+
 import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLUMN_INDEX_KEY = 2;
 const INSERT_COLUMN_INDEX = 4;
@@ -12,8 +19,13 @@ const PLACEHOLDER = () => t("placeholder");
 const TOOLTIP_FORMATS = () => t("tooltip_formats");
 const TOOLTIP_ERROR = () => t("tooltip_error");
 
-// ─── Helpers de fecha ─────────────────────────────────────────────────────────
+// ─── Date helpers ─────────────────────────────────────────────────────────────
 
+/**
+ * Parses natural-language date strings like "15 marzo 2024" or "March 15, 2024".
+ * @param {string} dateStr
+ * @returns {Date|null}
+ */
 function parseNaturalDate(dateStr) {
   const matchDD = dateStr.match(/^(\d{1,2})\s+([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{4})$/i);
   if (matchDD) {
@@ -34,6 +46,12 @@ function parseNaturalDate(dateStr) {
   return null;
 }
 
+/**
+ * Normalises user input into `YYYY-MM-DD HH:MM` format.
+ * Accepts: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, natural dates (ES/EN), with optional time.
+ * @param {string} value - Raw user input.
+ * @returns {string} Normalised date string or original value if unrecognised.
+ */
 export function normalizeDateTime(value) {
   const withTime = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
   if (withTime) {
@@ -76,12 +94,17 @@ export function normalizeDateTime(value) {
   return value;
 }
 
-// ─── Helpers de UI ────────────────────────────────────────────────────────────
+// ─── UI helpers ───────────────────────────────────────────────────────────────
 
 function cleanText(value) {
   return value.replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Applies background/text colour to a row based on its limit date.
+ * @param {HTMLTableRowElement} row
+ * @param {Date|null} date - The limit date.
+ */
 function colorRowByDate(row, date) {
   row.style.background = "";
   row.style.color = "";
@@ -92,6 +115,16 @@ function colorRowByDate(row, date) {
   row.style.color = color;
 }
 
+/**
+ * Updates the custom cell content and row colour.
+ * Handles 4 states: has limit date, coming soon, available from, or empty.
+ * @param {HTMLTableCellElement} cell
+ * @param {HTMLTableRowElement} row
+ * @param {string|null} limitDate
+ * @param {string|null} [availableFrom]
+ * @param {string|null} [availableFromDate]
+ * @param {string|null} [comingSoon]
+ */
 export function updateCell(cell, row, limitDate, availableFrom, availableFromDate, comingSoon) {
   if (limitDate) {
     cell.setAttribute("data-limit-date", limitDate);
@@ -122,6 +155,11 @@ export function updateCell(cell, row, limitDate, availableFrom, availableFromDat
   }
 }
 
+/**
+ * Extracts the product name from a row (used as storage key).
+ * @param {HTMLTableRowElement} row
+ * @returns {string}
+ */
 export function getRowKey(row) {
   const cell = row.children[COLUMN_INDEX_KEY];
   return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
@@ -130,12 +168,18 @@ export function getRowKey(row) {
 function addBrokenLinkWarning(cell) {
   if (!cell || cell.querySelector("span[title]")) return;
   const warn = document.createElement("span");
-  warn.textContent = " ⛓️‍💥";
+  warn.textContent = " ⛓️💥";
   warn.title = t("broken_link_tooltip");
   warn.style.cursor = "help";
   cell.appendChild(warn);
 }
 
+/**
+ * Wraps the product name cell text in a link to the product page.
+ * @param {HTMLTableCellElement} cell
+ * @param {string} url
+ * @param {boolean} [brokenLink=false]
+ */
 export function linkifyProductName(cell, url, brokenLink) {
   if (!cell || cell.querySelector("a.pixelatoy-link")) return;
   const text = cell.textContent.trim();
@@ -151,6 +195,11 @@ export function linkifyProductName(cell, url, brokenLink) {
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
+/**
+ * Returns the stored entry date or empty string.
+ * @param {Object|null} entry
+ * @returns {string}
+ */
 export function getStoredDate(entry) {
   if (!entry) return "";
   return entry.date || "";
@@ -161,6 +210,13 @@ function getRowImg(row) {
   return img ? img.src : "";
 }
 
+/**
+ * Persists product fields to chrome.storage.local.
+ * Pass `fields = null` to delete the entry.
+ * @param {string} key - Product name.
+ * @param {Object|null} fields - Fields to merge, or null to delete.
+ * @param {HTMLTableRowElement} row
+ */
 export function saveToStorage(key, fields, row) {
   try {
     chrome.storage.local.get(STORAGE_KEY, (res) => {
@@ -177,7 +233,7 @@ export function saveToStorage(key, fields, row) {
   }
 }
 
-// ─── Celda editable ───────────────────────────────────────────────────────────
+// ─── Editable cell ────────────────────────────────────────────────────────────
 
 function createEditableCell(key, row) {
   const cell = document.createElement("td");
@@ -244,7 +300,7 @@ function createEditableCell(key, row) {
   return cell;
 }
 
-// ─── Auto-fetch fecha desde detalle del producto ─────────────────────────────
+// ─── Auto-fetch ───────────────────────────────────────────────────────────────
 
 async function autoFetchRowData(row, key, cell, stored) {
   const hasDate = !!getStoredDate(stored);
@@ -288,7 +344,7 @@ async function autoFetchRowData(row, key, cell, stored) {
       }
     }
   } catch (e) {
-    // fallo silencioso
+    // silent failure
   } finally {
     cell.removeAttribute("data-fetching");
     overlayDiv.remove();
@@ -312,8 +368,12 @@ function autoFetchMissingData(storedTexts) {
   });
 }
 
-// ─── Columna principal ────────────────────────────────────────────────────────
+// ─── Main column setup ────────────────────────────────────────────────────────
 
+/**
+ * Adds the custom column to the preorder table, restores stored data,
+ * applies sorting, and triggers auto-fetch for missing data.
+ */
 export function applyCustomColumn() {
   const table = document.getElementById("preorder_list");
   if (!table) return;
@@ -359,6 +419,7 @@ export function applyCustomColumn() {
 
 // ─── Countdown refresh ────────────────────────────────────────────────────────
 
+/** Refreshes all countdown displays in the table (called every 60s). */
 export function refreshCountdowns() {
   const table = document.getElementById("preorder_list");
   if (!table) return;
