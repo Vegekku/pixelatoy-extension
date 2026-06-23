@@ -1,6 +1,16 @@
+/**
+ * @module modules/legend
+ * @description Renders the colour legend, refresh button, and usage instructions
+ * below the preorder table.
+ */
+
 import { THRESHOLDS } from "../helpers.js";
 import { t } from "../i18n.js";
 
+/**
+ * Creates and inserts the legend (colour key + refresh button + instructions).
+ * @param {function} refreshAllData - Callback to trigger a full data refresh.
+ */
 export function addLegend(refreshAllData) {
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-legend")) return;
@@ -64,7 +74,7 @@ export function addLegend(refreshAllData) {
     </ul>
   `;
   const brokenIcon = document.createElement("span");
-  brokenIcon.textContent = " ⛓️‍💥";
+  brokenIcon.textContent = " ⛓️💥";
   instructions.querySelector(".pixelatoy-instr-broken").innerHTML =
     instructions.querySelector(".pixelatoy-instr-broken").innerHTML.replace("BROKEN_ICON_PLACEHOLDER", brokenIcon.outerHTML);
 

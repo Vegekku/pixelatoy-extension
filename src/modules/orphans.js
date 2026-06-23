@@ -1,13 +1,27 @@
+/**
+ * @module modules/orphans
+ * @description Detects products that exist in storage but are no longer present in the table
+ * (e.g. shipped or removed). Shows them in a collapsible section with delete options.
+ */
+
 import { STORAGE_KEY, addThreeMonths, formatCountdown, getDataRows } from "../helpers.js";
-import { t, translateAvailableFrom } from "../i18n.js";
+import { t, LANG, translateAvailableFrom } from "../i18n.js";
 
 const COLUMN_INDEX_KEY = 2;
 
+/**
+ * Extracts the product name (key) from a table row.
+ * @param {HTMLTableRowElement} row
+ * @returns {string}
+ */
 function getRowKey(row) {
   const cell = row.children[COLUMN_INDEX_KEY];
   return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
 }
 
+/**
+ * Checks for orphan products in storage and renders the "not found" section.
+ */
 export function checkOrphanData() {
   const table = document.getElementById("preorder_list");
   if (!table) return;

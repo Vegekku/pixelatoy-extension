@@ -1,3 +1,9 @@
+/**
+ * @module content
+ * @description Entry point for the content script. Orchestrates module initialisation
+ * and sets up the periodic countdown refresh.
+ */
+
 import { checkOrphanData } from "./modules/orphans.js";
 import { addLegend } from "./modules/legend.js";
 import { refreshAllData as _refreshAllData } from "./modules/refresh.js";

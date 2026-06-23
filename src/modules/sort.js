@@ -1,13 +1,32 @@
+/**
+ * @module modules/sort
+ * @description Provides column sorting for the preorder table.
+ * Cycles through ascending → descending → original order on each click.
+ */
+
 import { parseDateTime, getDataRows } from "../helpers.js";
 
+/** Set of column indices that support sorting. */
 const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);
 
+/** Current sort state: which column and direction. */
 let sortState = { colIndex: null, direction: null };
 
+/**
+ * Extracts the sortable value from a cell.
+ * For the custom column (index 4), uses the data-limit-date attribute.
+ * @param {HTMLTableCellElement} cell
+ * @param {number} colIndex
+ * @returns {string}
+ */
 function getSortValue(cell, colIndex) {
   return colIndex === 4 ? cell.getAttribute("data-limit-date") || "" : cell.textContent.trim();
 }
 
+/**
+ * Updates sort indicator arrows (▲▼) in header cells.
+ * @param {HTMLTableCellElement[]} ths
+ */
 function applySortIndicator(ths) {
   ths.forEach((th, i) => {
     if (!SORTABLE_COLUMNS.has(i)) return;
@@ -18,6 +37,11 @@ function applySortIndicator(ths) {
   });
 }
 
+/**
+ * Sorts the table by the given column index.
+ * Cycles: asc → desc → original order.
+ * @param {number} colIndex
+ */
 export function sortTable(colIndex) {
   const table = document.getElementById("preorder_list");
   if (!table) return;
@@ -54,6 +78,9 @@ export function sortTable(colIndex) {
   applySortIndicator(Array.from(headerRow.children));
 }
 
+/**
+ * Initialises column sorting: stores original row indices and attaches click handlers.
+ */
 export function applyColumnSorting() {
   const table = document.getElementById("preorder_list");
   if (!table) return;

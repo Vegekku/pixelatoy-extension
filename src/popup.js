@@ -1,3 +1,10 @@
+/**
+ * @module popup
+ * @description Renders the extension popup: products grouped by urgency with
+ * collapsible image thumbnails and a link to the preorder page.
+ * Language is read from storage (saved by content.js).
+ */
+
 import { STORAGE_KEY, THRESHOLDS, groupByThreshold } from "./helpers.js";
 import { t, getLang } from "./i18n.js";
 
