@@ -28,6 +28,7 @@
         "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*",
         "https://www.pixelatoy.com/en/module/preorder/preorderorderdetails*"
       ],
+      "css": ["styles.css"],
       "js": ["content.js"]
     }
   ]

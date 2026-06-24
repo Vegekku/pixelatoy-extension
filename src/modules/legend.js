@@ -15,16 +15,6 @@ export function addLegend(refreshAllData) {
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-legend")) return;
 
-  const style = document.createElement("style");
-  style.textContent = `[data-placeholder]:empty:before { content: attr(data-placeholder); opacity: 0.4; pointer-events: none; font-size: 0.75em; white-space: pre; }
-.pixelatoy-dots span { display:inline-block; font-size:3.5em; opacity:0.5; font-weight:400; transition:font-weight 0.2s, opacity 0.2s; }
-.pixelatoy-dots span.active { font-weight:900; opacity:1; }
-.pixelatoy-overlay { position:absolute; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.75); pointer-events:all; cursor:wait; z-index:10; }
-.pixelatoy-info-overlay { background:rgba(217,237,255,0.95); cursor:default; justify-content:space-between; }
-.pixelatoy-btn { font-size:16px;cursor:pointer;color:#fff;border:none;border-radius:3px;padding:4px 8px;transition:opacity 0.2s; }
-.pixelatoy-btn:hover { opacity:0.8; }`;
-  document.head.appendChild(style);
-
   const legend = document.createElement("div");
   legend.id = "pixelatoy-legend";
   legend.style.cssText = "margin-top:10px;display:flex;gap:16px;font-size:13px;align-items:center;";

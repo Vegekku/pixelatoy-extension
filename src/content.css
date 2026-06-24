@@ -1,0 +1,65 @@
+/* Pixelatoy Preorder Manager — Content Script Styles */
+
+/* Editable cell placeholder */
+[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.4;
+  pointer-events: none;
+  font-size: 0.75em;
+  white-space: pre;
+}
+
+/* Loading overlay dots animation */
+.pixelatoy-dots span {
+  display: inline-block;
+  font-size: 3.5em;
+  opacity: 0.5;
+  font-weight: 400;
+  transition: font-weight 0.2s, opacity 0.2s;
+}
+.pixelatoy-dots span.active {
+  font-weight: 900;
+  opacity: 1;
+}
+
+/* Row overlays (loading + info) */
+.pixelatoy-overlay {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.75);
+  pointer-events: all;
+  cursor: wait;
+  z-index: 10;
+}
+.pixelatoy-info-overlay {
+  background: rgba(217, 237, 255, 0.95);
+  cursor: default;
+  justify-content: space-between;
+}
+
+/* Shared button */
+.pixelatoy-btn {
+  font-size: 16px;
+  cursor: pointer;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 8px;
+  transition: opacity 0.2s;
+}
+.pixelatoy-btn:hover {
+  opacity: 0.8;
+}
+
+/* ─── Row urgency classes ──────────────────────────────────────────────────── */
+tr.pixelatoy-urgency-critical { background: #000 !important; color: #fff !important; }
+tr.pixelatoy-urgency-high     { background: #d9534f !important; color: #fff !important; }
+tr.pixelatoy-urgency-medium   { background: #f0ad4e !important; color: #000 !important; }
+tr.pixelatoy-urgency-low      { background: #5cb85c !important; color: #000 !important; }
+
+/* Links inside urgency rows inherit row text colour */
+tr[class*="pixelatoy-urgency-"] a { color: inherit !important; }
+tr[class*="pixelatoy-urgency-"] a:visited { color: inherit !important; }
+tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }

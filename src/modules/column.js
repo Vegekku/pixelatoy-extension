@@ -100,19 +100,20 @@ function cleanText(value) {
   return value.replace(/\u00A0/g, " ").replace(/\s+/g, " ").trim();
 }
 
+/** All urgency CSS classes used on rows. */
+const URGENCY_CLASSES = THRESHOLDS.map(t => t.className);
+
 /**
- * Applies background/text colour to a row based on its limit date.
+ * Applies urgency CSS class to a row based on its limit date.
  * @param {HTMLTableRowElement} row
  * @param {Date|null} date - The limit date.
  */
 function colorRowByDate(row, date) {
-  row.style.background = "";
-  row.style.color = "";
+  row.classList.remove(...URGENCY_CLASSES);
   if (!date) return;
   const diffDays = (date - new Date()) / (1000 * 60 * 60 * 24);
-  const { bg, color } = THRESHOLDS.find(t => diffDays < t.days);
-  row.style.background = bg;
-  row.style.color = color;
+  const { className } = THRESHOLDS.find(t => diffDays < t.days);
+  row.classList.add(className);
 }
 
 /**
@@ -137,21 +138,18 @@ export function updateCell(cell, row, limitDate, availableFrom, availableFromDat
     cell.removeAttribute("data-available-from");
     cell.textContent = translateComingSoon(comingSoon);
     cell.style.cssText = "color:#888;font-style:italic;font-size:0.9em;";
-    row.style.background = "";
-    row.style.color = "";
+    row.classList.remove(...URGENCY_CLASSES);
   } else if (availableFrom) {
     cell.setAttribute("data-limit-date", availableFromDate ?? "");
     cell.setAttribute("data-available-from", "1");
     cell.textContent = availableFrom;
     cell.style.cssText = "color:#888;font-style:italic;font-size:0.9em;";
-    row.style.background = "";
-    row.style.color = "";
+    row.classList.remove(...URGENCY_CLASSES);
   } else {
     cell.setAttribute("data-limit-date", "");
     cell.textContent = "";
     cell.style.cssText = "";
-    row.style.background = "";
-    row.style.color = "";
+    row.classList.remove(...URGENCY_CLASSES);
   }
 }
 
@@ -162,7 +160,7 @@ export function updateCell(cell, row, limitDate, availableFrom, availableFromDat
  */
 export function getRowKey(row) {
   const cell = row.children[COLUMN_INDEX_KEY];
-  return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
+  return cell?.querySelector("a[data-pixelatoy-link]")?.textContent.trim() || cell?.textContent.trim();
 }
 
 function addBrokenLinkWarning(cell) {
@@ -181,12 +179,12 @@ function addBrokenLinkWarning(cell) {
  * @param {boolean} [brokenLink=false]
  */
 export function linkifyProductName(cell, url, brokenLink) {
-  if (!cell || cell.querySelector("a.pixelatoy-link")) return;
+  if (!cell || cell.querySelector("a[data-pixelatoy-link]")) return;
   const text = cell.textContent.trim();
   const a = document.createElement("a");
   a.href = url;
   a.target = "_blank";
-  a.className = "pixelatoy-link";
+  a.setAttribute("data-pixelatoy-link", "");
   a.textContent = text;
   cell.textContent = "";
   cell.appendChild(a);
