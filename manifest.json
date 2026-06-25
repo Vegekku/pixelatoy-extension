@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Pixelatoy Preorder Manager",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Mejora la tabla de reservas de Pixelatoy: fechas de almacén, enlaces a productos, detección de enlaces rotos y refresco de datos.",
-  "permissions": ["storage", "notifications", "alarms"],
+  "permissions": ["storage", "notifications", "alarms", "tabs"],
   "host_permissions": ["https://www.pixelatoy.com/*"],
   "background": {
-    "service_worker": "dist/background.js",
+    "service_worker": "background.js",
     "type": "module"
   },
   "icons": {
@@ -15,7 +15,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -25,9 +25,11 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*"
+        "https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*",
+        "https://www.pixelatoy.com/en/module/preorder/preorderorderdetails*"
       ],
-      "js": ["dist/content.js"]
+      "css": ["styles.css"],
+      "js": ["content.js"]
     }
   ]
 }

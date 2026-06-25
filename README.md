@@ -1,6 +1,6 @@
 # Pixelatoy Preorder Manager
 
-Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.pixelatoy.com) añadiendo seguimiento de fechas de almacén, enlaces a productos con detección de enlaces rotos, refresco manual de datos, contador de tiempo restante y ordenación por columnas.
+Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.pixelatoy.com) añadiendo seguimiento de fechas de almacén, enlaces a productos con detección de enlaces rotos, refresco manual de datos, contador de tiempo restante, ordenación por columnas y soporte bilingüe (ES/EN).
 
 ## Funcionalidades
 
@@ -50,13 +50,18 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 
 ### Enlace al detalle del producto
 - El nombre del producto en la tabla es un enlace que abre su página de detalle en nueva pestaña.
-- Si el enlace está roto (la página no corresponde al producto), se muestra un icono ⛓️💥 junto al nombre.
+- Si el enlace está roto (la página no corresponde al producto), se muestra un icono ⛓️‍💥 junto al nombre.
 
 ### Refrescar datos
 - Botón "Refrescar datos" junto a la leyenda para re-consultar la información de todos los productos.
 - Solo se muestran los cambios encontrados respecto a los datos almacenados.
 - Cada fila con cambios muestra un overlay informativo con la comparación y botones para aceptar o rechazar individualmente.
 - Los enlaces rotos se reintentan durante el refresco.
+
+### Idioma
+- La extensión detecta automáticamente el idioma de la página de Pixelatoy (`es` o `en`) y adapta todos los textos.
+- El popup y las notificaciones usan el idioma de la última sesión en la página de reservas.
+- Si el idioma no es español ni inglés, se muestra en inglés por defecto.
 
 ## Instalación
 
@@ -65,15 +70,16 @@ Instala la extensión directamente desde la [Chrome Web Store](https://chromeweb
 
 ### Instalación manual (modo desarrollador)
 1. Descarga o clona este repositorio.
-2. Abre Chrome y ve a `chrome://extensions/`.
-3. Activa el **Modo desarrollador** (esquina superior derecha).
-4. Haz click en **Cargar descomprimida** y selecciona la carpeta del proyecto.
+2. Ejecuta `npm install` + `npm run build`.
+3. Abre Chrome y ve a `chrome://extensions/`.
+4. Activa el **Modo desarrollador** (esquina superior derecha).
+5. Haz click en **Cargar descomprimida** y selecciona la carpeta `dist/` del proyecto.
 
 ## Almacenamiento de datos
 
 Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
 
-Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada y `availableFromDate` la fecha aproximada parseable.
+Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate, comingSoon }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada, `availableFromDate` la fecha aproximada parseable y `comingSoon` el texto de próxima llegada cuando el producto aún no tiene fecha.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
@@ -85,9 +91,18 @@ Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
 ```
 pixelatoy-extension/
 ├── src/
-│   ├── content.js       # Lógica principal de la extensión
-│   ├── background.js    # Service worker para notificaciones y alarmas
+│   ├── modules/
+│   │   ├── column.js    # Columna personalizada, celdas editables, auto-fetch
+│   │   ├── fetch.js     # Fetch delegado, parsing de HTML de producto
+│   │   ├── legend.js    # Leyenda de colores e instrucciones
+│   │   ├── orphans.js   # Reservas no encontradas
+│   │   ├── refresh.js   # Refresco manual de datos
+│   │   └── sort.js      # Ordenación por columnas
+│   ├── content.css      # Estilos del content script (urgencia, overlays, botones)
+│   ├── content.js       # Punto de entrada del content script
+│   ├── background.js    # Service worker: notificaciones, alarmas y fetch delegado
 │   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
+│   ├── i18n.js          # Internacionalización (ES/EN)
 │   ├── popup.html       # Popup del icono de la extensión
 │   ├── popup.js         # Lógica del popup
 │   └── privacy.html     # Política de privacidad
@@ -114,9 +129,9 @@ npm run dev    # watch: regenera dist/ al guardar
 npm run build  # build único, minificado
 ```
 
-Carga la extensión en Chrome apuntando a la carpeta raíz del proyecto (donde está `manifest.json`).
+Carga la extensión en Chrome apuntando a la carpeta `dist/` del proyecto (donde está el `manifest.json` generado).
 
 ## Compatibilidad
 
 - Chrome con Manifest V3.
-- Funciona exclusivamente en `https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*`.
+- Funciona en `https://www.pixelatoy.com/es/module/preorder/preorderorderdetails*` y `https://www.pixelatoy.com/en/module/preorder/preorderorderdetails*`.

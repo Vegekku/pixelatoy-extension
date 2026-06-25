@@ -1,42 +1,44 @@
-import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths } from "./helpers.js";
+/**
+ * @module background
+ * @description Service worker responsible for:
+ * - Daily alarm to check urgency and send notifications.
+ * - Handling fetch requests delegated from content scripts (to avoid CORS).
+ */
+
+import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
+import { t, getLang } from "./i18n.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
-const NOTIFICATION_THRESHOLDS = THRESHOLDS.filter(t => t.days !== Infinity);
 
-function buildNotificationMessage(data) {
-  const now = new Date();
-  const counts = NOTIFICATION_THRESHOLDS.map(() => 0);
-
-  for (const entry of Object.values(data)) {
-    const dateStr = entry.date;
-    const limit = parseDateTime(addThreeMonths(dateStr));
-    if (!limit) continue;
-    const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
-    for (let i = 0; i < NOTIFICATION_THRESHOLDS.length; i++) {
-      if (diffDays < NOTIFICATION_THRESHOLDS[i].days) {
-        counts[i]++;
-        break;
-      }
-    }
-  }
-
-  const lines = NOTIFICATION_THRESHOLDS
-    .map((t, i) => counts[i] > 0 ? `${t.label}: ${counts[i]}` : null)
-    .filter(Boolean);
-
+/**
+ * Builds a notification body summarising products by urgency.
+ * @param {Object} data - Storage data keyed by product name.
+ * @param {string} lang - Language code for labels.
+ * @returns {string|null} Multi-line message or null if nothing to report.
+ */
+function buildNotificationMessage(data, lang) {
+  const groups = groupByThreshold(data);
+  const lines = THRESHOLDS
+    .filter((th, i) => th.days !== Infinity && groups[i].length > 0)
+    .map(th => {
+      const i = THRESHOLDS.indexOf(th);
+      return `${t(th.labelKey, lang)}: ${groups[i].length}`;
+    });
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
-function checkAndNotify() {
+/** Checks stored data and sends a Chrome notification if products need attention. */
+async function checkAndNotify() {
+  const lang = await getLang();
   chrome.storage.local.get(STORAGE_KEY, (res) => {
     const data = res[STORAGE_KEY] || {};
-    const message = buildNotificationMessage(data);
+    const message = buildNotificationMessage(data, lang);
     if (!message) return;
 
     chrome.notifications.create("pixelatoy-alert", {
       type: "basic",
       iconUrl: "icons/icon128.png",
-      title: "Pixelatoy — Reservas en almacén",
+      title: t("notif_title", lang),
       message,
       priority: 2,
       requireInteraction: true,
@@ -71,6 +73,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM_NAME) checkAndNotify();
 });
 
+// Delegated fetch for content scripts (avoids CORS restrictions)
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "fetch") {
     fetch(msg.url)
