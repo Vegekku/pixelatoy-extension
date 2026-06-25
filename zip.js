@@ -48,7 +48,7 @@ try {
 
   mkdirSync(releasesDir, { recursive: true });
 
-  console.log(`Zipping dist/ → releases/${zipName}...`);
+  console.log(`Zipping dist/ → packages/${zipName}...`);
   run(`zip -r "${zipPath}" dist/`);
 
   console.log(`Package ready: packages/${zipName}`);
