@@ -166,7 +166,7 @@ export function getRowKey(row) {
 function addBrokenLinkWarning(cell) {
   if (!cell || cell.querySelector("span[title]")) return;
   const warn = document.createElement("span");
-  warn.textContent = " ⛓️💥";
+  warn.textContent = " \u26D3\uFE0F\u200D\uD83D\uDCA5";
   warn.title = t("broken_link_tooltip");
   warn.style.cursor = "help";
   cell.appendChild(warn);

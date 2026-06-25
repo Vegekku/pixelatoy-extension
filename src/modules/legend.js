@@ -64,7 +64,7 @@ export function addLegend(refreshAllData) {
     </ul>
   `;
   const brokenIcon = document.createElement("span");
-  brokenIcon.textContent = " ⛓️💥";
+  brokenIcon.textContent = " \u26D3\uFE0F\u200D\uD83D\uDCA5";
   instructions.querySelector(".pixelatoy-instr-broken").innerHTML =
     instructions.querySelector(".pixelatoy-instr-broken").innerHTML.replace("BROKEN_ICON_PLACEHOLDER", brokenIcon.outerHTML);
 
