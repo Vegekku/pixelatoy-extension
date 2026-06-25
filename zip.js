@@ -21,6 +21,7 @@ function run(cmd) {
   return execSync(cmd, { stdio: ["inherit", "pipe", "inherit"] }).toString().trim();
 }
 
+const currentBranch = run("git rev-parse --abbrev-ref HEAD");
 const requestedTag = process.argv[2];
 const tag = requestedTag ?? run("git describe --tags --abbrev=0");
 
@@ -53,6 +54,6 @@ try {
 
   console.log(`Package ready: packages/${zipName}`);
 } finally {
-  console.log("Returning to develop...");
-  run("git checkout develop");
+  console.log(`Returning to ${currentBranch}...`);
+  run(`git checkout ${currentBranch}`);
 }
