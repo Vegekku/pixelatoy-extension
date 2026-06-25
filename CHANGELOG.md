@@ -6,6 +6,28 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [v1.5.0] - 2026-06-25
+
+### Added
+
+- Soporte bilingüe ES/EN: nuevo módulo `src/i18n.js` con `MESSAGES`, `LANG`, `t()`, `getLang()`/`saveLang()` para detección y persistencia del idioma
+- Todos los textos de la extensión (tabla, popup, notificaciones) traducidos al idioma de la página de Pixelatoy
+- Soporte para la URL en inglés (`/en/module/preorder/preorderorderdetails*`) en `manifest.json`
+- Documentación JSDoc en todas las funciones exportadas y cabeceras de módulo
+
+### Fixed
+
+- Permiso `tabs` añadido a `manifest.json` (fix: `chrome.tabs.create()` fallaba silenciosamente)
+- Color del texto de los enlaces del producto ilegible en filas coloreadas por urgencia
+- Emoji ⛓️‍💥 del enlace roto corrupto en algunos editores; sustituido por Unicode escapado
+
+### Changed
+
+- `content.js` refactorizado de ~900 líneas a ~16: lógica extraída a `src/modules/` (column, fetch, refresh, legend, orphans, sort)
+- Helpers compartidos (`toISODateTime`, `MONTHS`, `getDataRows`, `groupByThreshold`) centralizados en `helpers.js`
+- Estilos de urgencia migrados de `style` inline a clases CSS en `src/content.css` (`pixelatoy-urgency-critical/high/medium/low`)
+- README actualizado: estructura de proyecto, modelo de storage y compatibilidad bilingüe
+
 ## [v1.4.0] - 2026-06-15
 
 ### Added
@@ -90,7 +112,8 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️‍💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.5.0...HEAD
+[v1.5.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...v1.3.0
 [v1.2.1]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.0...v1.2.1
