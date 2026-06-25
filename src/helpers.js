@@ -11,12 +11,12 @@ export const STORAGE_KEY = "pixelatoyTexts";
 /** URL of the preorder details page in the current language. */
 export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
 
-/** Urgency thresholds with associated colours and i18n keys. */
+/** Urgency thresholds with associated colours, CSS classes, and i18n keys. */
 export const THRESHOLDS = [
-  { days: 7,        labelKey: "threshold_7",   label: t("threshold_7"),   bg: "#000",    color: "#fff" },
-  { days: 30,       labelKey: "threshold_30",  label: t("threshold_30"),  bg: "#d9534f", color: "#fff" },
-  { days: 60,       labelKey: "threshold_60",  label: t("threshold_60"),  bg: "#f0ad4e", color: "#000" },
-  { days: Infinity, labelKey: "threshold_inf", label: t("threshold_inf"), bg: "#5cb85c", color: "#000" },
+  { days: 7,        labelKey: "threshold_7",   label: t("threshold_7"),   bg: "#000",    color: "#fff", className: "pixelatoy-urgency-critical" },
+  { days: 30,       labelKey: "threshold_30",  label: t("threshold_30"),  bg: "#a94442", color: "#fff", className: "pixelatoy-urgency-high" },
+  { days: 60,       labelKey: "threshold_60",  label: t("threshold_60"),  bg: "#f0ad4e", color: "#000", className: "pixelatoy-urgency-medium" },
+  { days: Infinity, labelKey: "threshold_inf", label: t("threshold_inf"), bg: "#5cb85c", color: "#000", className: "pixelatoy-urgency-low" },
 ];
 
 /** Map of month names (ES + EN) to 1-based month numbers. */

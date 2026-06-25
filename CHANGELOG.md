@@ -31,7 +31,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 - Restaurar toggles colapsables en leyenda y sección "Reservas no encontradas"
 - Priorizar "Entrada en almacén" sobre "Disponibilidad" cuando ambos campos están presentes
-- Emoji ⛓️💥 en leyenda con ZWJ para consistencia visual con los links
+- Emoji ⛓️‍💥 en leyenda con ZWJ para consistencia visual con los links
 
 ### Changed
 
@@ -87,7 +87,7 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Obtención automática de URL del producto y fecha de almacén al cargar la página
 - Overlay de carga por fila durante el auto-fetch
 - Enlace al detalle del producto desde el nombre en la tabla
-- Detección de enlaces rotos con icono ⛓️💥
+- Detección de enlaces rotos con icono ⛓️‍💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
 [Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...HEAD

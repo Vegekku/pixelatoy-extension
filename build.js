@@ -20,6 +20,7 @@ const entryPoints = {
   "content":    "src/content.js",
   "background": "src/background.js",
   "popup":      "src/popup.js",
+  "styles":     "src/content.css",
 };
 
 if (test) {

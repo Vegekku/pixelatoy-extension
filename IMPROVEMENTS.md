@@ -4,8 +4,8 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 2 — Fixes y soporte básico | | [2.0](#20-bug-enlaces-de-productos-con-estilos-de-la-web) | |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
+| 2 — Fixes y soporte básico | | | |
+| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -39,9 +39,6 @@ Puntos a definir:
 Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo. Si Pixelatoy cambia o añade variantes de estos textos, la traducción fallará silenciosamente y se mostrará el texto en el idioma original. Revisar y ampliar los mapeos en `translateAvailableFrom` y `translateComingSoon` en `i18n.js` si se detectan nuevas variantes.
 
 ---
-
-### 2.0 Bug: enlaces de productos con estilos de la web
-Los enlaces al producto inyectados por la extensión heredan los estilos CSS de la web (`color: #000` en normal/visitado, `color: #ffbd2e` en hover), lo que los hace ilegibles sobre las filas coloreadas (negro, rojo, naranja). Hay que forzar un color de enlace que contraste con todos los fondos, o usar el color del texto de la fila (`color: inherit`).
 
 ### 2.1 Rediseño: tabs "En almacén" / "No disponible"
 Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
@@ -168,8 +165,8 @@ Respetar `prefers-color-scheme: dark` en los elementos que inyecta la extensión
 **🟡 Legibilidad**
 - El patrón `new Promise(resolve => chrome.storage.local.get(STORAGE_KEY, res => resolve(...)))` se repite varias veces. Extraer como `getStorage()` en `helpers.js`. Requiere convertir todos los callbacks a `async/await`, lo que implica refactorizar bastante lógica. Pendiente de abordar con más calma.
 
-**🟢 Nice to have**
-- Los estilos CSS están embebidos como string en `addLegend` dentro de `content.js`. Moverlos a un fichero `src/content.css` e importarlo (requiere plugin esbuild para CSS o inyección manual).
+### 9.6 Automatización de subida a Chrome Web Store
+Usar la [Chrome Web Store API](https://developer.chrome.com/docs/webstore/using-api) para automatizar el envío a revisión tras cada release, ya sea desde GitHub Actions o desde un script local (`npm run deploy`). Requiere configurar credenciales OAuth2 (`CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`). La publicación final sigue dependiendo de la revisión manual de Google.
 
 ### 9.7 Refactor post-extracción de módulos
 
@@ -191,17 +188,13 @@ Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Expo
 
 Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
 
-**Estilos CSS — dependencia implícita**
-
-Los estilos de `.pixelatoy-overlay`, `.pixelatoy-dots`, `.pixelatoy-btn` están en `legend.js` pero los usan `fetch.js` y `refresh.js`. Funciona por orden de ejecución, pero es frágil. Mover a una función `injectStyles()` en su propio módulo, ejecutada explícitamente desde `content.js` al inicio.
-
 **`saveToStorage` — lectura + escritura en cada llamada**
 
 Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
 
 **Estilos inline — mantenibilidad**
 
-Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambiar el diseño. Definir todas las clases en el string CSS centralizado y asignar `className` en lugar de `style.cssText`.
+Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambiar el diseño. Definir todas las clases en el CSS centralizado y asignar `className` en lugar de `style.cssText`.
 
 **`normalizeDateTime` + `parseNaturalDate` — complejidad ciclomática alta**
 
@@ -215,5 +208,30 @@ Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambia
 
 Mezcla parsing de fechas, UI helpers, storage y orquestación de columna + auto-fetch. Si crece más (i18n, tabs), candidatos a extraer: `date-parse.js`, `storage.js`.
 
-### 9.6 Automatización de subida a Chrome Web Store
-Usar la [Chrome Web Store API](https://developer.chrome.com/docs/webstore/using-api) para automatizar el envío a revisión tras cada release, ya sea desde GitHub Actions o desde un script local (`npm run deploy`). Requiere configurar credenciales OAuth2 (`CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`). La publicación final sigue dependiendo de la revisión manual de Google.
+### 9.8 Accesibilidad (WCAG 2.1 AA)
+
+Auditoría realizada. Hallazgos pendientes:
+
+**Contraste de color**
+- `urgency-low` (`#5cb85c` + `#000`) ratio 4.47:1, cumple AA justo pero falla AAA. Valorar oscurecer el verde.
+
+**Enlaces en filas con urgencia**
+- Actualmente solo distinguibles por `font-weight: bold`. Cumple WCAG 1.4.1 (información no solo por color). Valorar si se necesita refuerzo adicional en el futuro.
+
+**Celdas editables**
+- Sin `role="textbox"` ni `aria-label`. Añadir atributos ARIA para informar a lectores de pantalla.
+- Placeholder vía `::before` no leído universalmente. Añadir `aria-placeholder`.
+
+**Toggles colapsables (instrucciones, orphans, popup)**
+- Implementados con `<strong>` + click. Usar `<button>` con `aria-expanded` y `tabindex="0"`.
+
+**Overlays dinámicos**
+- Overlays de carga e info sin `role="alert"` ni `aria-live`. Añadir regiones live para anunciar cambios.
+
+**Botones con solo icono**
+- "✓" y "✗" en overlays de refresh necesitan `aria-label`.
+- "✕" en botones de borrado en orphans necesita `aria-label`.
+
+**Popup**
+- Imágenes de producto sin `alt` (solo `title`). Añadir `alt` descriptivo.
+- Dots de color sin texto alternativo. Añadir `aria-label` o texto oculto.

@@ -16,7 +16,7 @@ const COLUMN_INDEX_KEY = 2;
  */
 function getRowKey(row) {
   const cell = row.children[COLUMN_INDEX_KEY];
-  return cell?.querySelector("a.pixelatoy-link")?.textContent.trim() || cell?.textContent.trim();
+  return cell?.querySelector("a[data-pixelatoy-link]")?.textContent.trim() || cell?.textContent.trim();
 }
 
 /**
