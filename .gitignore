@@ -5,3 +5,4 @@ test-helpers.js
 node_modules/
 dist/
 packages/
+STORE.md
