@@ -31,7 +31,7 @@ if (!tag) {
 
 const version = tag.replace(/^v/, "");
 const zipName = `pixelatoy-extension-${tag}.zip`;
-const releasesDir = resolve("releases");
+const releasesDir = resolve("packages");
 const zipPath = resolve(releasesDir, zipName);
 
 if (existsSync(zipPath)) {
@@ -51,7 +51,7 @@ try {
   console.log(`Zipping dist/ → releases/${zipName}...`);
   run(`zip -r "${zipPath}" dist/`);
 
-  console.log(`Package ready: releases/${zipName}`);
+  console.log(`Package ready: packages/${zipName}`);
 } finally {
   console.log("Returning to develop...");
   run("git checkout develop");
