@@ -1,0 +1,58 @@
+/**
+ * @module zip
+ * @description Generates a distributable zip for the Chrome Web Store.
+ * Checks out the specified git tag (or latest tag if none given), runs the
+ * production build, zips dist/ into packages/pixelatoy-extension-vX.Y.Z.zip,
+ * and returns to the original branch.
+ *
+ * Usage: node zip.js [vX.Y.Z]
+ */
+
+import { execSync } from "child_process";
+import { mkdirSync, existsSync } from "fs";
+import { resolve } from "path";
+
+/**
+ * Runs a shell command synchronously and returns its stdout.
+ * @param {string} cmd - Command to execute.
+ * @returns {string} Trimmed stdout output.
+ */
+function run(cmd) {
+  return execSync(cmd, { stdio: ["inherit", "pipe", "inherit"] }).toString().trim();
+}
+
+const currentBranch = run("git rev-parse --abbrev-ref HEAD");
+const requestedTag = process.argv[2];
+const tag = requestedTag ?? run("git tag --sort=-version:refname | head -1");
+
+if (!tag) {
+  console.error("No git tags found.");
+  process.exit(1);
+}
+
+const zipName = `pixelatoy-extension-${tag}.zip`;
+const packagesDir = resolve("packages");
+const zipPath = resolve(packagesDir, zipName);
+
+if (existsSync(zipPath)) {
+  console.log(`Package already exists: packages/${zipName}`);
+  process.exit(0);
+}
+
+console.log(`Checking out ${tag}...`);
+run(`git checkout ${tag}`);
+
+try {
+  console.log("Building...");
+  run("node build.js");
+
+  mkdirSync(packagesDir, { recursive: true });
+
+  console.log(`Zipping dist/ → packages/${zipName}...`);
+  run(`zip -r "${zipPath}" dist/`);
+
+  console.log(`\nPackage ready: packages/${zipName}`);
+} finally {
+  console.log(`Returning to ${currentBranch}...`);
+  run(`git checkout ${currentBranch}`);
+}

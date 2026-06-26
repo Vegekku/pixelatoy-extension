@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node build.js",
     "dev": "node build.js --watch",
-    "dev:test": "node build.js --test"
+    "dev:test": "node build.js --test",
+    "zip": "node zip.js"
   },
   "repository": {
     "type": "git",
