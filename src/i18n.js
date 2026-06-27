@@ -41,7 +41,7 @@ const MESSAGES = {
 
     // column
     col_header:         "En almacén",
-    col_header_avail:   "Disponibilidad estimada",
+    col_header_avail:   "Disponibilidad",
     tab_warehouse:      "En almacén",
     tab_unavailable:    "No disponible",
     not_available:      "No disponible",
@@ -97,7 +97,7 @@ const MESSAGES = {
     expired:            "Expired",
 
     col_header:         "In warehouse",
-    col_header_avail:   "Estimated availability",
+    col_header_avail:   "Availability",
     tab_warehouse:      "In warehouse",
     tab_unavailable:    "Not available",
     not_available:      "Not Allowed For Now",

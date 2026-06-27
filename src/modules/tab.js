@@ -16,7 +16,7 @@ let activeTab = "warehouse";
  * @returns {boolean}
  */
 export function isWarehouseRow(row) {
-  return !!row.children[row.children.length - 2]?.querySelector("form");
+  return Array.from(row.querySelectorAll("td")).some(td => td.querySelector("form"));
 }
 
 /**
