@@ -5,8 +5,8 @@
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
 | 2 — Fixes y soporte básico | | | |
-| 3 — Mejoras sobre lo que ya existe | | [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [2.2](#22-fusión-de-columnas-precio-y-pagado), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
-| 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [1.3](#13-variantes-de-texto-en-campos-i18n), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
 ---
@@ -40,8 +40,7 @@ Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo.
 
 ---
 
-### 2.1 Rediseño: tabs "En almacén" / "No disponible"
-✅ Implementado.
+## 2. Tabla de reservas
 
 ### 2.2 Fusión de columnas Precio y Pagado
 Las columnas "Precio" (valor del artículo) y "Pagado" (depósito de reserva) son candidatas a agruparse en una sola sin perder información. El importe pendiente de pago es precio − depósito.
@@ -187,10 +186,6 @@ Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`.
 
 Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
-**`createOverlay` / `createInfoOverlay` — abstracción incompleta**
-
-Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
-
 **`saveToStorage` — lectura + escritura en cada llamada**
 
 Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
@@ -205,7 +200,7 @@ Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambia
 
 **Estado global implícito en `sort.js`**
 
-`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay varias tablas independientes, esto podría romper. Pasar el estado como argumento o encapsularlo lo haría más robusto.
 
 **`column.js` sigue siendo grande (~270 líneas)**
 
