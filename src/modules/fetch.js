@@ -4,7 +4,7 @@
  * Provides overlay UI during loading and extracts product data from HTML.
  */
 
-import { MONTHS, parseDateTime, toISODateTime } from "../helpers.js";
+import { MONTHS, parseDateTime, toISODateTime, DATA_INSERT } from "../helpers.js";
 import { t } from "../i18n.js";
 
 /**
@@ -75,9 +75,8 @@ export function createOverlay(row) {
  * @returns {Promise<string|null>} Product URL or null.
  */
 export async function resolveProductUrl(row, key) {
-  const rowCells = row.children;
-  const lastCell = rowCells[rowCells.length - 1];
-  const orderLink = lastCell.querySelector("a")?.href;
+  const orderLink = Array.from(row.querySelectorAll(`td:not([${DATA_INSERT}]) a`))
+    .find(a => a.textContent.trim())?.href;
   if (!orderLink) return null;
 
   const orderHTML = await fetchHTML(orderLink);
