@@ -30,21 +30,31 @@ export function parseHTML(html) {
 }
 
 /**
+ * Creates a positioned overlay div inside a table row.
+ * @param {HTMLTableRowElement} row
+ * @param {string} [extraClass]
+ * @returns {HTMLDivElement}
+ */
+export function createRowOverlay(row, extraClass) {
+  row.style.position = "relative";
+  const div = document.createElement("div");
+  div.className = extraClass ? `pixelatoy-overlay ${extraClass}` : "pixelatoy-overlay";
+  row.appendChild(div);
+  return div;
+}
+
+/**
  * Creates an animated loading overlay positioned over a table row.
  * Call `overlay.remove()` to clean up (also clears the animation interval).
  * @param {HTMLTableRowElement} row
  * @returns {HTMLDivElement} The overlay element.
  */
 export function createOverlay(row) {
-  const rect = row.getBoundingClientRect();
-  const overlayDiv = document.createElement("div");
-  overlayDiv.className = "pixelatoy-overlay";
-  overlayDiv.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+  const overlayDiv = createRowOverlay(row);
   const dotsEl = document.createElement("span");
   dotsEl.className = "pixelatoy-dots";
   dotsEl.innerHTML = "<span>&bull;</span><span>&bull;</span><span>&bull;</span>";
   overlayDiv.appendChild(dotsEl);
-  document.body.appendChild(overlayDiv);
   const spans = dotsEl.querySelectorAll("span");
   let frameIndex = 0;
   spans[0].classList.add("active");

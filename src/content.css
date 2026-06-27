@@ -25,6 +25,10 @@
 /* Row overlays (loading + info) */
 .pixelatoy-overlay {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,5 +68,47 @@ tr[class*="pixelatoy-urgency-"] a { color: inherit !important; }
 tr[class*="pixelatoy-urgency-"] a:visited { color: inherit !important; }
 tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
 
+/* Prevent table from overflowing its section container */
+#preorder_list {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#preorder_list tr {
+  display: table-row;
+}
+
+#preorder_list th,
+#preorder_list td {
+  white-space: normal;
+}
+
 /* Links in table rows are bold for accessibility (distinguishable without colour alone) */
 #preorder_list td a { font-weight: bold; }
+
+/* ─── Tabs ────────────────────────────────────────────────────────────────────── */
+#pixelatoy-tabs {
+  display: flex;
+  gap: 4px;
+}
+.pixelatoy-tab {
+  padding: 5px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: #f5f5f5;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+}
+.pixelatoy-tab:hover {
+  background: #e8e8e8;
+}
+.pixelatoy-tab.pixelatoy-tab-active {
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  border-color: #bbb;
+}

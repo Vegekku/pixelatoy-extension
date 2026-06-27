@@ -5,7 +5,7 @@
  * row colouring based on urgency thresholds.
  */
 
-import { STORAGE_KEY, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
+import { STORAGE_KEY, DATA_INSERT, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
@@ -14,7 +14,6 @@ import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js
 
 const COLUMN_INDEX_KEY = 2;
 const INSERT_COLUMN_INDEX = 4;
-const DATA_INSERT = "data-pixelatoy-insert";
 const PLACEHOLDER = () => t("placeholder");
 const TOOLTIP_FORMATS = () => t("tooltip_formats");
 const TOOLTIP_ERROR = () => t("tooltip_error");
@@ -370,7 +369,7 @@ function autoFetchMissingData(storedTexts) {
 
 /**
  * Adds the custom column to the preorder table, restores stored data,
- * applies sorting, and triggers auto-fetch for missing data.
+ * applies sorting, builds tabs, and triggers auto-fetch for missing data.
  */
 export function applyCustomColumn() {
   const table = document.getElementById("preorder_list");

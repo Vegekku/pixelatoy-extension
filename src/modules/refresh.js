@@ -5,9 +5,17 @@
  */
 
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
-import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
+/**
+ * Creates a styled button for use inside an info overlay.
+ * @param {string} text - Button label.
+ * @param {string} title - Tooltip text.
+ * @param {string} bg - Background colour.
+ * @param {function} onClick - Click handler.
+ * @returns {HTMLButtonElement}
+ */
 function createOverlayButton(text, title, bg, onClick) {
   const btn = document.createElement("button");
   btn.textContent = text;
@@ -27,10 +35,7 @@ function createOverlayButton(text, title, bg, onClick) {
  * @returns {HTMLDivElement}
  */
 function createInfoOverlay(row, changes, onAccept, onReject) {
-  const rect = row.getBoundingClientRect();
-  const overlay = document.createElement("div");
-  overlay.className = "pixelatoy-overlay pixelatoy-info-overlay";
-  overlay.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+  const overlay = createRowOverlay(row, "pixelatoy-info-overlay");
 
   const content = document.createElement("div");
   content.style.cssText = "flex:1;padding:0 12px;font-size:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
@@ -49,7 +54,6 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 
   overlay.appendChild(content);
   overlay.appendChild(buttons);
-  document.body.appendChild(overlay);
   return overlay;
 }
 

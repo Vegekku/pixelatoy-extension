@@ -4,8 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 2 — Fixes y soporte básico | | | |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -40,18 +39,20 @@ Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo.
 
 ---
 
-### 2.1 Rediseño: tabs "En almacén" / "No disponible"
-Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
+## 2. Tabla de reservas
 
-Cada tab muestra un contador de productos en el título, ej: `En almacén (5)` / `No disponible (3)`.
+### 2.2 Fusión de columnas Precio y Pagado
+Las columnas "Precio" (valor del artículo) y "Pagado" (depósito de reserva) son candidatas a agruparse en una sola sin perder información. El importe pendiente de pago es precio − depósito.
 
-Las dos tablas son idénticas en estructura y número de columnas. Solo cambia la columna de fecha, que aparece en la misma posición en ambas:
-- Tab "En almacén": header `En almacén`, contenido = contador de límite (fecha entrada + 3 meses).
-- Tab "No disponible": header `Disponibilidad estimada`, contenido = fecha estimada en gris cursiva.
+Opciones valoradas:
+- **A)** `Precio / Pagado` — dos valores en la misma celda separados por `/`. Ej: `59,99 € / 10,00 €`.
+- **B)** `Precio (−depósito)` — precio total con el depósito como deducción entre paréntesis. Ej: `59,99 € (−10,00 €)`.
+- **C)** `Pendiente / Total` — calcula y muestra el importe pendiente (precio − depósito) y el total. Ej: `49,99 € / 59,99 €`. Requiere JS para la resta.
+- **D)** Dos líneas en la misma celda: precio grande, depósito pequeño debajo (`dep. 10,00 €`).
+- **E)** Mostrar solo el **pendiente de pago** en la celda con el desglose completo en tooltip al hacer hover (`Total: 59,99 € · Depósito: 10,00 €`). Requiere JS para calcular la resta.
+- **F)** Precio y depósito en línea separados por punto medio: `59,99 € · dep. 10,00 €`.
 
-La ordenación, coloreado de filas y resto de funcionalidades se aplican de forma independiente en cada tabla.
-
-Implementación: tabla única con filas ocultas/mostradas por `display:none/block` según el tab activo. Al cambiar de tab solo cambia el texto del header de la columna de fecha. La ordenación afecta a todas las filas (visibles y ocultas); queda pendiente decidir si en el futuro debe operar solo sobre las filas visibles.
+Las opciones D y E son las más interesantes. E es la más limpia: muestra lo accionable y esconde el detalle hasta que se necesita.
 
 ---
 
@@ -184,10 +185,6 @@ Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`.
 
 Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
-**`createOverlay` / `createInfoOverlay` — abstracción incompleta**
-
-Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
-
 **`saveToStorage` — lectura + escritura en cada llamada**
 
 Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
@@ -202,7 +199,7 @@ Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambia
 
 **Estado global implícito en `sort.js`**
 
-`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay varias tablas independientes, esto podría romper. Pasar el estado como argumento o encapsularlo lo haría más robusto.
 
 **`column.js` sigue siendo grande (~270 líneas)**
 
