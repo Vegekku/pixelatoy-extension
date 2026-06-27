@@ -8,6 +8,9 @@ import { t, LANG } from "./i18n.js";
 /** Chrome storage key for all product data. */
 export const STORAGE_KEY = "pixelatoyTexts";
 
+/** Attribute added to cells and headers inserted by the extension. */
+export const DATA_INSERT = "data-pixelatoy-insert";
+
 /** URL of the preorder details page in the current language. */
 export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
 

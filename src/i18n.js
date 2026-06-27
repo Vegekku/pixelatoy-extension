@@ -41,6 +41,9 @@ const MESSAGES = {
 
     // column
     col_header:         "En almacén",
+    col_header_avail:   "Disponibilidad estimada",
+    tab_warehouse:      "En almacén",
+    tab_unavailable:    "No disponible",
     not_available:      "No disponible",
     placeholder:        "YYYY-MM-DD\n(hora opcional)",
     tooltip_formats:    "Formatos aceptados: 2024-03-15, 15/03/2024, 15 marzo 2024, February 23 2026",
@@ -94,6 +97,9 @@ const MESSAGES = {
     expired:            "Expired",
 
     col_header:         "In warehouse",
+    col_header_avail:   "Estimated availability",
+    tab_warehouse:      "In warehouse",
+    tab_unavailable:    "Not available",
     not_available:      "Not Allowed For Now",
     placeholder:        "YYYY-MM-DD\n(time optional)",
     tooltip_formats:    "Accepted formats: 2024-03-15, 15/03/2024, 15 March 2024, February 23 2026",

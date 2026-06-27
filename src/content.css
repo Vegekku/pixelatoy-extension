@@ -66,3 +66,30 @@ tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
 
 /* Links in table rows are bold for accessibility (distinguishable without colour alone) */
 #preorder_list td a { font-weight: bold; }
+
+/* ─── Tabs ────────────────────────────────────────────────────────────────────── */
+#pixelatoy-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.pixelatoy-tab {
+  padding: 5px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: #f5f5f5;
+  color: #555;
+  transition: background 0.15s, color 0.15s;
+}
+.pixelatoy-tab:hover {
+  background: #e8e8e8;
+}
+.pixelatoy-tab.pixelatoy-tab-active {
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  border-color: #bbb;
+}
