@@ -68,6 +68,22 @@ tr[class*="pixelatoy-urgency-"] a { color: inherit !important; }
 tr[class*="pixelatoy-urgency-"] a:visited { color: inherit !important; }
 tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
 
+/* Prevent table from overflowing its section container */
+#preorder_list {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#preorder_list tr {
+  display: table-row;
+}
+
+#preorder_list th,
+#preorder_list td {
+  white-space: normal;
+}
+
 /* Links in table rows are bold for accessibility (distinguishable without colour alone) */
 #preorder_list td a { font-weight: bold; }
 
@@ -75,7 +91,6 @@ tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
 #pixelatoy-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 4px;
 }
 .pixelatoy-tab {
   padding: 5px 14px;

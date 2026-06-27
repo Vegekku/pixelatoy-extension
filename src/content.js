@@ -23,3 +23,5 @@ buildTabs();
 addLegend(refreshAllData);
 checkOrphanData();
 setInterval(refreshCountdowns, 60000);
+
+document.querySelector(".page-content")?.classList.remove("card", "card-block");
