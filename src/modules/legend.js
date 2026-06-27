@@ -10,8 +10,10 @@ import { t } from "../i18n.js";
 /**
  * Creates and inserts the legend (colour key + refresh button + instructions).
  * @param {function} refreshAllData - Callback to trigger a full data refresh.
+ * @param {boolean} [instructionsOpen=false] - Whether instructions start expanded.
+ * @param {typeof THRESHOLDS} [thresholds] - Configured thresholds with colors.
  */
-export function addLegend(refreshAllData) {
+export function addLegend(refreshAllData, instructionsOpen = false, thresholds = THRESHOLDS) {
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-legend")) return;
 
@@ -19,7 +21,7 @@ export function addLegend(refreshAllData) {
   legend.id = "pixelatoy-legend";
   legend.style.cssText = "margin-top:10px;display:flex;gap:16px;font-size:13px;align-items:center;";
 
-  THRESHOLDS.forEach(({ bg, label }) => {
+  thresholds.forEach(({ bg, label }) => {
     const item = document.createElement("span");
     item.style.cssText = "display:flex;align-items:center;gap:6px;";
     item.innerHTML = `<span style="width:16px;height:16px;background:${bg};border-radius:3px;display:inline-block;"></span>${label}`;
@@ -70,6 +72,10 @@ export function addLegend(refreshAllData) {
 
   const toggle = instructions.querySelector("#pixelatoy-instr-toggle");
   const list = instructions.querySelector("#pixelatoy-instr-list");
+  if (instructionsOpen) {
+    list.style.display = "block";
+    toggle.innerHTML = "&#9660; " + t("instr_toggle");
+  }
   toggle.addEventListener("click", () => {
     const open = list.style.display !== "none";
     list.style.display = open ? "none" : "block";

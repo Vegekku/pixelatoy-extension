@@ -2,24 +2,34 @@
  * @module popup
  * @description Renders the extension popup: products grouped by urgency with
  * collapsible image thumbnails and a link to the preorder page.
- * Language is read from storage (saved by content.js).
+ * Language and config are read from storage (saved by content.js).
  */
 
-import { STORAGE_KEY, THRESHOLDS, groupByThreshold } from "./helpers.js";
+import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, THRESHOLDS, groupByThreshold } from "./helpers.js";
 import { t, getLang } from "./i18n.js";
 
 getLang().then(lang => {
-  chrome.storage.local.get(STORAGE_KEY, (res) => {
+  chrome.storage.local.get([STORAGE_KEY, CONFIG_KEY], (res) => {
+    const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}) };
+    if (!config.popup) return;
+
+    const thresholds = THRESHOLDS.map((th, i) => ({
+      ...th,
+      days: i < 3 ? (config.thresholds[i] ?? th.days) : th.days,
+      bg: config.colors[i]?.bg ?? th.bg,
+      color: config.colors[i]?.color ?? th.color,
+    }));
+
     document.getElementById("title").textContent = t("popup_title", lang);
     const data = res[STORAGE_KEY] || {};
     const content = document.getElementById("content");
-    const groups = groupByThreshold(data);
+    const groups = groupByThreshold(data, thresholds);
     const hasAny = groups.some(g => g.length > 0);
 
     if (!hasAny) {
       content.innerHTML = `<div class="empty">${t("popup_empty", lang)}</div>`;
     } else {
-      THRESHOLDS.forEach((th, i) => {
+      thresholds.forEach((th, i) => {
         if (groups[i].length === 0) return;
         const wrapper = document.createElement("div");
 

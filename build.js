@@ -6,7 +6,7 @@ const test = process.argv.includes("--test");
 
 mkdirSync("dist/icons", { recursive: true });
 
-["icons/icon16.png", "icons/icon48.png", "icons/icon128.png", "src/popup.html", "src/privacy.html", "manifest.json"].forEach(f => {
+["icons/icon16.png", "icons/icon48.png", "icons/icon128.png", "src/popup.html", "src/options.html", "src/privacy.html", "manifest.json"].forEach(f => {
   copyFileSync(f, `dist/${f.replace("src/", "")}`);
 });
 
@@ -20,6 +20,7 @@ const entryPoints = {
   "content":    "src/content.js",
   "background": "src/background.js",
   "popup":      "src/popup.js",
+  "options":    "src/options.js",
   "styles":     "src/content.css",
 };
 

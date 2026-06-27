@@ -5,8 +5,9 @@
  * - Handling fetch requests delegated from content scripts (to avoid CORS).
  */
 
-import { STORAGE_KEY, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
+import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
 import { t, getLang } from "./i18n.js";
+import { runMigrations } from "./migrations.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
 
@@ -30,7 +31,9 @@ function buildNotificationMessage(data, lang) {
 /** Checks stored data and sends a Chrome notification if products need attention. */
 async function checkAndNotify() {
   const lang = await getLang();
-  chrome.storage.local.get(STORAGE_KEY, (res) => {
+  chrome.storage.local.get([STORAGE_KEY, CONFIG_KEY], (res) => {
+    const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}) };
+    if (!config.notifications) return;
     const data = res[STORAGE_KEY] || {};
     const message = buildNotificationMessage(data, lang);
     if (!message) return;
@@ -46,6 +49,17 @@ async function checkAndNotify() {
   });
 }
 
+// Toggle popup when config changes
+chrome.storage.onChanged.addListener((changes) => {
+  if (!changes[CONFIG_KEY]) return;
+  const config = { ...DEFAULT_CONFIG, ...(changes[CONFIG_KEY].newValue || {}) };
+  if (config.popup) {
+    chrome.action.setPopup({ popup: "popup.html" });
+  } else {
+    chrome.action.setPopup({ popup: "" });
+  }
+});
+
 // Open preorder page on notification click
 chrome.notifications.onClicked.addListener((id) => {
   if (id === "pixelatoy-alert") {
@@ -60,12 +74,12 @@ function scheduleAlarm() {
 }
 
 chrome.runtime.onStartup.addListener(() => {
-  checkAndNotify();
+  runMigrations().then(() => checkAndNotify());
   scheduleAlarm();
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  checkAndNotify();
+  runMigrations().then(() => checkAndNotify());
   scheduleAlarm();
 });
 

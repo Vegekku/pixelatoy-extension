@@ -8,11 +8,44 @@ import { t, LANG } from "./i18n.js";
 /** Chrome storage key for all product data. */
 export const STORAGE_KEY = "pixelatoyTexts";
 
+/** Chrome storage key for extension configuration. */
+export const CONFIG_KEY = "pixelatoyConfig";
+
 /** Attribute added to cells and headers inserted by the extension. */
 export const DATA_INSERT = "data-pixelatoy-insert";
 
 /** URL of the preorder details page in the current language. */
 export const PREORDER_URL = `https://www.pixelatoy.com/${LANG}/module/preorder/preorderorderdetails`;
+
+/** Default configuration values. */
+export const DEFAULT_CONFIG = {
+  notifications: true,
+  popup: true,
+  tabs: true,
+  thresholds: [7, 30, 60],
+  colors: [
+    { bg: "#000000", color: "#ffffff" },
+    { bg: "#a94442", color: "#ffffff" },
+    { bg: "#f0ad4e", color: "#000000" },
+    { bg: "#5cb85c", color: "#000000" },
+  ],
+  defaultTab: "warehouse",
+  instructionsOpen: false,
+  lang: "en",
+  schemaVersion: "0.0.0",
+};
+
+/**
+ * Reads the extension config from storage, merged with defaults.
+ * @returns {Promise<typeof DEFAULT_CONFIG>}
+ */
+export function getConfig() {
+  return new Promise(resolve => {
+    chrome.storage.local.get(CONFIG_KEY, res => {
+      resolve({ ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}) });
+    });
+  });
+}
 
 /** Urgency thresholds with associated colours, CSS classes, and i18n keys. */
 export const THRESHOLDS = [
@@ -71,17 +104,18 @@ export function addThreeMonths(dateStr) {
 /**
  * Groups stored products by urgency threshold.
  * @param {Object} data - Storage object keyed by product name.
+ * @param {typeof THRESHOLDS} [thresholds]
  * @returns {Array<Array<{name: string, img: string, limit: Date}>>}
  */
-export function groupByThreshold(data) {
+export function groupByThreshold(data, thresholds = THRESHOLDS) {
   const now = new Date();
-  const groups = THRESHOLDS.map(() => []);
+  const groups = thresholds.map(() => []);
   for (const [name, entry] of Object.entries(data)) {
     const limit = parseDateTime(addThreeMonths(entry.date));
     if (!limit) continue;
     const diffDays = (limit - now) / (1000 * 60 * 60 * 24);
-    for (let i = 0; i < THRESHOLDS.length; i++) {
-      if (diffDays < THRESHOLDS[i].days) {
+    for (let i = 0; i < thresholds.length; i++) {
+      if (diffDays < thresholds[i].days) {
         groups[i].push({ name, img: entry.img || "", limit });
         break;
       }

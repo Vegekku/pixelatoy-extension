@@ -58,10 +58,10 @@
 }
 
 /* ─── Row urgency classes ──────────────────────────────────────────────────── */
-tr.pixelatoy-urgency-critical { background: #000 !important; color: #fff !important; }
-tr.pixelatoy-urgency-high     { background: #a94442 !important; color: #fff !important; }
-tr.pixelatoy-urgency-medium   { background: #f0ad4e !important; color: #000 !important; }
-tr.pixelatoy-urgency-low      { background: #5cb85c !important; color: #000 !important; }
+tr.pixelatoy-urgency-critical { background: var(--urgency-bg, #000) !important; color: var(--urgency-color, #fff) !important; }
+tr.pixelatoy-urgency-high     { background: var(--urgency-bg, #a94442) !important; color: var(--urgency-color, #fff) !important; }
+tr.pixelatoy-urgency-medium   { background: var(--urgency-bg, #f0ad4e) !important; color: var(--urgency-color, #000) !important; }
+tr.pixelatoy-urgency-low      { background: var(--urgency-bg, #5cb85c) !important; color: var(--urgency-color, #000) !important; }
 
 /* Links inside urgency rows inherit row text colour */
 tr[class*="pixelatoy-urgency-"] a { color: inherit !important; }

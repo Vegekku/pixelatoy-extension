@@ -7,6 +7,8 @@
  * - The popup and background read the actual language via `getLang()` from storage.
  */
 
+import { CONFIG_KEY, DEFAULT_CONFIG } from "./helpers.js";
+
 /** Current language code detected from the page or fallback. */
 export const LANG = (
   typeof document !== "undefined" && document.documentElement.lang
@@ -21,13 +23,16 @@ export const LANG = (
  */
 export function getLang() {
   return new Promise(resolve => {
-    chrome.storage.local.get("pixelatoyLang", res => resolve(res.pixelatoyLang || "en"));
+    chrome.storage.local.get(CONFIG_KEY, res => resolve((res[CONFIG_KEY]?.lang) || DEFAULT_CONFIG.lang));
   });
 }
 
 /** Persists the current page language to storage. Called by content.js on load. */
 export function saveLang() {
-  chrome.storage.local.set({ pixelatoyLang: LANG });
+  chrome.storage.local.get(CONFIG_KEY, res => {
+    const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}), lang: LANG };
+    chrome.storage.local.set({ [CONFIG_KEY]: config });
+  });
 }
 
 const MESSAGES = {
@@ -88,6 +93,29 @@ const MESSAGES = {
     // overlay buttons
     overlay_accept:     "Aplicar cambios",
     overlay_reject:     "Descartar cambios",
+
+    // options page
+    options_title:           "Pixelatoy — Opciones",
+    options_h_general:       "General",
+    options_h_urgency:       "Umbrales de urgencia",
+    options_l_notifications: "Notificaciones push",
+    options_l_popup:         "Popup del icono",
+    options_l_tabs:          "Pestañas En almacén / No disponible",
+    options_l_default_tab:   "Pestaña por defecto",
+    options_opt_warehouse:   "En almacén",
+    options_opt_unavailable: "No disponible",
+    options_l_instructions:  "Instrucciones expandidas por defecto",
+    options_h_days:          "Días",
+    options_h_bg:            "Fondo",
+    options_h_text:          "Texto",
+    options_threshold_0:     "Crítico (negro)",
+    options_threshold_1:     "Alto (rojo)",
+    options_threshold_2:     "Medio (naranja)",
+    options_threshold_3:     "Bajo (verde)",
+    options_save:            "Guardar",
+    options_reset:           "Restablecer",
+    options_saved:           "Guardado correctamente.",
+    options_reset_done:      "Configuración restablecida.",
   },
   en: {
     threshold_7:        "Less than 7 days",
@@ -137,6 +165,29 @@ const MESSAGES = {
 
     overlay_accept:     "Apply changes",
     overlay_reject:     "Discard changes",
+
+    // options page
+    options_title:           "Pixelatoy — Options",
+    options_h_general:       "General",
+    options_h_urgency:       "Urgency thresholds",
+    options_l_notifications: "Push notifications",
+    options_l_popup:         "Extension icon popup",
+    options_l_tabs:          "Tabs In warehouse / Not available",
+    options_l_default_tab:   "Default tab",
+    options_opt_warehouse:   "In warehouse",
+    options_opt_unavailable: "Not available",
+    options_l_instructions:  "Show instructions expanded by default",
+    options_h_days:          "Days",
+    options_h_bg:            "Background",
+    options_h_text:          "Text",
+    options_threshold_0:     "Critical (black)",
+    options_threshold_1:     "High (red)",
+    options_threshold_2:     "Medium (orange)",
+    options_threshold_3:     "Low (green)",
+    options_save:            "Save",
+    options_reset:           "Reset to defaults",
+    options_saved:           "Saved successfully.",
+    options_reset_done:      "Settings reset to defaults.",
   },
 };
 
