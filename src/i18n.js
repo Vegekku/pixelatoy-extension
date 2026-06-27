@@ -213,12 +213,29 @@ for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
 }
 
 /**
- * Translates an availability text (e.g. "enero 2025") to the current page language.
- * @param {string|null|undefined} text - Raw availability text from the product page.
- * @returns {string|null|undefined} Translated text or original if unparseable.
+ * Translates an availability text to the current page language.
+ * Uses availableFromDate (ISO) when available to avoid re-parsing already-translated text.
+ * @param {string|null|undefined} text - Raw or translated availability text.
+ * @param {string|null|undefined} isoDate - Parsed date in `YYYY-MM-DD HH:MM` format.
+ * @returns {string|null|undefined}
  */
-export function translateAvailableFrom(text) {
+export function translateAvailableFrom(text, isoDate) {
   if (!text) return text;
+
+  // If we have a parsed ISO date, reconstruct the translated string from it
+  if (isoDate) {
+    const match = isoDate.match(/^(\d{4})-(\d{2})/);
+    if (match) {
+      const mm = Number(match[2]);
+      const yyyy = match[1];
+      const monthName = (MONTHS_BY_NUM[LANG] ?? MONTHS_BY_NUM.es)[mm - 1];
+      return LANG === "en"
+        ? `Estimated availability in ${monthName} ${yyyy}`
+        : `Disponibilidad estimada en ${monthName} de ${yyyy}`;
+    }
+  }
+
+  // Fallback: try to parse the text directly (raw text from Pixelatoy)
   const match = text.match(/([a-z\u00e0-\u00ff]+)\s+(\d{4})/i);
   if (!match) return text;
   const mm = MONTHS_TO_NUM[match[1].toLowerCase()];

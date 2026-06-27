@@ -117,13 +117,16 @@ export function buildThresholds(config) {
   }));
 }
 
+/** Active thresholds (set by applyCustomColumn, used by refreshCountdowns). */
+let activeThresholds = THRESHOLDS;
+
 /**
  * Applies urgency CSS class to a row based on its limit date.
  * @param {HTMLTableRowElement} row
  * @param {Date|null} date - The limit date.
  * @param {typeof THRESHOLDS} [thresholds]
  */
-function colorRowByDate(row, date, thresholds = THRESHOLDS) {
+function colorRowByDate(row, date, thresholds = activeThresholds) {
   row.classList.remove(...URGENCY_CLASSES);
   if (!date) return;
   const diffDays = (date - new Date()) / (1000 * 60 * 60 * 24);
@@ -369,7 +372,7 @@ async function autoFetchRowData(row, key, cell, stored) {
         updateCell(cell, row, null, null, null, comingSoon);
       } else if (availableFrom) {
         saveToStorage(key, { availableFrom, availableFromDate }, row);
-        updateCell(cell, row, null, translateAvailableFrom(availableFrom), availableFromDate);
+        updateCell(cell, row, null, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate);
       }
     }
   } catch (e) {
@@ -407,7 +410,7 @@ function autoFetchMissingData(storedTexts) {
 export function applyCustomColumn(config) {
   const table = document.getElementById("preorder_list");
   if (!table) return;
-  const thresholds = buildThresholds(config);
+  activeThresholds = buildThresholds(config);
 
   chrome.storage.local.get(STORAGE_KEY, (result) => {
     const storedTexts = result[STORAGE_KEY] || {};
@@ -434,7 +437,7 @@ export function applyCustomColumn(config) {
       const storedDate = getStoredDate(storedTexts[key]);
       const limitDate = addThreeMonths(storedDate);
       const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
-      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom), availableFromDate, comingSoon, thresholds);
+      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate, comingSoon, activeThresholds);
 
       if (storedTexts[key]?.productUrl) {
         linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
