@@ -4,6 +4,13 @@ Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.
 
 ## Funcionalidades
 
+### Rediseño en tabs
+La tabla de reservas se divide en dos tabs:
+- **En almacén**: productos con formulario de envío (fecha de entrada disponible). Muestra el contador de límite.
+- **No disponible**: productos sin fecha, con disponibilidad estimada.
+
+Cada tab muestra el número de productos en el título. La columna de fecha cambia su cabecera según el tab activo (`En almacén` / `Disponibilidad`). La ordenación afecta a todas las filas.
+
 ### Columna "En almacén"
 - Haz click en cualquier celda de la columna para introducir o editar la fecha de entrada al almacén.
 - Formato de fecha esperado: `YYYY-MM-DD` o `YYYY-MM-DD HH:MM` (ej: `2024-03-15` o `2024-03-15 10:30`). La hora es opcional, si no se indica se asume `00:00`.
