@@ -299,14 +299,27 @@ function createEditableCell(key, row) {
 
 // ─── Auto-fetch ───────────────────────────────────────────────────────────────
 
+/**
+ * Returns the actions cell of a row by looking for a form or "not_available" text,
+ * regardless of column position (safe to call after the custom column is inserted).
+ * @param {HTMLTableRowElement} row
+ * @returns {HTMLTableCellElement|null}
+ */
+function getActionsCell(row) {
+  return Array.from(row.querySelectorAll("td")).find(
+    td => td.querySelector("form") || td.textContent.trim() === t("not_available")
+  ) ?? null;
+}
+
 async function autoFetchRowData(row, key, cell, stored) {
   const hasDate = !!getStoredDate(stored);
   const hasUrl = !!(stored && stored.productUrl);
   if (hasDate && hasUrl) return;
 
+  const actionsCell = getActionsCell(row);
   const needsDate = !hasDate && !stored?.brokenLink && (
-    row.children[row.children.length - 2]?.querySelector("form") ||
-    row.children[row.children.length - 2]?.textContent.trim() === t("not_available")
+    actionsCell?.querySelector("form") ||
+    actionsCell?.textContent.trim() === t("not_available")
   );
   if (hasUrl && !needsDate && (stored?.availableFrom || stored?.comingSoon)) return;
 
@@ -357,7 +370,7 @@ function autoFetchMissingData(storedTexts) {
     const stored = storedTexts[key] || {};
     if (stored.productUrl && getStoredDate(stored)) return;
     const hasNonDateData = stored.availableFrom || stored.comingSoon;
-    const rowHasForm = row.children[row.children.length - 2]?.querySelector("form");
+    const rowHasForm = getActionsCell(row)?.querySelector("form");
     if (stored.productUrl && hasNonDateData && !rowHasForm) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
