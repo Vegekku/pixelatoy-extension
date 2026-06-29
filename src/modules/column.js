@@ -8,8 +8,7 @@
 import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { thresholdLabel } from "../i18n.js";
-import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
+import { t, LANG, thresholdLabel, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
