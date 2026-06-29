@@ -63,6 +63,7 @@ export function addLegend(refreshAllData, instructionsOpen = false, thresholds =
       <li>${t("instr_4")}</li>
       <li>${t("instr_5")}</li>
       <li>${t("instr_6")}</li>
+      <li>${t("instr_7")}</li>
     </ul>
   `;
   const brokenIcon = document.createElement("span");

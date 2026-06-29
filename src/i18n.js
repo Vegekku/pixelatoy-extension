@@ -65,6 +65,7 @@ const MESSAGES = {
     instr_4:            "Las columnas con ▲▼ permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.",
     instr_5:            "Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección Reservas no encontradas debajo con opción de eliminar.",
     instr_6:            "El icono de la extensión muestra un resumen de productos agrupados por urgencia.",
+    instr_7:            "Puedes personalizar umbrales, colores y notificaciones desde las opciones: click derecho en el icono de la extensión → Opciones.",
 
     // orphans
     orphans_title:      "Reservas no encontradas",
@@ -143,6 +144,7 @@ const MESSAGES = {
     instr_4:            "Columns with ▲▼ can be sorted. One click sorts ascending, two descending, three restores the original order.",
     instr_5:            "If a product disappears from the table but has saved data, a Not found preorders section appears below with a delete option.",
     instr_6:            "The extension icon shows a summary of products grouped by urgency.",
+    instr_7:            "You can customise thresholds, colours and notifications from the options: right-click the extension icon → Options.",
 
     orphans_title:      "Not found preorders",
     orphans_delete_all: "Delete all",
