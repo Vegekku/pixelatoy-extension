@@ -8,6 +8,7 @@
 import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { thresholdLabel } from "../i18n.js";
 import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -109,12 +110,17 @@ const URGENCY_CLASSES = THRESHOLDS.map(t => t.className);
  */
 export function buildThresholds(config) {
   if (!config) return THRESHOLDS;
-  return THRESHOLDS.map((th, i) => ({
+  const built = THRESHOLDS.map((th, i) => ({
     ...th,
     days: i < 3 ? (config.thresholds[i] ?? th.days) : th.days,
     bg: config.colors[i]?.bg ?? th.bg,
     color: config.colors[i]?.color ?? th.color,
   }));
+  // Regenerate labels based on configured days
+  built.forEach((th, i) => {
+    th.label = thresholdLabel(th.days, i > 0 ? built[i - 1].days : null);
+  });
+  return built;
 }
 
 /** Active thresholds (set by applyCustomColumn, used by refreshCountdowns). */

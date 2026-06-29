@@ -114,8 +114,8 @@ const MESSAGES = {
     options_threshold_3:     "Bajo (verde)",
     options_save:            "Guardar",
     options_reset:           "Restablecer",
-    options_saved:           "Guardado correctamente.",
-    options_reset_done:      "Configuración restablecida.",
+    options_saved:           "Guardado. Los cambios se aplicarán al recargar la página de reservas.",
+    options_reset_done:      "Configuración restablecida. La configuración se aplicará al recargar la página de reservas.",
   },
   en: {
     threshold_7:        "Less than 7 days",
@@ -186,8 +186,8 @@ const MESSAGES = {
     options_threshold_3:     "Low (green)",
     options_save:            "Save",
     options_reset:           "Reset to defaults",
-    options_saved:           "Saved successfully.",
-    options_reset_done:      "Settings reset to defaults.",
+    options_saved:           "Saved. Changes will apply when you reload the preorders page.",
+    options_reset_done:      "Settings reset to defaults. Settings will apply when you reload the preorders page.",
   },
 };
 
@@ -200,6 +200,21 @@ const MESSAGES = {
 export function t(key, lang) {
   const l = lang ?? LANG;
   return (MESSAGES[l] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
+}
+
+/**
+ * Generates a threshold label dynamically based on the days value.
+ * @param {number} days - Threshold days (Infinity for the last bucket).
+ * @param {number|null} [prevDays] - Previous threshold's days (used when days is Infinity).
+ * @param {string|null} [lang] - Language override; defaults to LANG.
+ * @returns {string}
+ */
+export function thresholdLabel(days, prevDays, lang) {
+  const l = lang ?? LANG;
+  if (days === Infinity) {
+    return l === "es" ? `${prevDays} días o más` : `${prevDays} days or more`;
+  }
+  return l === "es" ? `Menos de ${days} días` : `Less than ${days} days`;
 }
 
 const MONTHS_BY_NUM = {

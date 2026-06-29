@@ -6,7 +6,7 @@
  */
 
 import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, THRESHOLDS, groupByThreshold } from "./helpers.js";
-import { t, getLang } from "./i18n.js";
+import { t, getLang, thresholdLabel } from "./i18n.js";
 
 getLang().then(lang => {
   chrome.storage.local.get([STORAGE_KEY, CONFIG_KEY], (res) => {
@@ -19,6 +19,9 @@ getLang().then(lang => {
       bg: config.colors[i]?.bg ?? th.bg,
       color: config.colors[i]?.color ?? th.color,
     }));
+    thresholds.forEach((th, i) => {
+      th.label = thresholdLabel(th.days, i > 0 ? thresholds[i - 1].days : null, lang);
+    });
 
     document.getElementById("title").textContent = t("popup_title", lang);
     const data = res[STORAGE_KEY] || {};
@@ -35,7 +38,7 @@ getLang().then(lang => {
 
         const div = document.createElement("div");
         div.className = "range";
-        div.innerHTML = `<span class="arrow">▶</span><span class="dot" style="background:${th.bg}"></span><span>${t(th.labelKey, lang)}</span><span class="count">${groups[i].length}</span>`;
+        div.innerHTML = `<span class="arrow">▶</span><span class="dot" style="background:${th.bg}"></span><span>${th.label}</span><span class="count">${groups[i].length}</span>`;
 
         const list = document.createElement("div");
         list.className = "products";
