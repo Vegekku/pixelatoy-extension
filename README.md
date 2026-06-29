@@ -70,6 +70,15 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - El popup y las notificaciones usan el idioma de la última sesión en la página de reservas.
 - Si el idioma no es español ni inglés, se muestra en inglés por defecto.
 
+### Opciones
+Desde la página de opciones (click derecho en el icono → Opciones) se puede configurar:
+- Notificaciones push: activar/desactivar.
+- Popup del icono: activar/desactivar.
+- Pestañas En almacén / No disponible: activar/desactivar y elegir pestaña por defecto.
+- Instrucciones de uso: expandidas o colapsadas por defecto.
+- Umbrales de urgencia: días de los 3 cortes (por defecto 7, 30, 60).
+- Colores de los 4 rangos de urgencia: fondo y texto.
+
 ## Instalación
 
 ### Desde la Chrome Web Store
@@ -110,6 +119,9 @@ pixelatoy-extension/
 │   ├── background.js    # Service worker: notificaciones, alarmas y fetch delegado
 │   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
 │   ├── i18n.js          # Internacionalización (ES/EN)
+│   ├── migrations.js    # Migraciones de storage entre versiones
+│   ├── options.html     # Página de opciones de la extensión
+│   ├── options.js       # Lógica de la página de opciones
 │   ├── popup.html       # Popup del icono de la extensión
 │   ├── popup.js         # Lógica del popup
 │   └── privacy.html     # Política de privacidad

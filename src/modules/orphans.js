@@ -73,9 +73,9 @@ export function checkOrphanData() {
     const list = document.createElement("div");
     list.style.cssText = "display:none;flex-direction:column;gap:6px;margin-top:8px;";
 
-    orphans.forEach(([key, { date: dateStr, img, productUrl, availableFrom }]) => {
+    orphans.forEach(([key, { date: dateStr, img, productUrl, availableFrom, availableFromDate }]) => {
       const limitDate = addThreeMonths(dateStr);
-      const status = limitDate ? formatCountdown(limitDate) : (availableFrom ? translateAvailableFrom(availableFrom) : t("orphans_no_date"));
+      const status = limitDate ? formatCountdown(limitDate) : (availableFrom ? translateAvailableFrom(availableFrom, availableFromDate) : t("orphans_no_date"));
       const adaptedUrl = productUrl?.replace(/\/(es|en)\//, `/${LANG}/`);
 
       const row = document.createElement("div");

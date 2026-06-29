@@ -7,6 +7,8 @@
  * - The popup and background read the actual language via `getLang()` from storage.
  */
 
+import { CONFIG_KEY, DEFAULT_CONFIG } from "./helpers.js";
+
 /** Current language code detected from the page or fallback. */
 export const LANG = (
   typeof document !== "undefined" && document.documentElement.lang
@@ -21,13 +23,16 @@ export const LANG = (
  */
 export function getLang() {
   return new Promise(resolve => {
-    chrome.storage.local.get("pixelatoyLang", res => resolve(res.pixelatoyLang || "en"));
+    chrome.storage.local.get(CONFIG_KEY, res => resolve((res[CONFIG_KEY]?.lang) || DEFAULT_CONFIG.lang));
   });
 }
 
 /** Persists the current page language to storage. Called by content.js on load. */
 export function saveLang() {
-  chrome.storage.local.set({ pixelatoyLang: LANG });
+  chrome.storage.local.get(CONFIG_KEY, res => {
+    const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}), lang: LANG };
+    chrome.storage.local.set({ [CONFIG_KEY]: config });
+  });
 }
 
 const MESSAGES = {
@@ -60,6 +65,7 @@ const MESSAGES = {
     instr_4:            "Las columnas con ▲▼ permiten ordenar la tabla. Un click ordena ascendente, dos descendente y tres restaura el orden original.",
     instr_5:            "Si un producto desaparece de la tabla pero tiene datos guardados, aparece una sección Reservas no encontradas debajo con opción de eliminar.",
     instr_6:            "El icono de la extensión muestra un resumen de productos agrupados por urgencia.",
+    instr_7:            "Puedes personalizar umbrales, colores y notificaciones desde las opciones: click derecho en el icono de la extensión → Opciones.",
 
     // orphans
     orphans_title:      "Reservas no encontradas",
@@ -88,6 +94,29 @@ const MESSAGES = {
     // overlay buttons
     overlay_accept:     "Aplicar cambios",
     overlay_reject:     "Descartar cambios",
+
+    // options page
+    options_title:           "Pixelatoy — Opciones",
+    options_h_general:       "General",
+    options_h_urgency:       "Umbrales de urgencia",
+    options_l_notifications: "Notificaciones push",
+    options_l_popup:         "Popup del icono",
+    options_l_tabs:          "Pestañas En almacén / No disponible",
+    options_l_default_tab:   "Pestaña por defecto",
+    options_opt_warehouse:   "En almacén",
+    options_opt_unavailable: "No disponible",
+    options_l_instructions:  "Instrucciones expandidas por defecto",
+    options_h_days:          "Días",
+    options_h_bg:            "Fondo",
+    options_h_text:          "Texto",
+    options_threshold_0:     "Crítico (negro)",
+    options_threshold_1:     "Alto (rojo)",
+    options_threshold_2:     "Medio (naranja)",
+    options_threshold_3:     "Bajo (verde)",
+    options_save:            "Guardar",
+    options_reset:           "Restablecer",
+    options_saved:           "Guardado. Los cambios se aplicarán al recargar la página de reservas.",
+    options_reset_done:      "Configuración restablecida. La configuración se aplicará al recargar la página de reservas.",
   },
   en: {
     threshold_7:        "Less than 7 days",
@@ -115,6 +144,7 @@ const MESSAGES = {
     instr_4:            "Columns with ▲▼ can be sorted. One click sorts ascending, two descending, three restores the original order.",
     instr_5:            "If a product disappears from the table but has saved data, a Not found preorders section appears below with a delete option.",
     instr_6:            "The extension icon shows a summary of products grouped by urgency.",
+    instr_7:            "You can customise thresholds, colours and notifications from the options: right-click the extension icon → Options.",
 
     orphans_title:      "Not found preorders",
     orphans_delete_all: "Delete all",
@@ -137,6 +167,29 @@ const MESSAGES = {
 
     overlay_accept:     "Apply changes",
     overlay_reject:     "Discard changes",
+
+    // options page
+    options_title:           "Pixelatoy — Options",
+    options_h_general:       "General",
+    options_h_urgency:       "Urgency thresholds",
+    options_l_notifications: "Push notifications",
+    options_l_popup:         "Extension icon popup",
+    options_l_tabs:          "Tabs In warehouse / Not available",
+    options_l_default_tab:   "Default tab",
+    options_opt_warehouse:   "In warehouse",
+    options_opt_unavailable: "Not available",
+    options_l_instructions:  "Show instructions expanded by default",
+    options_h_days:          "Days",
+    options_h_bg:            "Background",
+    options_h_text:          "Text",
+    options_threshold_0:     "Critical (black)",
+    options_threshold_1:     "High (red)",
+    options_threshold_2:     "Medium (orange)",
+    options_threshold_3:     "Low (green)",
+    options_save:            "Save",
+    options_reset:           "Reset to defaults",
+    options_saved:           "Saved. Changes will apply when you reload the preorders page.",
+    options_reset_done:      "Settings reset to defaults. Settings will apply when you reload the preorders page.",
   },
 };
 
@@ -151,6 +204,21 @@ export function t(key, lang) {
   return (MESSAGES[l] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
 }
 
+/**
+ * Generates a threshold label dynamically based on the days value.
+ * @param {number} days - Threshold days (Infinity for the last bucket).
+ * @param {number|null} [prevDays] - Previous threshold's days (used when days is Infinity).
+ * @param {string|null} [lang] - Language override; defaults to LANG.
+ * @returns {string}
+ */
+export function thresholdLabel(days, prevDays, lang) {
+  const l = lang ?? LANG;
+  if (days === Infinity) {
+    return l === "es" ? `${prevDays} días o más` : `${prevDays} days or more`;
+  }
+  return l === "es" ? `Menos de ${days} días` : `Less than ${days} days`;
+}
+
 const MONTHS_BY_NUM = {
   es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
   en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
@@ -162,12 +230,29 @@ for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
 }
 
 /**
- * Translates an availability text (e.g. "enero 2025") to the current page language.
- * @param {string|null|undefined} text - Raw availability text from the product page.
- * @returns {string|null|undefined} Translated text or original if unparseable.
+ * Translates an availability text to the current page language.
+ * Uses availableFromDate (ISO) when available to avoid re-parsing already-translated text.
+ * @param {string|null|undefined} text - Raw or translated availability text.
+ * @param {string|null|undefined} isoDate - Parsed date in `YYYY-MM-DD HH:MM` format.
+ * @returns {string|null|undefined}
  */
-export function translateAvailableFrom(text) {
+export function translateAvailableFrom(text, isoDate) {
   if (!text) return text;
+
+  // If we have a parsed ISO date, reconstruct the translated string from it
+  if (isoDate) {
+    const match = isoDate.match(/^(\d{4})-(\d{2})/);
+    if (match) {
+      const mm = Number(match[2]);
+      const yyyy = match[1];
+      const monthName = (MONTHS_BY_NUM[LANG] ?? MONTHS_BY_NUM.es)[mm - 1];
+      return LANG === "en"
+        ? `Estimated availability in ${monthName} ${yyyy}`
+        : `Disponibilidad estimada en ${monthName} de ${yyyy}`;
+    }
+  }
+
+  // Fallback: try to parse the text directly (raw text from Pixelatoy)
   const match = text.match(/([a-z\u00e0-\u00ff]+)\s+(\d{4})/i);
   if (!match) return text;
   const mm = MONTHS_TO_NUM[match[1].toLowerCase()];

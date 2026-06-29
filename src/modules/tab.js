@@ -43,9 +43,10 @@ function switchTab(tab, wBtn, uBtn) {
 
 /**
  * Creates and inserts the tab bar above the preorder table.
- * Applies initial row visibility (default tab: "warehouse").
+ * Applies initial row visibility based on the given default tab.
+ * @param {"warehouse"|"unavailable"} [defaultTab="warehouse"]
  */
-export function buildTabs() {
+export function buildTabs(defaultTab = "warehouse") {
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-tabs")) return;
 
@@ -58,7 +59,7 @@ export function buildTabs() {
 
   const wBtn = document.createElement("button");
   const uBtn = document.createElement("button");
-  wBtn.className = "pixelatoy-tab pixelatoy-tab-active";
+  wBtn.className = "pixelatoy-tab";
   uBtn.className = "pixelatoy-tab";
   wBtn.textContent = `${t("tab_warehouse")} (${wCount})`;
   uBtn.textContent = `${t("tab_unavailable")} (${uCount})`;
@@ -70,5 +71,5 @@ export function buildTabs() {
   bar.appendChild(uBtn);
   table.insertAdjacentElement("beforebegin", bar);
 
-  switchTab("warehouse", wBtn, uBtn);
+  switchTab(defaultTab, wBtn, uBtn);
 }

@@ -4,9 +4,9 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.2](#32-exportar-e-importar-datos), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
-| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
+| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [9.9](#99-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
 
 ---
 
@@ -21,6 +21,7 @@
 - [7. Historial de fechas](#7-historial-de-fechas)
 - [8. UX](#8-ux)
 - [9. Infraestructura y código](#9-infraestructura-y-código)
+  - [9.9 Mover GitHub Pages a docs/](#99-mover-github-pages-a-docs)
 ---
 
 ## 1. Auto-fetch de datos del producto
@@ -57,27 +58,6 @@ Las opciones D y E son las más interesantes. E es la más limpia: muestra lo ac
 ---
 
 ## 3. Configuración de la extensión
-
-### 3.1 Página de opciones
-Permitir al usuario configurar el comportamiento y apariencia de la extensión desde una página de opciones separada (`options.html` + `options.js`).
-
-Config guardada en `pixelatoyConfig` en `chrome.storage.local`. Si la clave no existe, se asumen los valores por defecto para no romper el comportamiento actual.
-
-Opciones configurables:
-- **Notificaciones push**: activar/desactivar.
-- **Popup**: activar/desactivar.
-- **Colores de los 4 rangos**: color de fondo y texto para cada umbral.
-- **Días de los umbrales**: valores de los 3 cortes (actualmente 7, 30, 60). El cuarto rango es siempre "el resto".
-- **Límite de reserva**: número de meses desde la fecha de entrada (máximo 3, que es la política actual de Pixelatoy).
-- **Tab por defecto**: "En almacén" o "No disponible".
-- **Instrucciones de uso**: mostrar expandidas o colapsadas por defecto.
-
-Cambios necesarios:
-- `options.html` + `options.js`: página de opciones con los controles correspondientes.
-- `manifest.json`: añadir `options_page`.
-- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`.
-- `popup.js`: si `popup: false`, no renderizar nada (defensa extra).
-- `content.js`: leer config al iniciar y aplicar umbrales, colores, límite, tab por defecto e instrucciones.
 
 ### 3.2 Exportar e importar datos
 Botón en la página de opciones para exportar los datos del storage a un fichero JSON y para importarlos. Útil como copia de seguridad antes de desinstalar o migrar a otro perfil de Chrome.
@@ -232,3 +212,6 @@ Auditoría realizada. Hallazgos pendientes:
 **Popup**
 - Imágenes de producto sin `alt` (solo `title`). Añadir `alt` descriptivo.
 - Dots de color sin texto alternativo. Añadir `aria-label` o texto oculto.
+
+### 9.9 Mover GitHub Pages a `docs/`
+Actualmente `privacy.html` está en `src/` pero se sirve vía GitHub Pages, no forma parte del bundle. Moverla a `docs/` y añadir un `index.html` mínimo (landing con enlace a la Chrome Web Store, política de privacidad y enlaces al repo para README/CHANGELOG). No duplicar contenido de los markdowns: enlazar a GitHub directamente.
