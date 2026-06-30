@@ -1,0 +1,49 @@
+{
+  "pixelatoyConfig": {
+    "colors": [
+      { "bg": "#000000", "color": "#ffffff" },
+      { "bg": "#a94442", "color": "#ffffff" },
+      { "bg": "#f0ad4e", "color": "#000000" },
+      { "bg": "#5cb85c", "color": "#000000" }
+    ],
+    "defaultTab": "warehouse",
+    "instructionsOpen": false,
+    "lang": "es",
+    "notifications": true,
+    "popup": true,
+    "schemaVersion": "1.6.0",
+    "tabs": true,
+    "thresholds": [7, 30, 60]
+  },
+  "pixelatoyTexts": {
+    "Glorio. SH Figuarts. Dragon Ball Daima - Elija forma de pago : Depósito": {
+      "availableFrom": "Disponibilidad estimada en abril de 2026",
+      "availableFromDate": "2026-04-01 00:00",
+      "brokenLink": false,
+      "comingSoon": null,
+      "date": "2026-05-20 00:00",
+      "img": "https://www.pixelatoy.com/389090-home_default/glorio-sh-figuarts-dragon-ball-daima.jpg",
+      "productUrl": "https://www.pixelatoy.com/es/reservas/58841-51376-glorio-sh-figuarts-dragon-ball-daima-4573102686527.html#/pago-deposito"
+    },
+    "Krillin -Earth's Strongest Man-. SH Figuarts. Dragon Ball Z. - Elija forma de pago : Depósito": {
+      "availableFrom": "Disponibilidad estimada en mayo de 2026",
+      "availableFromDate": "2026-05-01 00:00",
+      "img": "https://www.pixelatoy.com/419336-home_default/krillin-earth-s-strongest-man-sh-figuarts-dragon-ball-z.jpg",
+      "productUrl": "https://www.pixelatoy.com/es/preventas/62394-53719-krillin-earth-s-strongest-man-sh-figuarts-dragon-ball-z-4573102698711.html#/pago-deposito"
+    },
+    "Nail. SH Figuarts. Dragon Ball Z. Bandai Tamashii Nations - Elija forma de pago : Depósito": {
+      "brokenLink": true,
+      "img": "https://www.pixelatoy.com/427533-home_default/nail-sh-figuarts-dragon-ball-z.jpg",
+      "productUrl": "https://www.pixelatoy.com/es/preventas/63423-55353-nail-sh-figuarts-dragon-ball-z-4573102687463.html#/pago-deposito"
+    },
+    "Super Saiyan Goku -Legendary Super Saiyan-. SH Figuarts. Dragon Ball Z. Bandai Tamashii Nations - Elija forma de pago : Depósito": {
+      "availableFrom": null,
+      "availableFromDate": null,
+      "brokenLink": false,
+      "comingSoon": null,
+      "date": "2026-05-25 00:00",
+      "img": "https://www.pixelatoy.com/428136-home_default/super-saiyan-goku-legendary-super-saiyan-sh-figuarts-dragon-ball-z.jpg",
+      "productUrl": "https://www.pixelatoy.com/es/reservas/63490-55505-super-saiyan-goku-legendary-super-saiyan-sh-figuarts-dragon-ball-z-4573102650436.html#/pago-deposito"
+    }
+  }
+}
