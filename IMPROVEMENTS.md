@@ -186,6 +186,10 @@ Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambia
 
 Mezcla parsing de fechas, UI helpers, storage y orquestación de columna + auto-fetch. Si crece más (i18n, tabs), candidatos a extraer: `date-parse.js`, `storage.js`.
 
+**Validación de datos — posible módulo `validation.js`**
+
+Actualmente `validateImportData()` y los schemas (`PRODUCT_SCHEMA`, `CONFIG_SCHEMA`) viven en `options.js` porque es el único punto que los usa. Si otros flujos necesitan validar la misma estructura (auto-fetch en segundo plano [1.1], migraciones futuras, sync entre perfiles), extraer a `src/validation.js` con los schemas y la función exportada. No hacerlo antes de que haya reutilización real.
+
 ### 9.8 Accesibilidad (WCAG 2.1 AA)
 
 Auditoría realizada. Hallazgos pendientes:
