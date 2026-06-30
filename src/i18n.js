@@ -117,6 +117,12 @@ const MESSAGES = {
     options_reset:           "Restablecer",
     options_saved:           "Guardado. Los cambios se aplicarán al recargar la página de reservas.",
     options_reset_done:      "Configuración restablecida. La configuración se aplicará al recargar la página de reservas.",
+    options_h_data:          "Datos",
+    options_export:          "Exportar datos",
+    options_import:          "Importar datos",
+    options_export_done:     "Datos exportados correctamente.",
+    options_import_done:     "Datos importados correctamente. Recarga la página para ver los cambios.",
+    options_import_error:    "Error al importar: el fichero no es válido.",
   },
   en: {
     threshold_7:        "Less than 7 days",
@@ -190,6 +196,12 @@ const MESSAGES = {
     options_reset:           "Reset to defaults",
     options_saved:           "Saved. Changes will apply when you reload the preorders page.",
     options_reset_done:      "Settings reset to defaults. Settings will apply when you reload the preorders page.",
+    options_h_data:          "Data",
+    options_export:          "Export data",
+    options_import:          "Import data",
+    options_export_done:     "Data exported successfully.",
+    options_import_done:     "Data imported successfully. Reload the page to see the changes.",
+    options_import_error:    "Import error: the file is not valid.",
   },
 };
 
