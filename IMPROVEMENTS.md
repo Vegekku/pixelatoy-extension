@@ -6,7 +6,7 @@
 |--------|-------------|--------|-------|
 | 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.2](#32-exportar-e-importar-datos), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
-| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [9.10](#910-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
+| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
 
 ---
 
@@ -22,7 +22,8 @@
 - [8. UX](#8-ux)
 - [9. Infraestructura y código](#9-infraestructura-y-código)
   - [9.9 Testing automatizado](#99-testing-automatizado)
-  - [9.10 Mover GitHub Pages a docs/](#910-mover-github-pages-a-docs)
+  - [9.10 Canal de soporte para usuarios sin cuenta GitHub](#910-canal-de-soporte-para-usuarios-sin-cuenta-github)
+  - [9.11 Mover GitHub Pages a docs/](#911-mover-github-pages-a-docs)
 ---
 
 ## 1. Auto-fetch de datos del producto
@@ -241,5 +242,14 @@ Añadir tests unitarios y de integración para la extensión. Stack recomendado:
 **Tests de integración (fase posterior)**
 - Puppeteer/Playwright con la extensión cargada para flujos completos (abrir options, guardar, verificar storage; cargar página de reservas, comprobar columna inyectada).
 
-### 9.10 Mover GitHub Pages a `docs/`
+### 9.10 Canal de soporte para usuarios sin cuenta GitHub
+
+Actualmente el único canal para reportar problemas es la lista de issues de GitHub, que requiere cuenta. Explorar alternativas accesibles para cualquier usuario:
+
+- **Formulario web**: Google Forms o similar embebido/enlazado desde la página de opciones. Sin exposición del email, sin spam directo.
+- **Email con alias**: usar un alias (ej. SimpleLogin, Fastmail) para no exponer el correo personal y poder desactivarlo si hay abuso.
+
+Lo que se elija se añade en la sección **Acerca de** de la página de opciones junto al enlace a issues.
+
+### 9.11 Mover GitHub Pages a `docs/`
 Actualmente `privacy.html` está en `src/` pero se sirve vía GitHub Pages, no forma parte del bundle. Moverla a `docs/` y añadir un `index.html` mínimo (landing con enlace a la Chrome Web Store, política de privacidad y enlaces al repo para README/CHANGELOG). No duplicar contenido de los markdowns: enlazar a GitHub directamente.
