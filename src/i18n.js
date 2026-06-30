@@ -96,7 +96,7 @@ const MESSAGES = {
     overlay_reject:     "Descartar cambios",
 
     // options page
-    options_title:           "Pixelatoy — Opciones",
+    options_title:           "Pixelatoy Preorder Manager — Opciones",
     options_h_general:       "General",
     options_h_urgency:       "Umbrales de urgencia",
     options_l_notifications: "Notificaciones push",
@@ -175,7 +175,7 @@ const MESSAGES = {
     overlay_reject:     "Discard changes",
 
     // options page
-    options_title:           "Pixelatoy — Options",
+    options_title:           "Pixelatoy Preorder Manager — Options",
     options_h_general:       "General",
     options_h_urgency:       "Urgency thresholds",
     options_l_notifications: "Push notifications",
