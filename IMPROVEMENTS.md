@@ -61,9 +61,6 @@ Las opciones D y E son las más interesantes. E es la más limpia: muestra lo ac
 
 ## 3. Configuración de la extensión
 
-### 3.2 Exportar e importar datos
-Botón en la página de opciones para exportar los datos del storage a un fichero JSON y para importarlos. Útil como copia de seguridad antes de desinstalar o migrar a otro perfil de Chrome.
-
 ---
 
 ## 4. Favoritos y detalle de producto
