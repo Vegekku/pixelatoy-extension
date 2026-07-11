@@ -6,6 +6,20 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [v1.6.0] - 2026-07-12
+
+### Added
+
+- Tabs "En almacén" / "No disponible" en la tabla de reservas: separa productos listos para enviar de los no disponibles, con tab activo configurable
+- Página de opciones para configurar el comportamiento de la extensión: notificaciones, popup, tabs, tab por defecto, visibilidad de instrucciones, umbrales de urgencia y colores
+- Exportación e importación de datos del storage desde la página de opciones, con validación de esquema
+- Script `zip.js` y comando `npm run zip` para generar el zip distribuble para la Chrome Web Store desde un tag
+
+### Fixed
+
+- Auto-fetch no se disparaba para filas nuevas de reservas al cargar la página (índices sobre `row.children` se desplazaban al añadir el overlay)
+- Popup mostraba pantalla vacía al estar desactivado en opciones; ahora cierra la ventana directamente
+
 ## [v1.5.0] - 2026-06-25
 
 ### Added
@@ -112,7 +126,8 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️‍💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.6.0...HEAD
+[v1.6.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.3.0...v1.4.0
 [v1.3.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.2.1...v1.3.0
