@@ -11,7 +11,7 @@ import { t, getLang, thresholdLabel } from "./i18n.js";
 getLang().then(lang => {
   chrome.storage.local.get([STORAGE_KEY, CONFIG_KEY], (res) => {
     const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}) };
-    if (!config.popup) return;
+    if (!config.popup) { window.close(); return; }
 
     const thresholds = THRESHOLDS.map((th, i) => ({
       ...th,

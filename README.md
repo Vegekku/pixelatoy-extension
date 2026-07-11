@@ -71,13 +71,22 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - Si el idioma no es español ni inglés, se muestra en inglés por defecto.
 
 ### Opciones
-Desde la página de opciones (click derecho en el icono → Opciones) se puede configurar:
+La página de opciones (click derecho en el icono → Opciones) está organizada en tres secciones:
+
+**Configuración**
 - Notificaciones push: activar/desactivar.
 - Popup del icono: activar/desactivar.
 - Pestañas En almacén / No disponible: activar/desactivar y elegir pestaña por defecto.
 - Instrucciones de uso: expandidas o colapsadas por defecto.
 - Umbrales de urgencia: días de los 3 cortes (por defecto 7, 30, 60).
 - Colores de los 4 rangos de urgencia: fondo y texto.
+
+**Datos**
+- Exportar todos los datos (fechas, configuración) a un fichero JSON.
+- Importar datos desde un fichero JSON exportado previamente. Los datos importados se validan antes de aplicarse.
+
+**Acerca de**
+- Versión instalada, enlaces a la Chrome Web Store, novedades, reporte de problemas y política de privacidad.
 
 ## Instalación
 
@@ -100,7 +109,7 @@ Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
 
-Se recomienda hacer una copia de seguridad de los datos antes de desinstalar.
+Puedes exportar e importar los datos desde la sección **Datos** de la página de opciones.
 
 ## Estructura del proyecto
 

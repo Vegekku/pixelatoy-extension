@@ -1,0 +1,18 @@
+{
+  "pixelatoyConfig": {
+    "notifications": true,
+    "popup": true,
+    "tabs": true,
+    "thresholds": [7, -1],
+    "colors": [
+      { "bg": "#000000", "color": "#ffffff" },
+      { "bg": "#a94442", "color": "#ffffff" },
+      { "bg": "#f0ad4e", "color": "#000000" },
+      { "bg": "#5cb85c", "color": "#000000" }
+    ],
+    "defaultTab": "warehouse",
+    "instructionsOpen": false,
+    "lang": "es",
+    "schemaVersion": "1.6.0"
+  }
+}

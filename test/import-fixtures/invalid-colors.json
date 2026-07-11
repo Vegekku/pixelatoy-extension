@@ -1,0 +1,13 @@
+{
+  "pixelatoyConfig": {
+    "notifications": true,
+    "popup": true,
+    "tabs": true,
+    "thresholds": [7, 30, 60],
+    "colors": [{ "bg": "#000000" }],
+    "defaultTab": "warehouse",
+    "instructionsOpen": false,
+    "lang": "es",
+    "schemaVersion": "1.6.0"
+  }
+}
