@@ -106,10 +106,17 @@ function validateImportData(data) {
 /**
  * Applies i18n labels to the static elements of the page.
  * @param {string} lang
+ * @param {string} version
  */
-function applyLabels(lang) {
+function applyLabels(lang, version) {
   document.title = t("options_title", lang);
-  document.getElementById("title").textContent = t("options_title", lang);
+  document.getElementById("sidebar-title").textContent = t("options_sidebar_title", lang);
+  document.getElementById("tab-config").textContent = t("options_tab_config", lang);
+  document.getElementById("tab-data").textContent = t("options_tab_data", lang);
+  document.getElementById("tab-about").textContent = t("options_tab_about", lang);
+  document.getElementById("title").textContent = t("options_tab_config", lang);
+  document.getElementById("title-data").textContent = t("options_tab_data", lang);
+  document.getElementById("title-about").textContent = t("options_tab_about", lang);
   document.getElementById("h-general").textContent = t("options_h_general", lang);
   document.getElementById("h-urgency").textContent = t("options_h_urgency", lang);
   document.getElementById("l-notifications").textContent = t("options_l_notifications", lang);
@@ -124,9 +131,31 @@ function applyLabels(lang) {
   document.getElementById("h-text").textContent = t("options_h_text", lang);
   document.getElementById("save").textContent = t("options_save", lang);
   document.getElementById("reset").textContent = t("options_reset", lang);
-  document.getElementById("h-data").textContent = t("options_h_data", lang);
   document.getElementById("export").textContent = t("options_export", lang);
   document.getElementById("import").textContent = t("options_import", lang);
+  document.getElementById("data-description-export").textContent = t("options_data_desc_export", lang);
+  document.getElementById("data-description-import").textContent = t("options_data_desc_import", lang);
+  document.getElementById("about-version").textContent = `${t("options_about_version", lang)} ${version}`;
+  document.getElementById("about-store").textContent = t("options_about_store", lang);
+  document.getElementById("about-changelog").textContent = t("options_about_changelog", lang);
+  document.getElementById("about-issues").textContent = t("options_about_issues", lang);
+  document.getElementById("about-privacy").textContent = t("options_about_privacy", lang);
+  document.getElementById("about-donate").textContent = t("options_about_donate", lang);
+  document.getElementById("about-support-text").textContent = t("options_about_support", lang);
+}
+
+/**
+ * Initialises vertical tab navigation.
+ */
+function initTabs() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(`panel-${btn.dataset.tab}`).classList.add("active");
+    });
+  });
 }
 
 /**
@@ -244,7 +273,9 @@ function showDataStatus(msg, error = false) {
 
 async function init() {
   const lang = await getLang();
-  applyLabels(lang);
+  const version = chrome.runtime.getManifest().version;
+  applyLabels(lang, version);
+  initTabs();
 
   const stored = await new Promise(resolve =>
     chrome.storage.local.get(CONFIG_KEY, res => resolve(res[CONFIG_KEY] || {}))

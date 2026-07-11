@@ -28,12 +28,15 @@ if (test) {
   entryPoints["test-helpers"] = "test-helpers.js";
 }
 
+const logPlugin = { name: "log", setup(build) { build.onEnd(() => console.log("rebuilt")); } };
+
 const ctx = await esbuild.context({
   entryPoints,
   bundle: true,
   minify: !watch,
   define: watch ? { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString("es-ES")) } : {},
   outdir: "dist",
+  plugins: [logPlugin],
   format: "esm",
   platform: "browser",
   target: "chrome110",
@@ -42,6 +45,13 @@ const ctx = await esbuild.context({
 if (watch) {
   await ctx.watch();
   console.log("esbuild watching...");
+  const { watch: fsWatch } = await import("fs");
+  ["src/popup.html", "src/options.html", "src/privacy.html", "manifest.json"].forEach(f => {
+    fsWatch(f, () => {
+      copyFileSync(f, `dist/${f.replace("src/", "")}`);
+      console.log(`copied ${f}`);
+    });
+  });
 } else {
   await ctx.rebuild();
   await ctx.dispose();
