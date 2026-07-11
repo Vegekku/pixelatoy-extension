@@ -20,9 +20,10 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
           BODY: ${{ github.event.pull_request.body }}
         run: |
+          echo "$BODY" > /tmp/pr_body.txt
           gh pr create \
             --repo ${{ github.repository }} \
             --head "$BRANCH" \
             --base develop \
             --title "$TITLE" \
-            --body "$BODY"
+            --body-file /tmp/pr_body.txt
