@@ -1,0 +1,10 @@
+{
+  "pixelatoyTexts": {
+    "Producto X": {
+      "date": "2024-03-15 00:00",
+      "img": "https://example.com/img.jpg",
+      "productUrl": "https://example.com/product",
+      "brokenLink": "yes"
+    }
+  }
+}

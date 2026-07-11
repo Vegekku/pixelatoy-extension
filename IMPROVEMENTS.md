@@ -4,10 +4,9 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 2 — Fixes y soporte básico | | | |
-| 3 — Mejoras sobre lo que ya existe | | [2.1](#21-rediseño-tabs-en-almacén--no-disponible), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.1](#31-página-de-opciones) + [3.2](#32-exportar-e-importar-datos), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa) | 3.1 + 3.2 necesarios antes de añadir más configurables. 9.7 conveniente antes de tabs |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [8.1](#81-persistencia-del-tab-activo), [3.2](#32-exportar-e-importar-datos), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [7](#7-historial-de-fechas) | 6.2 y 7 dependen de 1.1 |
-| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro) | El alcance más amplio; requiere madurez técnica previa |
+| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
 
 ---
 
@@ -22,6 +21,9 @@
 - [7. Historial de fechas](#7-historial-de-fechas)
 - [8. UX](#8-ux)
 - [9. Infraestructura y código](#9-infraestructura-y-código)
+  - [9.9 Testing automatizado](#99-testing-automatizado)
+  - [9.10 Canal de soporte para usuarios sin cuenta GitHub](#910-canal-de-soporte-para-usuarios-sin-cuenta-github)
+  - [9.11 Mover GitHub Pages a docs/](#911-mover-github-pages-a-docs)
 ---
 
 ## 1. Auto-fetch de datos del producto
@@ -40,46 +42,24 @@ Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo.
 
 ---
 
-### 2.1 Rediseño: tabs "En almacén" / "No disponible"
-Sustituir la tabla única por dos tabs con su propia tabla cada una. Tab por defecto: "En almacén" (es la que requiere acción inmediata del usuario).
+## 2. Tabla de reservas
 
-Cada tab muestra un contador de productos en el título, ej: `En almacén (5)` / `No disponible (3)`.
+### 2.2 Fusión de columnas Precio y Pagado
+Las columnas "Precio" (valor del artículo) y "Pagado" (depósito de reserva) son candidatas a agruparse en una sola sin perder información. El importe pendiente de pago es precio − depósito.
 
-Las dos tablas son idénticas en estructura y número de columnas. Solo cambia la columna de fecha, que aparece en la misma posición en ambas:
-- Tab "En almacén": header `En almacén`, contenido = contador de límite (fecha entrada + 3 meses).
-- Tab "No disponible": header `Disponibilidad estimada`, contenido = fecha estimada en gris cursiva.
+Opciones valoradas:
+- **A)** `Precio / Pagado` — dos valores en la misma celda separados por `/`. Ej: `59,99 € / 10,00 €`.
+- **B)** `Precio (−depósito)` — precio total con el depósito como deducción entre paréntesis. Ej: `59,99 € (−10,00 €)`.
+- **C)** `Pendiente / Total` — calcula y muestra el importe pendiente (precio − depósito) y el total. Ej: `49,99 € / 59,99 €`. Requiere JS para la resta.
+- **D)** Dos líneas en la misma celda: precio grande, depósito pequeño debajo (`dep. 10,00 €`).
+- **E)** Mostrar solo el **pendiente de pago** en la celda con el desglose completo en tooltip al hacer hover (`Total: 59,99 € · Depósito: 10,00 €`). Requiere JS para calcular la resta.
+- **F)** Precio y depósito en línea separados por punto medio: `59,99 € · dep. 10,00 €`.
 
-La ordenación, coloreado de filas y resto de funcionalidades se aplican de forma independiente en cada tabla.
-
-Implementación: tabla única con filas ocultas/mostradas por `display:none/block` según el tab activo. Al cambiar de tab solo cambia el texto del header de la columna de fecha. La ordenación afecta a todas las filas (visibles y ocultas); queda pendiente decidir si en el futuro debe operar solo sobre las filas visibles.
+Las opciones D y E son las más interesantes. E es la más limpia: muestra lo accionable y esconde el detalle hasta que se necesita.
 
 ---
 
 ## 3. Configuración de la extensión
-
-### 3.1 Página de opciones
-Permitir al usuario configurar el comportamiento y apariencia de la extensión desde una página de opciones separada (`options.html` + `options.js`).
-
-Config guardada en `pixelatoyConfig` en `chrome.storage.local`. Si la clave no existe, se asumen los valores por defecto para no romper el comportamiento actual.
-
-Opciones configurables:
-- **Notificaciones push**: activar/desactivar.
-- **Popup**: activar/desactivar.
-- **Colores de los 4 rangos**: color de fondo y texto para cada umbral.
-- **Días de los umbrales**: valores de los 3 cortes (actualmente 7, 30, 60). El cuarto rango es siempre "el resto".
-- **Límite de reserva**: número de meses desde la fecha de entrada (máximo 3, que es la política actual de Pixelatoy).
-- **Tab por defecto**: "En almacén" o "No disponible".
-- **Instrucciones de uso**: mostrar expandidas o colapsadas por defecto.
-
-Cambios necesarios:
-- `options.html` + `options.js`: página de opciones con los controles correspondientes.
-- `manifest.json`: añadir `options_page`.
-- `background.js`: leer config antes de notificar + escuchar `chrome.storage.onChanged` para activar/desactivar el popup con `setPopup`.
-- `popup.js`: si `popup: false`, no renderizar nada (defensa extra).
-- `content.js`: leer config al iniciar y aplicar umbrales, colores, límite, tab por defecto e instrucciones.
-
-### 3.2 Exportar e importar datos
-Botón en la página de opciones para exportar los datos del storage a un fichero JSON y para importarlos. Útil como copia de seguridad antes de desinstalar o migrar a otro perfil de Chrome.
 
 ---
 
@@ -184,10 +164,6 @@ Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`.
 
 Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
-**`createOverlay` / `createInfoOverlay` — abstracción incompleta**
-
-Ambas duplican la lógica de posicionamiento sobre filas (`getBoundingClientRect` + `style.cssText`). Extraer una función base `createRowOverlay(row, className)` que devuelva el div posicionado; cada variante solo añade su contenido.
-
 **`saveToStorage` — lectura + escritura en cada llamada**
 
 Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
@@ -202,11 +178,15 @@ Decenas de `style.cssText = "..."` repartidos por los módulos dificultan cambia
 
 **Estado global implícito en `sort.js`**
 
-`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay dos tablas (punto 2.1), esto rompe. Pasar el estado como argumento o encapsularlo lo haría más robusto.
+`sortState` es una variable suelta a nivel de módulo. Si en el futuro hay varias tablas independientes, esto podría romper. Pasar el estado como argumento o encapsularlo lo haría más robusto.
 
 **`column.js` sigue siendo grande (~270 líneas)**
 
 Mezcla parsing de fechas, UI helpers, storage y orquestación de columna + auto-fetch. Si crece más (i18n, tabs), candidatos a extraer: `date-parse.js`, `storage.js`.
+
+**Validación de datos — posible módulo `validation.js`**
+
+Actualmente `validateImportData()` y los schemas (`PRODUCT_SCHEMA`, `CONFIG_SCHEMA`) viven en `options.js` porque es el único punto que los usa. Si otros flujos necesitan validar la misma estructura (auto-fetch en segundo plano [1.1], migraciones futuras, sync entre perfiles), extraer a `src/validation.js` con los schemas y la función exportada. No hacerlo antes de que haya reutilización real.
 
 ### 9.8 Accesibilidad (WCAG 2.1 AA)
 
@@ -235,3 +215,38 @@ Auditoría realizada. Hallazgos pendientes:
 **Popup**
 - Imágenes de producto sin `alt` (solo `title`). Añadir `alt` descriptivo.
 - Dots de color sin texto alternativo. Añadir `aria-label` o texto oculto.
+
+### 9.9 Testing automatizado
+
+Añadir tests unitarios y de integración para la extensión. Stack recomendado: Vitest + happy-dom (ligero, rápido, compatible con esbuild).
+
+**Setup necesario**
+- Configurar Vitest con happy-dom como entorno DOM.
+- Crear mock global de `chrome.storage.local` (get/set/remove) y otras Chrome APIs usadas (alarms, notifications, action).
+- Script `npm test` y `npm run test:watch`.
+
+**Módulos prioritarios**
+- `helpers.js` — funciones puras (`normalizeDateTime`, `parseNaturalDate`, `remainingTime`, `urgencyLevel`). Sin dependencias externas, testeable directamente.
+- `i18n.js` — `t()`, `getLang()`, `thresholdLabel()`. Verificar traducciones y fallback a inglés.
+- `options.js` — `readForm()`, `populateForm()`, `renderThresholds()`, `applyLabels()`. Requiere montar HTML de `options.html` en el entorno de test.
+- `modules/fetch.js` — parsing de HTML de producto. Mockear `fetch` con fixtures HTML.
+- `modules/sort.js` — lógica de ordenación. Estado aislado, buen candidato.
+
+**Refactors previos necesarios**
+- Exportar funciones internas de `options.js` (`readForm`, `populateForm`, etc.) para poder importarlas en tests.
+- Extraer lógica pura de módulos acoplados al DOM para facilitar testing aislado.
+
+**Tests de integración (fase posterior)**
+- Puppeteer/Playwright con la extensión cargada para flujos completos (abrir options, guardar, verificar storage; cargar página de reservas, comprobar columna inyectada).
+
+### 9.10 Canal de soporte para usuarios sin cuenta GitHub
+
+Actualmente el único canal para reportar problemas es la lista de issues de GitHub, que requiere cuenta. Explorar alternativas accesibles para cualquier usuario:
+
+- **Formulario web**: Google Forms o similar embebido/enlazado desde la página de opciones. Sin exposición del email, sin spam directo.
+- **Email con alias**: usar un alias (ej. SimpleLogin, Fastmail) para no exponer el correo personal y poder desactivarlo si hay abuso.
+
+Lo que se elija se añade en la sección **Acerca de** de la página de opciones junto al enlace a issues.
+
+### 9.11 Mover GitHub Pages a `docs/`
+Actualmente `privacy.html` está en `src/` pero se sirve vía GitHub Pages, no forma parte del bundle. Moverla a `docs/` y añadir un `index.html` mínimo (landing con enlace a la Chrome Web Store, política de privacidad y enlaces al repo para README/CHANGELOG). No duplicar contenido de los markdowns: enlazar a GitHub directamente.

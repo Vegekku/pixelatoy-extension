@@ -5,9 +5,17 @@
  */
 
 import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
-import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
+import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 
+/**
+ * Creates a styled button for use inside an info overlay.
+ * @param {string} text - Button label.
+ * @param {string} title - Tooltip text.
+ * @param {string} bg - Background colour.
+ * @param {function} onClick - Click handler.
+ * @returns {HTMLButtonElement}
+ */
 function createOverlayButton(text, title, bg, onClick) {
   const btn = document.createElement("button");
   btn.textContent = text;
@@ -27,10 +35,7 @@ function createOverlayButton(text, title, bg, onClick) {
  * @returns {HTMLDivElement}
  */
 function createInfoOverlay(row, changes, onAccept, onReject) {
-  const rect = row.getBoundingClientRect();
-  const overlay = document.createElement("div");
-  overlay.className = "pixelatoy-overlay pixelatoy-info-overlay";
-  overlay.style.cssText = `top:${rect.top + window.scrollY}px;left:${rect.left + window.scrollX}px;width:${rect.width}px;height:${rect.height}px;`;
+  const overlay = createRowOverlay(row, "pixelatoy-info-overlay");
 
   const content = document.createElement("div");
   content.style.cssText = "flex:1;padding:0 12px;font-size:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;";
@@ -49,7 +54,6 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 
   overlay.appendChild(content);
   overlay.appendChild(buttons);
-  document.body.appendChild(overlay);
   return overlay;
 }
 
@@ -80,7 +84,7 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
 
   const storedDate = getStoredDate(stored);
   if (date && date !== storedDate) {
-    const oldDisplay = storedDate || translateAvailableFrom(stored?.availableFrom) || translateComingSoon(stored?.comingSoon) || null;
+    const oldDisplay = storedDate || translateAvailableFrom(stored?.availableFrom, stored?.availableFromDate) || translateComingSoon(stored?.comingSoon) || null;
     changes.push({ label: "Fecha", oldVal: oldDisplay, newVal: date });
     newFields.date = date;
     newFields.brokenLink = false;
@@ -88,13 +92,13 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
     newFields.availableFromDate = availableFromDate;
     newFields.comingSoon = null;
   } else if (!date && comingSoon && comingSoon !== stored?.comingSoon) {
-    const oldDisplay = translateComingSoon(stored?.comingSoon) || translateAvailableFrom(stored?.availableFrom) || null;
+    const oldDisplay = translateComingSoon(stored?.comingSoon) || translateAvailableFrom(stored?.availableFrom, stored?.availableFromDate) || null;
     changes.push({ label: "Disponibilidad", oldVal: oldDisplay, newVal: translateComingSoon(comingSoon) });
     newFields.comingSoon = comingSoon;
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
   } else if (!date && !comingSoon && availableFrom && availableFrom !== stored?.availableFrom) {
-    changes.push({ label: "Disponibilidad", oldVal: translateAvailableFrom(stored?.availableFrom) || null, newVal: translateAvailableFrom(availableFrom) });
+    changes.push({ label: "Disponibilidad", oldVal: translateAvailableFrom(stored?.availableFrom, stored?.availableFromDate) || null, newVal: translateAvailableFrom(availableFrom, availableFromDate) });
     newFields.availableFrom = availableFrom;
     newFields.availableFromDate = availableFromDate;
   }
@@ -148,7 +152,7 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
           if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
           else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
-          else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom), newFields.availableFromDate);
+          else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom, newFields.availableFromDate), newFields.availableFromDate);
           resolve();
         },
         () => { resolve(); }
