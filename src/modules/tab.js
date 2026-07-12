@@ -7,6 +7,8 @@
 import { getDataRows, DATA_INSERT } from "../helpers.js";
 import { t } from "../i18n.js";
 
+const SESSION_TAB_KEY = "pixelatoy-active-tab";
+
 /** Currently active tab: "warehouse" | "unavailable" */
 let activeTab = "warehouse";
 
@@ -27,6 +29,7 @@ export function isWarehouseRow(row) {
  */
 function switchTab(tab, wBtn, uBtn) {
   activeTab = tab;
+  sessionStorage.setItem(SESSION_TAB_KEY, tab);
   const table = document.getElementById("preorder_list");
   if (!table) return;
 
@@ -47,6 +50,7 @@ function switchTab(tab, wBtn, uBtn) {
  * @param {"warehouse"|"unavailable"} [defaultTab="warehouse"]
  */
 export function buildTabs(defaultTab = "warehouse") {
+  defaultTab = sessionStorage.getItem(SESSION_TAB_KEY) || defaultTab;
   const table = document.getElementById("preorder_list");
   if (!table || document.getElementById("pixelatoy-tabs")) return;
 

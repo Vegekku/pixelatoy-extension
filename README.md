@@ -9,7 +9,7 @@ La tabla de reservas se divide en dos tabs:
 - **En almacén**: productos con formulario de envío (fecha de entrada disponible). Muestra el contador de límite.
 - **No disponible**: productos sin fecha, con disponibilidad estimada.
 
-Cada tab muestra el número de productos en el título. La columna de fecha cambia su cabecera según el tab activo (`En almacén` / `Disponibilidad`). La ordenación afecta a todas las filas.
+Cada tab muestra el número de productos en el título. La columna de fecha cambia su cabecera según el tab activo (`En almacén` / `Disponibilidad`). La ordenación afecta a todas las filas. El tab activo se restaura automáticamente al recargar la página.
 
 ### Columna "En almacén"
 - Haz click en cualquier celda de la columna para introducir o editar la fecha de entrada al almacén.
@@ -41,6 +41,7 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - Cada rango es un toggle desplegable que muestra las imágenes de los productos.
 - Solo se muestran los rangos que tengan productos.
 - Botón para ir directamente a la página de reservas.
+- Si el popup está desactivado, pulsar el icono abre directamente la página de reservas (o enfoca la pestaña si ya está abierta).
 
 ### Ordenación por columnas
 - Las columnas con ▲▼ permiten ordenar la tabla haciendo click en el header.
