@@ -68,6 +68,18 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
+// Open or focus preorder page when popup is disabled
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.query({ url: `${PREORDER_URL}*` }, (tabs) => {
+    if (tabs.length > 0) {
+      chrome.tabs.update(tabs[0].id, { active: true });
+      chrome.windows.update(tabs[0].windowId, { focused: true });
+    } else {
+      chrome.tabs.create({ url: PREORDER_URL });
+    }
+  });
+});
+
 // Open preorder page on notification click
 chrome.notifications.onClicked.addListener((id) => {
   if (id === "pixelatoy-alert") {
