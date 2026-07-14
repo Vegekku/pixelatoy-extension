@@ -6,6 +6,13 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [v1.7.0] - 2026-07-12
+
+### Added
+
+- Al hacer click en el icono de la extensión con el popup desactivado, abre o enfoca directamente la página de reservas de Pixelatoy
+- El tab activo ("En almacén" / "No disponible") se restaura automáticamente al recargar la página
+
 ## [v1.6.0] - 2026-07-12
 
 ### Added
@@ -126,7 +133,8 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️‍💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.7.0...HEAD
+[v1.7.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...v1.5.0
 [v1.4.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.3.0...v1.4.0
