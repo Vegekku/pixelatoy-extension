@@ -4,7 +4,7 @@
  * Provides overlay UI during loading and extracts product data from HTML.
  */
 
-import { MONTHS, parseDateTime, toISODateTime, DATA_INSERT } from "../helpers.js";
+import { parseDateTime, DATA_INSERT, parseAvailableFrom, normalizeDateTime } from "../helpers.js";
 import { t } from "../i18n.js";
 
 /**
@@ -90,16 +90,9 @@ export async function resolveProductUrl(row, key) {
 
 /**
  * Parses an availability text (e.g. "enero de 2025") into an ISO date string.
- * @param {string} text
- * @returns {string|null} `YYYY-MM-DD HH:MM` (day 01) or null.
+ * Re-exported from helpers for backwards compatibility.
+ * @see parseAvailableFrom in helpers.js
  */
-export function parseAvailableFrom(text) {
-  const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
-  if (!match) return null;
-  const mm = MONTHS[match[1].toLowerCase()];
-  if (!mm) return null;
-  return toISODateTime(match[2], mm, "01");
-}
 
 /**
  * Checks whether an HTML page is a valid product detail page.
@@ -114,10 +107,9 @@ function isValidProductPage(html) {
 /**
  * Fetches and parses product data (date, availability, broken link status).
  * @param {string} productUrl - URL of the product detail page.
- * @param {function} normalizeDateTime - Date normalisation function.
  * @returns {Promise<{date: string|null, brokenLink: boolean, availableFrom: string|null, availableFromDate: string|null, comingSoon: string|null}>}
  */
-export async function fetchDateFromProduct(productUrl, normalizeDateTime) {
+export async function fetchDateFromProduct(productUrl) {
   const empty = { date: null, brokenLink: false, availableFrom: null, availableFromDate: null };
   const productHTML = await fetchHTML(productUrl);
   if (!productHTML) return empty;

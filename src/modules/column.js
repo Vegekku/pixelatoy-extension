@@ -5,7 +5,7 @@
  * row colouring based on urgency thresholds.
  */
 
-import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, toISODateTime, MONTHS, getDataRows, formatCountdown } from "../helpers.js";
+import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, getDataRows, formatCountdown, normalizeDateTime } from "../helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, LANG, thresholdLabel, translateAvailableFrom, translateComingSoon } from "../i18n.js";
@@ -17,81 +17,6 @@ const INSERT_COLUMN_INDEX = 4;
 const PLACEHOLDER = () => t("placeholder");
 const TOOLTIP_FORMATS = () => t("tooltip_formats");
 const TOOLTIP_ERROR = () => t("tooltip_error");
-
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-
-/**
- * Parses natural-language date strings like "15 marzo 2024" or "March 15, 2024".
- * @param {string} dateStr
- * @returns {Date|null}
- */
-function parseNaturalDate(dateStr) {
-  const matchDD = dateStr.match(/^(\d{1,2})\s+([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{4})$/i);
-  if (matchDD) {
-    const [, dd, monthName, yyyy] = matchDD;
-    const mm = MONTHS[monthName.toLowerCase()];
-    if (!mm) return null;
-    return new Date(Number(yyyy), mm - 1, Number(dd));
-  }
-
-  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2})\s*[,.]?\s*(\d{4})$/i);
-  if (matchEN) {
-    const [, monthName, dd, yyyy] = matchEN;
-    const mm = MONTHS[monthName.toLowerCase()];
-    if (!mm) return null;
-    return new Date(Number(yyyy), mm - 1, Number(dd));
-  }
-
-  return null;
-}
-
-/**
- * Normalises user input into `YYYY-MM-DD HH:MM` format.
- * Accepts: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, natural dates (ES/EN), with optional time.
- * @param {string} value - Raw user input.
- * @returns {string} Normalised date string or original value if unrecognised.
- */
-export function normalizeDateTime(value) {
-  const withTime = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
-  if (withTime) {
-    const [, dd, mm, yyyy, hh, min] = withTime;
-    if (dd > 31 || mm > 12 || hh > 23 || min > 59) return value;
-    return toISODateTime(yyyy, mm, dd, hh, min);
-  }
-
-  const dateOnly = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if (dateOnly) {
-    const [, dd, mm, yyyy] = dateOnly;
-    if (dd > 31 || mm > 12) return value;
-    return toISODateTime(yyyy, mm, dd);
-  }
-
-  const isoOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (isoOnly) {
-    const [, yyyy, mm, dd] = isoOnly;
-    if (dd > 31 || mm > 12) return value;
-    return toISODateTime(yyyy, mm, dd);
-  }
-
-  const naturalMatch =
-    value.match(/^\d{1,2}\s+[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i) ||
-    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2}\s*[,.]?\s*\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
-  if (naturalMatch) {
-    const timeMatch = value.match(/(\d{1,2}):(\d{2})$/);
-    const datePart = timeMatch ? value.replace(timeMatch[0], "").trim() : value;
-    const parsed = parseNaturalDate(datePart);
-    if (!parsed) return value;
-    return toISODateTime(
-      parsed.getFullYear(),
-      parsed.getMonth() + 1,
-      parsed.getDate(),
-      timeMatch ? timeMatch[1] : "00",
-      timeMatch ? timeMatch[2] : "00"
-    );
-  }
-
-  return value;
-}
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
@@ -365,7 +290,7 @@ async function autoFetchRowData(row, key, cell, stored) {
     }
 
     if (needsDate && productUrl) {
-      const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+      const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl);
       if (brokenLink) {
         saveToStorage(key, { brokenLink: true }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
