@@ -23,8 +23,9 @@ saveLang();
 
 runMigrations().then(() => getConfig()).then(config => {
   const thresholds = buildThresholds(config);
-  applyCustomColumn(config);
-  if (config.tabs) buildTabs(config.defaultTab);
+  applyCustomColumn(config).then(() => {
+    if (config.tabs) buildTabs(config.defaultTab);
+  });
   addLegend(refreshAllData, config.instructionsOpen, thresholds);
   checkOrphanData();
   setInterval(refreshCountdowns, 60000);

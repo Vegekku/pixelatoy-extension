@@ -339,45 +339,48 @@ function autoFetchMissingData(storedTexts) {
  */
 export function applyCustomColumn(config) {
   const table = document.getElementById("preorder_list");
-  if (!table) return;
+  if (!table) return Promise.resolve();
   activeThresholds = buildThresholds(config);
 
-  chrome.storage.local.get(STORAGE_KEY, (result) => {
-    const storedTexts = result[STORAGE_KEY] || {};
+  return new Promise(resolve => {
+    chrome.storage.local.get(STORAGE_KEY, (result) => {
+      const storedTexts = result[STORAGE_KEY] || {};
 
-    table.querySelectorAll("tr").forEach((row) => {
-      const cells = row.children;
-      if (cells.length <= COLUMN_INDEX_KEY) return;
-      if (cells[INSERT_COLUMN_INDEX]?.hasAttribute(DATA_INSERT)) return;
+      table.querySelectorAll("tr").forEach((row) => {
+        const cells = row.children;
+        if (cells.length <= COLUMN_INDEX_KEY) return;
+        if (cells[INSERT_COLUMN_INDEX]?.hasAttribute(DATA_INSERT)) return;
 
-      const isHeader = row.querySelectorAll("th").length > 0;
-      const key = isHeader ? null : cells[COLUMN_INDEX_KEY].textContent.trim();
+        const isHeader = row.querySelectorAll("th").length > 0;
+        const key = isHeader ? null : cells[COLUMN_INDEX_KEY].textContent.trim();
 
-      if (isHeader) {
-        const th = document.createElement("th");
-        th.setAttribute(DATA_INSERT, "1");
-        th.textContent = t("col_header");
-        row.insertBefore(th, cells[INSERT_COLUMN_INDEX] || null);
-        return;
-      }
+        if (isHeader) {
+          const th = document.createElement("th");
+          th.setAttribute(DATA_INSERT, "1");
+          th.textContent = t("col_header");
+          row.insertBefore(th, cells[INSERT_COLUMN_INDEX] || null);
+          return;
+        }
 
-      const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === t("not_available");
-      const cell = isNotAvailable ? document.createElement("td") : createEditableCell(key, row);
-      cell.setAttribute(DATA_INSERT, "1");
-      const storedDate = getStoredDate(storedTexts[key]);
-      const limitDate = addThreeMonths(storedDate);
-      const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
-      updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate, comingSoon, activeThresholds);
+        const isNotAvailable = row.children[row.children.length - 2]?.textContent.trim() === t("not_available");
+        const cell = isNotAvailable ? document.createElement("td") : createEditableCell(key, row);
+        cell.setAttribute(DATA_INSERT, "1");
+        const storedDate = getStoredDate(storedTexts[key]);
+        const limitDate = addThreeMonths(storedDate);
+        const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
+        updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate, comingSoon, activeThresholds);
 
-      if (storedTexts[key]?.productUrl) {
-        linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
-      }
+        if (storedTexts[key]?.productUrl) {
+          linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
+        }
 
-      row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
+        row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);
+      });
+
+      applyColumnSorting();
+      autoFetchMissingData(storedTexts);
+      resolve();
     });
-
-    applyColumnSorting();
-    autoFetchMissingData(storedTexts);
   });
 }
 
