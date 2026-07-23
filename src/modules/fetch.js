@@ -122,6 +122,7 @@ export async function fetchDateFromProduct(productUrl) {
   const urlLang = productUrl.match(/\/(es|en)\//)?.[1] ?? null;
   const labelDate = t("fetch_label_date", urlLang);
   const labelAvail = t("fetch_label_avail", urlLang);
+  const labelAvailUpd = t("fetch_label_avail_upd", urlLang);
   const dts = productDoc.querySelectorAll("dt.name");
   let date = null, availableFrom = null, availableFromDate = null, comingSoon = null;
   for (const dt of dts) {
@@ -134,7 +135,10 @@ export async function fetchDateFromProduct(productUrl) {
       } else {
         comingSoon = value;
       }
-    } else if (label === labelAvail && value) {
+    } else if (label === labelAvailUpd && value) {
+      availableFrom = value;
+      availableFromDate = parseAvailableFrom(value);
+    } else if (label === labelAvail && value && !availableFrom) {
       availableFrom = value;
       availableFromDate = parseAvailableFrom(value);
     }

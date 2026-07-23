@@ -76,8 +76,9 @@ const MESSAGES = {
     orphans_limit:      "Límite",
 
     // fetch — product page labels
-    fetch_label_date:   "Entrada en almacén",
-    fetch_label_avail:  "Disponibilidad",
+    fetch_label_date:        "Entrada en almacén",
+    fetch_label_avail:       "Disponibilidad",
+    fetch_label_avail_upd:   "Disponibilidad (Actualizada)",
     coming_soon:        "Muy pronto (Llegada en 1-2 semanas aproximadamente)",
 
     // popup
@@ -171,8 +172,9 @@ const MESSAGES = {
     orphans_entry:      "Entry",
     orphans_limit:      "Limit",
 
-    fetch_label_date:   "Warehouse entry",
-    fetch_label_avail:  "Availability",
+    fetch_label_date:        "Warehouse entry",
+    fetch_label_avail:       "Availability",
+    fetch_label_avail_upd:   "Disponibilidad (Actualizada)",
     coming_soon:        "Coming soon (Arrival in approximately 1-2 weeks)",
 
     popup_title:        "Preorders in warehouse",
