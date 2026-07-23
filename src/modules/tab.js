@@ -6,6 +6,7 @@
 
 import { getDataRows, DATA_INSERT } from "../helpers.js";
 import { t } from "../i18n.js";
+import { applySortIndicator } from "./sort.js";
 
 const SESSION_TAB_KEY = "pixelatoy-active-tab";
 
@@ -34,7 +35,14 @@ function switchTab(tab, wBtn, uBtn) {
   if (!table) return;
 
   const th = table.querySelector(`th[${DATA_INSERT}]`);
-  if (th) th.textContent = tab === "warehouse" ? t("col_header") : t("col_header_avail");
+  if (th) {
+    const label = tab === "warehouse" ? t("col_header") : t("col_header_avail");
+    th.setAttribute("data-original-text", label);
+    th.textContent = label;
+  }
+
+  const headerRow = table.querySelector("tr:first-child");
+  if (headerRow) applySortIndicator(Array.from(headerRow.children));
 
   getDataRows(table).forEach(row => {
     row.style.display = (isWarehouseRow(row) === (tab === "warehouse")) ? "" : "none";

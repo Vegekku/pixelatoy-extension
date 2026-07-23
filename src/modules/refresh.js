@@ -69,7 +69,7 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl, normalizeDateTime);
+  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl);
 
   const changes = [];
   const newFields = {};

@@ -4,7 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [1.3](#13-variantes-de-texto-en-campos-i18n), [8.4](#84-feedback-de-refresco-cuando-los-cambios-están-en-el-tab-inactivo), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [7](#7-historial-de-fechas) | 6.2, 6.5 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -299,6 +299,16 @@ Cuando el auto-fetch detecta un cambio directo (ver [6.5](#65-notificaciones-con
 Implementación: al cargar la página, si existe una entrada en `pixelatoyAnnounce` para un producto, aplicar la animación CSS a su fila y eliminar el flag. El estado por defecto (sin entrada) es "ya visto".
 
 Ficheros afectados: `src/content.js`, `src/content.css`, `src/modules/column.js`.
+
+### 8.4 Feedback de refresco cuando los cambios están en el tab inactivo
+
+Cuando el usuario pulsa "Refrescar datos" desde un tab y los overlays de cambios aparecen en el otro tab, no hay ninguna señal visible de ello (solo el botón bloqueado).
+
+Solución acordada:
+- **Toast informativo**: al terminar el refresh, si hay cambios, mostrar un mensaje temporal indicando cuántos cambios hay en cada tab (ej: "2 cambios en No disponible"). No se muestra si no hay cambios.
+- **Badge contador en los tabs**: mostrar el número de filas con cambios pendientes en el título de cada tab (ej: `No disponible (3) · 2 cambios`). Se actualiza o elimina conforme el usuario acepta/rechaza cada overlay.
+
+Ficheros afectados: `src/modules/refresh.js`, `src/modules/tab.js`, `src/content.css`.
 
 ---
 
