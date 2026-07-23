@@ -64,6 +64,8 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 - Botón "Refrescar datos" junto a la leyenda para re-consultar la información de todos los productos.
 - Solo se muestran los cambios encontrados respecto a los datos almacenados.
 - Cada fila con cambios muestra un overlay informativo con la comparación y botones para aceptar o rechazar individualmente.
+- Al terminar el refresco, si hay cambios, se muestra un aviso informativo encima de las tabs con un botón de cierre. Desaparece automáticamente al resolver todos los overlays.
+- Cada tab muestra un badge rojo con el número de cambios pendientes en ese tab. Se actualiza conforme se aceptan o rechazan overlays.
 - Los enlaces rotos se reintentan durante el refresco.
 
 ### Idioma
@@ -79,6 +81,7 @@ La página de opciones (click derecho en el icono → Opciones) está organizada
 - Popup del icono: activar/desactivar.
 - Pestañas En almacén / No disponible: activar/desactivar y elegir pestaña por defecto.
 - Instrucciones de uso: expandidas o colapsadas por defecto.
+- Aviso de cambios al refrescar: activar/desactivar.
 - Umbrales de urgencia: días de los 3 cortes (por defecto 7, 30, 60).
 - Colores de los 4 rangos de urgencia: fondo y texto.
 
@@ -154,8 +157,9 @@ Requiere Node 22 (ver `.nvmrc`).
 
 ```bash
 npm install
-npm run dev    # watch: regenera dist/ al guardar
-npm run build  # build único, minificado
+npm run dev        # watch: regenera dist/ al guardar
+npm run dev:build  # build de dev único, sin minificar
+npm run build      # build único, minificado
 ```
 
 Carga la extensión en Chrome apuntando a la carpeta `dist/` del proyecto (donde está el `manifest.json` generado).
