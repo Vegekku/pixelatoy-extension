@@ -4,9 +4,42 @@
  * allowing the user to accept or reject each change individually.
  */
 
-import { STORAGE_KEY, addThreeMonths, getDataRows } from "../helpers.js";
+import { STORAGE_KEY, addThreeMonths, getDataRows, getConfig } from "../helpers.js";
 import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
+import { isWarehouseRow, updateTabBadge } from "./tab.js";
+
+/**
+ * Shows a temporary toast message above the preorder table.
+ * @param {string} message
+ */
+function showRefreshToast(message) {
+  const tabs = document.getElementById("pixelatoy-tabs");
+  const anchor = tabs || document.getElementById("preorder_list");
+  if (!anchor) return;
+  document.getElementById("pixelatoy-refresh-toast")?.remove();
+  const toast = document.createElement("div");
+  toast.id = "pixelatoy-refresh-toast";
+  const text = document.createElement("span");
+  text.textContent = message;
+  const close = document.createElement("button");
+  close.className = "pixelatoy-toast-close";
+  close.textContent = "✕";
+  close.addEventListener("click", () => dismissToast());
+  toast.appendChild(text);
+  toast.appendChild(close);
+  anchor.insertAdjacentElement("beforebegin", toast);
+}
+
+/**
+ * Fades out and removes the refresh toast if present.
+ */
+function dismissToast() {
+  const toast = document.getElementById("pixelatoy-refresh-toast");
+  if (!toast) return;
+  toast.classList.add("pixelatoy-toast-hide");
+  setTimeout(() => toast.remove(), 500);
+}
 
 /**
  * Creates a styled button for use inside an info overlay.
@@ -136,6 +169,8 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
   );
 
   const pendingOverlays = [];
+  const tabCounts = { warehouse: 0, unavailable: 0 };
+
   results.forEach((result, i) => {
     overlays[i].remove();
     if (result.status !== "fulfilled" || !result.value) return;
@@ -143,6 +178,8 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
     const { changes, newFields, productUrl } = result.value;
     const { row, key, cell } = tasks[i];
     const nameCell = row.children[COLUMN_INDEX_KEY];
+    const rowTab = isWarehouseRow(row) ? "warehouse" : "unavailable";
+    tabCounts[rowTab]++;
 
     pendingOverlays.push(new Promise(resolve => {
       createInfoOverlay(row, changes,
@@ -153,12 +190,28 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
           else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
           else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom, newFields.availableFromDate), newFields.availableFromDate);
+          tabCounts[rowTab]--;
+          updateTabBadge(rowTab, tabCounts[rowTab]);
+          if (tabCounts.warehouse + tabCounts.unavailable === 0) dismissToast();
           resolve();
         },
-        () => { resolve(); }
+        () => {
+          tabCounts[rowTab]--;
+          updateTabBadge(rowTab, tabCounts[rowTab]);
+          if (tabCounts.warehouse + tabCounts.unavailable === 0) dismissToast();
+          resolve();
+        }
       );
     }));
   });
+
+  const totalChanges = tabCounts.warehouse + tabCounts.unavailable;
+  if (totalChanges > 0) {
+    updateTabBadge("warehouse", tabCounts.warehouse);
+    updateTabBadge("unavailable", tabCounts.unavailable);
+    const config = await getConfig();
+    if (config.refreshToast) showRefreshToast(t("refresh_toast"));
+  }
 
   return Promise.all(pendingOverlays);
 }

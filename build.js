@@ -2,6 +2,7 @@ import esbuild from "esbuild";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 
 const watch = process.argv.includes("--watch") || process.argv.includes("--test");
+const dev = watch || process.argv.includes("--dev");
 const test = process.argv.includes("--test");
 
 mkdirSync("dist/icons", { recursive: true });
@@ -33,8 +34,8 @@ const logPlugin = { name: "log", setup(build) { build.onEnd(() => console.log("r
 const ctx = await esbuild.context({
   entryPoints,
   bundle: true,
-  minify: !watch,
-  define: watch ? { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString("es-ES")) } : {},
+  minify: !dev,
+  define: dev ? { __BUILD_TIME__: JSON.stringify(new Date().toLocaleString("es-ES")) } : {},
   outdir: "dist",
   plugins: [logPlugin],
   format: "esm",

@@ -28,6 +28,7 @@ const CONFIG_SCHEMA = {
   colors: "array",
   defaultTab: "string",
   instructionsOpen: "boolean",
+  refreshToast: "boolean",
   lang: "string",
   schemaVersion: "string",
 };
@@ -126,6 +127,7 @@ function applyLabels(lang, version) {
   document.getElementById("opt-warehouse").textContent = t("options_opt_warehouse", lang);
   document.getElementById("opt-unavailable").textContent = t("options_opt_unavailable", lang);
   document.getElementById("l-instructions").textContent = t("options_l_instructions", lang);
+  document.getElementById("l-refresh-toast").textContent = t("options_l_refresh_toast", lang);
   document.getElementById("h-days").textContent = t("options_h_days", lang);
   document.getElementById("h-bg").textContent = t("options_h_bg", lang);
   document.getElementById("h-text").textContent = t("options_h_text", lang);
@@ -232,6 +234,7 @@ function readForm() {
     tabs: document.getElementById("tabs").checked,
     defaultTab: document.getElementById("defaultTab").value,
     instructionsOpen: document.getElementById("instructionsOpen").checked,
+    refreshToast: document.getElementById("refreshToast").checked,
     thresholds,
     colors,
   };
@@ -247,6 +250,7 @@ function populateForm(config) {
   document.getElementById("tabs").checked = config.tabs;
   document.getElementById("defaultTab").value = config.defaultTab;
   document.getElementById("instructionsOpen").checked = config.instructionsOpen;
+  document.getElementById("refreshToast").checked = config.refreshToast ?? true;
 }
 
 /**

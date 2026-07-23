@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node build.js",
     "dev": "node build.js --watch",
+    "dev:build": "node build.js --dev",
     "dev:test": "node build.js --test",
     "zip": "node zip.js"
   },

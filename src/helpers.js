@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
   ],
   defaultTab: "warehouse",
   instructionsOpen: false,
+  refreshToast: true,
   lang: "en",
   schemaVersion: "0.0.0",
 };
