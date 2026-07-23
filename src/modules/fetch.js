@@ -89,12 +89,6 @@ export async function resolveProductUrl(row, key) {
 }
 
 /**
- * Parses an availability text (e.g. "enero de 2025") into an ISO date string.
- * Re-exported from helpers for backwards compatibility.
- * @see parseAvailableFrom in helpers.js
- */
-
-/**
  * Checks whether an HTML page is a valid product detail page.
  * @param {string} html
  * @returns {boolean}
