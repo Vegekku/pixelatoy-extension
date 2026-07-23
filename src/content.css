@@ -93,6 +93,7 @@ tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
   gap: 4px;
 }
 .pixelatoy-tab {
+  position: relative;
   padding: 5px 14px;
   font-size: 13px;
   cursor: pointer;
@@ -111,4 +112,56 @@ tr[class*="pixelatoy-urgency-"] a:hover { opacity: 0.75; }
   color: #333;
   font-weight: bold;
   border-color: #bbb;
+}
+
+/* Tab badge */
+.pixelatoy-tab-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: #d9534f;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Refresh toast */
+#pixelatoy-refresh-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  margin-bottom: 6px;
+  background: #d9edf7;
+  border: 1px solid #bce8f1;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #31708f;
+  transition: opacity 0.5s;
+}
+#pixelatoy-refresh-toast.pixelatoy-toast-hide {
+  opacity: 0;
+}
+.pixelatoy-toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #31708f;
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.pixelatoy-toast-close:hover {
+  opacity: 0.7;
 }

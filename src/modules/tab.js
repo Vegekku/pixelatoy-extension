@@ -13,6 +13,26 @@ const SESSION_TAB_KEY = "pixelatoy-active-tab";
 /** Currently active tab: "warehouse" | "unavailable" */
 let activeTab = "warehouse";
 
+/** Tab button references, set when buildTabs() runs. */
+let warehouseBtn = null;
+let unavailableBtn = null;
+
+/**
+ * Updates the badge counter on a tab button.
+ * @param {"warehouse"|"unavailable"} tab
+ * @param {number} count - Number of pending changes. 0 removes the badge.
+ */
+export function updateTabBadge(tab, count) {
+  const btn = tab === "warehouse" ? warehouseBtn : unavailableBtn;
+  if (!btn) return;
+  btn.querySelector(".pixelatoy-tab-badge")?.remove();
+  if (count <= 0) return;
+  const badge = document.createElement("span");
+  badge.className = "pixelatoy-tab-badge";
+  badge.textContent = count;
+  btn.appendChild(badge);
+}
+
 /**
  * Returns true if the row belongs to the "En almacén" tab (has a form in the actions column).
  * @param {HTMLTableRowElement} row
@@ -78,6 +98,9 @@ export function buildTabs(defaultTab = "warehouse") {
 
   wBtn.addEventListener("click", () => switchTab("warehouse", wBtn, uBtn));
   uBtn.addEventListener("click", () => switchTab("unavailable", wBtn, uBtn));
+
+  warehouseBtn = wBtn;
+  unavailableBtn = uBtn;
 
   bar.appendChild(wBtn);
   bar.appendChild(uBtn);

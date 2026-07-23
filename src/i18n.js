@@ -95,6 +95,7 @@ const MESSAGES = {
     // overlay buttons
     overlay_accept:     "Aplicar cambios",
     overlay_reject:     "Descartar cambios",
+    refresh_toast:      "Hay cambios en las reservas pendientes de revisar",
 
     // options page
     options_title:                "Pixelatoy Preorder Manager — Opciones",
@@ -111,6 +112,7 @@ const MESSAGES = {
     options_opt_warehouse:        "En almacén",
     options_opt_unavailable:      "No disponible",
     options_l_instructions:       "Instrucciones expandidas por defecto",
+    options_l_refresh_toast:      "Mostrar aviso al detectar cambios en el refresco",
     options_h_days:               "Días",
     options_h_bg:                 "Fondo",
     options_h_text:               "Texto",
@@ -187,6 +189,7 @@ const MESSAGES = {
 
     overlay_accept:     "Apply changes",
     overlay_reject:     "Discard changes",
+    refresh_toast:      "There are preorder changes pending review",
 
     // options page
     options_title:                "Pixelatoy Preorder Manager — Options",
@@ -203,6 +206,7 @@ const MESSAGES = {
     options_opt_warehouse:        "In warehouse",
     options_opt_unavailable:      "Not available",
     options_l_instructions:       "Show instructions expanded by default",
+    options_l_refresh_toast:      "Show notice when refresh detects changes",
     options_h_days:               "Days",
     options_h_bg:                 "Background",
     options_h_text:               "Text",
