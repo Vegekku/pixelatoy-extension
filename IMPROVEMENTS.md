@@ -6,7 +6,7 @@
 |--------|-------------|--------|-------|
 | 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [7](#7-historial-de-fechas) | 6.2, 6.5 y 7 dependen de 1.1 |
-| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs) | El alcance más amplio; requiere madurez técnica previa |
+| 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs), [9.12](#912-clase-reserva), [9.13](#913-iconos-font-awesome-propios-subconjunto) | El alcance más amplio; requiere madurez técnica previa |
 
 ---
 
@@ -414,3 +414,60 @@ Lo que se elija se añade en la sección **Acerca de** de la página de opciones
 
 ### 9.11 Mover GitHub Pages a `docs/`
 Actualmente `privacy.html` está en `src/` pero se sirve vía GitHub Pages, no forma parte del bundle. Moverla a `docs/` y añadir un `index.html` mínimo (landing con enlace a la Chrome Web Store, política de privacidad y enlaces al repo para README/CHANGELOG). No duplicar contenido de los markdowns: enlazar a GitHub directamente.
+
+### 9.12 Clase `Reserva`
+
+Crear una clase `Reserva` en `src/reserva.js` que encapsule los datos de cada producto en storage y centralice la lógica de acceso repetida actualmente en `column.js`, `orphans.js`, `refresh.js`, `popup.js` y `helpers.js`.
+
+**Ubicación:** `src/reserva.js` — al mismo nivel que `helpers.js` e `i18n.js`, ya que es una abstracción de datos compartida por content, popup y background. Si en el futuro aparece un segundo modelo (ej. `Favorito`), mover ambos a `src/models/`.
+
+**Getters propuestos:**
+
+| Getter | Lógica actual duplicada | Retorna |
+|---|---|---|
+| `detailUrl` | `resolvedUrl \|\| productUrl` adaptada al idioma | `string\|null` |
+| `limitDate` | `addThreeMonths(entry.date)` | `string\|null` |
+| `isAvailable` | `!!entry.date` | `boolean` |
+| `statusText` | lógica de countdown / comingSoon / availableFrom / vacío | `string` |
+
+**Ciclo de vida con storage:**
+- Al leer: `new Reserva(entry)` — hidrata y sanea campos opcionales (`entry?.date`, `entry?.productUrl`, etc.)
+- Al escribir: `reserva.toJSON()` — serializa a objeto plano para `chrome.storage.local.set`
+
+**Ficheros afectados:**
+- `src/reserva.js` — nuevo módulo
+- `src/helpers.js` — `groupByThreshold` usa `limitDate`
+- `src/modules/column.js` — `updateCell`, `autoFetchRowData`, `applyCustomColumn`
+- `src/modules/orphans.js` — renderizado de cada orphan
+- `src/modules/refresh.js` — `refreshRowData`
+- `src/popup.js` — `groupByThreshold`
+
+### 9.13 Iconos Font Awesome propios (subconjunto)
+
+Actualmente los iconos FA se toman de la hoja de estilos que carga Pixelatoy, lo que funciona en la tabla de reservas pero no en `options.html`. Bundlear un subconjunto mínimo de la fuente con solo los glifos usados por la extensión.
+
+**Glifos necesarios actualmente:**
+- `U+F127` — `fa-chain-broken` (enlace roto)
+- `U+F074` — `fa-random` (URL resuelta)
+
+**Herramientas para generar el subconjunto:**
+- [`pyftsubset`](https://fonttools.readthedocs.io/en/latest/subset/index.html) (Python, parte de `fonttools`):
+  ```bash
+  pyftsubset fontawesome-webfont.woff2 \
+    --unicodes="U+F074,U+F127" \
+    --flavor=woff2 \
+    --output-file=icons/fa-subset.woff2
+  ```
+- [`glyphhanger`](https://github.com/zachleat/glyphhanger) (Node):
+  ```bash
+  npx glyphhanger --formats=woff2 --subset=fontawesome-webfont.woff2 --unicodes="U+F074,U+F127"
+  ```
+- Alternativas online sin instalar nada:
+  - [Font Squirrel Webfont Generator](https://www.fontsquirrel.com/tools/webfont-generator) — subir el woff2 y seleccionar glifos por Unicode
+  - [Transfonter](https://transfonter.org/) — similar, permite especificar rangos Unicode
+
+**Implementación:**
+- Guardar el woff2 generado en `icons/fa-subset.woff2`
+- Añadir `@font-face` en un CSS compartido (o en `options.css` si se crea) apuntando a la ruta relativa
+- Añadir solo las clases `.fa`, `.fa-chain-broken::before` y `.fa-random::before` necesarias
+- En `content.css` seguir usando la fuente de Pixelatoy (ya disponible en la página); el subconjunto solo es necesario en `options.html`
