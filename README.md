@@ -127,7 +127,10 @@ pixelatoy-extension/
 │   │   ├── orphans.js   # Reservas no encontradas
 │   │   ├── refresh.js   # Refresco manual de datos
 │   │   └── sort.js      # Ordenación por columnas
-│   ├── content.css      # Estilos del content script (urgencia, overlays, botones)
+│   ├── styles/
+│   │   ├── styles.css   # Estilos del content script (urgencia, overlays, botones)
+│   │   ├── popup.css    # Estilos del popup
+│   │   └── options.css  # Estilos de la página de opciones
 │   ├── content.js       # Punto de entrada del content script
 │   ├── background.js    # Service worker: notificaciones, alarmas y fetch delegado
 │   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
