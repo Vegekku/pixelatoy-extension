@@ -92,8 +92,26 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 }
 
 /**
+ * Applies silent URL-related visual changes to the product name cell.
+ * @param {HTMLTableCellElement} nameCell
+ * @param {{resolvedUrl?: string|null, brokenLink?: boolean}} fields
+ * @param {{productUrl?: string}} stored
+ */
+function applySilentUrlChanges(nameCell, fields, stored) {
+  if (fields.resolvedUrl) {
+    nameCell?.querySelector(".fa-chain-broken")?.remove();
+    linkifyProductName(nameCell, fields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+    addResolvedLinkIcon(nameCell);
+  } else if (fields.brokenLink === false && fields.resolvedUrl === null) {
+    nameCell?.querySelector(".fa-chain-broken")?.remove();
+    nameCell?.querySelector(".fa-random")?.remove();
+    if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+  }
+}
+
+/**
  * Fetches fresh data for a single row and compares with stored values.
- * @returns {Promise<{changes: Array, newFields: Object, productUrl: string}|null>}
+ * @returns {Promise<{changes: Array, newFields: Object, silentFields: Object, productUrl: string}|{changes: [], newFields: Object, productUrl: string, silent: true}|null>}
  */
 async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDate }) {
   let productUrl = stored?.productUrl || null;
@@ -215,32 +233,14 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
 
     if (silent) {
       saveToStorage(key, newFields, row);
-      if (newFields.brokenLink === false && newFields.resolvedUrl === null) {
-        nameCell?.querySelector(".fa-chain-broken")?.remove();
-        nameCell?.querySelector(".fa-random")?.remove();
-        const stored = tasks[i].stored;
-        if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
-      } else if (newFields.resolvedUrl) {
-        nameCell?.querySelector(".fa-chain-broken")?.remove();
-        linkifyProductName(nameCell, newFields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
-        addResolvedLinkIcon(nameCell);
-      }
+      applySilentUrlChanges(nameCell, newFields, tasks[i].stored);
       return;
     }
 
     // Apply silent fields immediately (URL resolution, brokenLink) regardless of overlay outcome
     if (Object.keys(silentFields).length) {
       saveToStorage(key, silentFields, row);
-      if (silentFields.resolvedUrl) {
-        nameCell?.querySelector(".fa-chain-broken")?.remove();
-        linkifyProductName(nameCell, silentFields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
-        addResolvedLinkIcon(nameCell);
-      } else if (silentFields.brokenLink === false && silentFields.resolvedUrl === null) {
-        nameCell?.querySelector(".fa-chain-broken")?.remove();
-        nameCell?.querySelector(".fa-random")?.remove();
-        const stored = tasks[i].stored;
-        if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
-      }
+      applySilentUrlChanges(nameCell, silentFields, tasks[i].stored);
     }
 
     tabCounts[rowTab]++;
