@@ -159,14 +159,18 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
     newFields.availableFromDate = availableFromDate;
   }
 
+  // Silent fields: always applied regardless of user accept/reject
+  const silentFields = {};
+  if ("resolvedUrl" in newFields) silentFields.resolvedUrl = newFields.resolvedUrl;
+  if (newFields.brokenLink === false && stored?.brokenLink) silentFields.brokenLink = false;
+  delete newFields.resolvedUrl;
+  delete newFields.brokenLink;
+
   if (changes.length === 0) {
-    const silentFields = {};
-    if ("resolvedUrl" in newFields) silentFields.resolvedUrl = newFields.resolvedUrl;
-    if (newFields.brokenLink === false && stored?.brokenLink) silentFields.brokenLink = false;
     if (Object.keys(silentFields).length) return { changes: [], newFields: silentFields, productUrl, silent: true };
     return null;
   }
-  return { changes, newFields, productUrl };
+  return { changes, newFields, silentFields, productUrl };
 }
 
 /**
@@ -204,27 +208,39 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
     overlays[i].remove();
     if (result.status !== "fulfilled" || !result.value) return;
 
-    const { changes, newFields, productUrl, silent } = result.value;
+    const { changes, newFields, silentFields = {}, productUrl, silent } = result.value;
     const { row, key, cell } = tasks[i];
     const nameCell = row.children[COLUMN_INDEX_KEY];
     const rowTab = isWarehouseRow(row) ? "warehouse" : "unavailable";
 
     if (silent) {
       saveToStorage(key, newFields, row);
-      // Apply visual changes silently (no overlay)
       if (newFields.brokenLink === false && newFields.resolvedUrl === null) {
-        // URL reactivated: restore original link, remove icons
         nameCell?.querySelector(".fa-chain-broken")?.remove();
         nameCell?.querySelector(".fa-random")?.remove();
         const stored = tasks[i].stored;
         if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
       } else if (newFields.resolvedUrl) {
-        // New resolvedUrl found: linkify with it and add icon
         nameCell?.querySelector(".fa-chain-broken")?.remove();
         linkifyProductName(nameCell, newFields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
         addResolvedLinkIcon(nameCell);
       }
       return;
+    }
+
+    // Apply silent fields immediately (URL resolution, brokenLink) regardless of overlay outcome
+    if (Object.keys(silentFields).length) {
+      saveToStorage(key, silentFields, row);
+      if (silentFields.resolvedUrl) {
+        nameCell?.querySelector(".fa-chain-broken")?.remove();
+        linkifyProductName(nameCell, silentFields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+        addResolvedLinkIcon(nameCell);
+      } else if (silentFields.brokenLink === false && silentFields.resolvedUrl === null) {
+        nameCell?.querySelector(".fa-chain-broken")?.remove();
+        nameCell?.querySelector(".fa-random")?.remove();
+        const stored = tasks[i].stored;
+        if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+      }
     }
 
     tabCounts[rowTab]++;
@@ -233,13 +249,6 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
       createInfoOverlay(row, changes,
         () => {
           saveToStorage(key, newFields, row);
-          if (newFields.resolvedUrl && !newFields.brokenLink) {
-            linkifyProductName(nameCell, newFields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
-            addResolvedLinkIcon(nameCell);
-          } else if (newFields.productUrl) {
-            linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
-          }
-          if (newFields.brokenLink === false) nameCell?.querySelector(".fa-chain-broken")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
           else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
           else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom, newFields.availableFromDate), newFields.availableFromDate);
