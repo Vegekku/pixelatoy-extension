@@ -90,7 +90,8 @@ const MESSAGES = {
     notif_title:        "Pixelatoy — Reservas en almacén",
 
     // broken link tooltip
-    broken_link_tooltip: "Este enlace puede no apuntar al producto correcto",
+    broken_link_tooltip: "El enlace original del producto no está disponible",
+    resolved_link_tooltip: "URL actualizada automáticamente",
 
     // overlay buttons
     overlay_accept:     "Aplicar cambios",
@@ -185,7 +186,8 @@ const MESSAGES = {
 
     notif_title:        "Pixelatoy — Preorders in warehouse",
 
-    broken_link_tooltip: "This link may not point to the correct product",
+    broken_link_tooltip: "The original product link is no longer available",
+    resolved_link_tooltip: "URL automatically updated",
 
     overlay_accept:     "Apply changes",
     overlay_reject:     "Discard changes",

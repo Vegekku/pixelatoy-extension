@@ -14,6 +14,7 @@ const PRODUCT_SCHEMA = {
   img: ["string"],
   productUrl: ["string", "null"],
   brokenLink: ["boolean"],
+  resolvedUrl: ["string", "null"],
   availableFrom: ["string", "null"],
   availableFromDate: ["string", "null"],
   comingSoon: ["string", "null"],

@@ -4,7 +4,7 @@
 
 | Bloque | Descripción | Puntos | Notas |
 |--------|-------------|--------|-------|
-| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [6.1](#61-badge-en-el-icono-de-la-extensión), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
+| 3 — Mejoras sobre lo que ya existe | | [2.2](#22-fusión-de-columnas-precio-y-pagado), [3.1](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura), [3.2](#32-introducción-manual-de-la-fecha-de-disponibilidad-estimada), [6.1](#61-badge-en-el-icono-de-la-extensión), [1.3](#13-variantes-de-texto-en-campos-i18n), [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado) | |
 | 4 — Funcionalidad nueva (reservas) | | [1.1](#11-auto-fetch-en-segundo-plano), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [7](#7-historial-de-fechas) | 6.2, 6.5 y 7 dependen de 1.1 |
 | 5 — Expansión más allá de reservas | | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos) + [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo) – [5.4](#54-historial-de-precios-en-el-detalle-del-producto), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs), [9.12](#912-clase-reserva), [9.13](#913-iconos-font-awesome-propios-subconjunto) | El alcance más amplio; requiere madurez técnica previa |
 
@@ -137,6 +137,18 @@ Los textos `comingSoon` y `availableFrom` se traducen asumiendo un formato fijo.
 
 ## 2. Tabla de reservas
 
+### 2.1 Barra de progreso global en auto-fetch y refresh
+
+Al cargar la página (auto-fetch) o al pulsar "Refrescar datos", mostrar una barra de progreso global encima de la tabla que indique cuántas filas quedan pendientes de respuesta. Se actualiza conforme cada fila termina su fetch.
+
+- Formato sugerido: barra visual + texto `X / N filas` o similar.
+- Desaparece al completarse todas las filas.
+- Aplica tanto al auto-fetch inicial como al refresh manual.
+
+Además, añadir un badge en cada pestaña ("En almacén" / "No disponible") con el número de filas de esa pestaña que aún tienen overlay de carga activo. Se actualiza conforme terminan.
+
+Ficheros afectados: `src/modules/column.js`, `src/modules/refresh.js`, `src/modules/tab.js`, `src/content.css`.
+
 ### 2.2 Fusión de columnas Precio y Pagado
 Las columnas "Precio" (valor del artículo) y "Pagado" (depósito de reserva) son candidatas a agruparse en una sola sin perder información. El importe pendiente de pago es precio − depósito.
 
@@ -153,6 +165,26 @@ Las opciones D y E son las más interesantes. E es la más limpia: muestra lo ac
 ---
 
 ## 3. Configuración de la extensión
+
+### 3.1 Campo de entrada de fecha editable o de solo lectura
+
+Ahora que la fecha de entrada en almacén se obtiene automáticamente via auto-fetch, añadir una opción en la página de opciones para controlar si el campo de la columna "En almacén" es editable por el usuario o de solo lectura.
+
+- **Editable** (por defecto): comportamiento actual, el usuario puede introducir o modificar la fecha manualmente.
+- **Solo lectura**: la celda muestra el valor obtenido automáticamente sin permitir edición directa. Útil para usuarios que prefieren confiar exclusivamente en el auto-fetch y evitar modificaciones accidentales.
+
+Ficheros afectados: `src/options.html`, `src/options.js`, `src/modules/column.js`, `src/helpers.js`, `src/migrations.js`.
+
+### 3.2 Introducción manual de la fecha de disponibilidad estimada
+
+Actualmente `availableFrom` y `availableFromDate` solo se obtienen leyendo la página del producto via fetch. Permitir al usuario introducir o corregir manualmente la fecha de disponibilidad estimada desde la tabla, de forma similar a como se edita la fecha de entrada en almacén.
+
+Puntos a definir:
+- Dónde mostrar el campo editable: en la misma celda de la columna "En almacén" cuando el producto está en estado `availableFrom` (sin `date`), o en una celda separada.
+- Cómo distinguir visualmente un valor introducido manualmente de uno obtenido por auto-fetch (ej. icono o estilo diferente).
+- Qué ocurre si el auto-fetch obtiene un valor diferente al introducido manualmente: tratarlo como cambio pendiente igual que con `date`.
+
+Ficheros afectados: `src/modules/column.js`, `src/modules/refresh.js`, `src/content.css`.
 
 ---
 
@@ -328,6 +360,12 @@ Constantes repartidas entre `helpers.js`, `column.js`, `sort.js` y `orphans.js`.
 
 Definidos dos veces con la misma lógica: en `column.js` y en `orphans.js`. Exportar solo desde `column.js` (o `constants.js`) e importar en `orphans.js`.
 
+**Duplicación de lógica: cálculo de URL efectiva del producto**
+
+La expresión `brokenLink ? null : (resolvedUrl || productUrl)` aparece en `applyCustomColumn` (`column.js`) y en `checkOrphanData` (`orphans.js`). Candidata a extraerse como `getEffectiveUrl(entry)` en `helpers.js`. Si se implementa la clase `Reserva` ([9.12](#912-clase-reserva)), encajaría directamente como el getter `detailUrl`.
+
+Además, en `applyCustomColumn` la expresión tiene un `?? entry.productUrl` de fallback que los demás usos no tienen: si `brokenLink` es `true`, el `null` queda anulado por el `??` y se devuelve `productUrl` igualmente. Revisar si es intencional o un bug.
+
 **`saveToStorage` — lectura + escritura en cada llamada**
 
 Cada llamada hace `get` + `set`. En operaciones en lote (aceptar todos los cambios del refresh) genera N lecturas innecesarias. Un write-through cache que mantenga el estado en memoria y sincronice sería más eficiente.
@@ -384,17 +422,31 @@ Auditoría realizada. Hallazgos pendientes:
 
 Añadir tests unitarios y de integración para la extensión. Stack recomendado: Vitest + happy-dom (ligero, rápido, compatible con esbuild).
 
+**Tipos de test y ROI**
+
+| Tipo | Herramienta | ROI | Cuándo |
+|---|---|---|---|
+| Unitarios (lógica pura) | Vitest | ⭐⭐⭐ Alto | Primera fase — sin dependencias de Chrome ni DOM |
+| Unitarios (DOM + Chrome mocks) | Vitest + happy-dom + jest-chrome | ⭐⭐ Medio | Segunda fase — módulos con storage o DOM |
+| Integración E2E | Playwright + extensión en Chromium real | ⭐ Bajo/Alto coste | Fase posterior — flujos completos |
+
+El mayor ROI está en cubrir el parseo de fechas y las migraciones: son los puntos donde un bug silencioso puede corromper datos del usuario sin que se note hasta tarde.
+
 **Setup necesario**
 - Configurar Vitest con happy-dom como entorno DOM.
 - Crear mock global de `chrome.storage.local` (get/set/remove) y otras Chrome APIs usadas (alarms, notifications, action).
 - Script `npm test` y `npm run test:watch`.
+- Job en GitHub Actions: ejecutar `npm run dev:build` + `npm test` en cada push a `develop`.
 
-**Módulos prioritarios**
-- `helpers.js` — funciones puras (`normalizeDateTime`, `parseNaturalDate`, `remainingTime`, `urgencyLevel`). Sin dependencias externas, testeable directamente.
+**Módulos prioritarios (primera fase — lógica pura, sin mocks)**
+- `helpers.js` — `normalizeDateTime`, `parseNaturalDate`, `remainingTime`, `urgencyLevel`. Sin dependencias externas, testeable directamente.
 - `i18n.js` — `t()`, `getLang()`, `thresholdLabel()`. Verificar traducciones y fallback a inglés.
+- `migrations.js` — cada migración con storage en estado anterior y verificar estado posterior.
+- `modules/sort.js` — lógica de ordenación. Estado aislado, buen candidato.
+
+**Módulos de segunda fase (requieren mocks)**
 - `options.js` — `readForm()`, `populateForm()`, `renderThresholds()`, `applyLabels()`. Requiere montar HTML de `options.html` en el entorno de test.
 - `modules/fetch.js` — parsing de HTML de producto. Mockear `fetch` con fixtures HTML.
-- `modules/sort.js` — lógica de ordenación. Estado aislado, buen candidato.
 
 **Refactors previos necesarios**
 - Exportar funciones internas de `options.js` (`readForm`, `populateForm`, etc.) para poder importarlas en tests.
