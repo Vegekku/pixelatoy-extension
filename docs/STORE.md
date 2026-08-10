@@ -22,8 +22,8 @@ Funcionalidades principales:
 • Fecha estimada de disponibilidad para productos aún no disponibles, usada también para ordenar.
 • Contador de tiempo restante hasta el límite de almacén (fecha de entrada + 3 meses), actualizado cada minuto.
 • Coloreado de filas por urgencia: negro (<7 días), rojo (<30 días), naranja (<60 días), verde (≥60 días).
-• Detección de enlaces rotos con icono ⛓️‍💥.
-• Botón "Refrescar datos" para actualizar la información y reintentar enlaces rotos.
+• Resolución automática de enlaces rotos: cuando la URL de un producto deja de ser válida, la extensión la busca por referencia en la API de Pixelatoy. Los enlaces resueltos muestran 🔀; los no resolvibles muestran ⛓️‍💥 y se reintentan al refrescar.
+• Botón "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Muestra un toast con el número de cambios pendientes y un badge rojo por tab cuando los cambios están en el tab inactivo.
 • Ordenación por columnas con ciclo ascendente/descendente/original.
 • Sección "Reservas no encontradas" para productos eliminados de la tabla pero con datos guardados.
 • Tabs "En almacén" / "No disponible": separa los productos listos para enviar de los no disponibles, con tab activo configurable y restaurado automáticamente al recargar.

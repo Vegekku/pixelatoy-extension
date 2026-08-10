@@ -6,6 +6,24 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [v1.8.0] - 2026-08-10
+
+### Added
+
+- Resolución automática de enlaces rotos: cuando la URL guardada de un producto deja de ser válida, la extensión busca el producto por referencia en la API de Pixelatoy y actualiza el enlace automáticamente. Los enlaces resueltos muestran el icono 🔀; los no resolvibles muestran ⛓️💥 y se reintentan al refrescar
+- Feedback visual al detectar cambios en el tab inactivo durante el refresco: toast encima de las tabs con el número de cambios pendientes, badge rojo por tab y auto-cierre al resolver todos los overlays. Configurable desde opciones
+
+### Fixed
+
+- Flechas de ordenación no se restauraban al cambiar de tab
+- `applyCustomColumn` ahora devuelve una Promise para garantizar el orden de inicialización
+- Helpers de parseo de fechas centralizados en `helpers.js` como único punto de verdad
+- `Disponibilidad (Actualizada)` priorizada sobre `Disponibilidad` en el parsing del HTML del producto
+
+### Chore
+
+- Flujo de releases alineado con cardmarket-extension: la PR de sync `release → develop` se sustituye por un fast-forward directo de `develop` al SHA de `main` usando `RELEASE_PAT`; corregida la condición de borrado automático de ramas `release/*`
+
 ## [v1.7.0] - 2026-07-12
 
 ### Added
@@ -133,7 +151,8 @@ Versionado según [Semantic Versioning](https://semver.org/lang/es/).
 - Detección de enlaces rotos con icono ⛓️‍💥
 - Botón "Refrescar datos" con overlay informativo de cambios y aceptar/rechazar por fila
 
-[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.8.0...HEAD
+[v1.8.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.7.0...v1.8.0
 [v1.7.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.6.0...v1.7.0
 [v1.6.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.5.0...v1.6.0
 [v1.5.0]: https://github.com/Vegekku/pixelatoy-extension/compare/v1.4.0...v1.5.0
