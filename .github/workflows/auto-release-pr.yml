@@ -1,4 +1,4 @@
-name: Auto-create sync PR release → develop
+name: Fast-forward develop to main on release merge
 
 on:
   pull_request:
@@ -7,23 +7,17 @@ on:
       - main
 
 jobs:
-  create-sync-pr:
+  fast-forward:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
+      contents: write
     steps:
-      - name: Create PR to develop
+      - name: Fast-forward develop to main
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: ${{ github.event.pull_request.head.ref }}
-          TITLE: ${{ github.event.pull_request.title }}
-          BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
-          echo "$BODY" > /tmp/pr_body.txt
-          gh pr create \
-            --repo ${{ github.repository }} \
-            --head "$BRANCH" \
-            --base develop \
-            --title "$TITLE" \
-            --body-file /tmp/pr_body.txt
+          SHA=$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq '.object.sha')
+          gh api repos/${{ github.repository }}/git/refs/heads/develop \
+            -X PATCH -f sha="$SHA" -F force=false \
+            || { echo "Fast-forward failed: develop has diverged from main"; exit 1; }
