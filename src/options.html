@@ -3,58 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pixelatoy Preorder Manager — Opciones</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: sans-serif; font-size: 14px; margin: 0; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
-    h1 { font-size: 16px; margin: 0 0 24px; color: #555; font-weight: normal; }
-    h2 { font-size: 14px; margin: 24px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-    h2:first-of-type { margin-top: 0; }
-
-    /* Layout */
-    .layout { display: flex; flex: 1; }
-    .sidebar { width: 180px; min-width: 180px; background: #f5f5f5; border-right: 1px solid #ddd; padding: 24px 0; display: flex; flex-direction: column; }
-    .sidebar-title { font-size: 11px; font-weight: bold; color: #999; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 16px 12px; }
-    .tab-btn { background: none; border: none; border-left: 3px solid transparent; padding: 10px 16px; text-align: left; cursor: pointer; font-size: 14px; color: #555; width: 100%; transition: background 0.1s, color 0.1s; }
-    .tab-btn:hover { background: #ebebeb; color: #333; }
-    .tab-btn.active { border-left-color: #5cb85c; background: #fff; color: #333; font-weight: bold; }
-    .content { flex: 1; padding: 28px 32px; max-width: 560px; }
-
-    /* Form */
-    .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .row label { flex: 1; }
-    .threshold-row { display: grid; grid-template-columns: 1fr 80px 80px 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .threshold-row span { font-size: 12px; color: #666; text-align: center; }
-    input[type=number] { width: 70px; padding: 3px 6px; border: 1px solid #ccc; border-radius: 3px; }
-    input[type=color] { width: 48px; height: 28px; padding: 1px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; }
-    select { padding: 3px 6px; border: 1px solid #ccc; border-radius: 3px; }
-
-    /* Actions */
-    .actions { margin-top: 28px; display: flex; gap: 10px; }
-    button { padding: 7px 18px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-    #save { background: #5cb85c; color: #fff; }
-    #reset { background: #f0ad4e; color: #000; }
-    #export { background: #5bc0de; color: #fff; }
-    #import { background: #fff; color: #333; border: 1px solid #ccc; }
-    .status { margin-top: 12px; font-size: 13px; min-height: 18px; }
-    #status { color: #5cb85c; }
-
-    /* Data section */
-    .data-description { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5; }
-
-    /* About section */
-    .about-version { font-size: 13px; color: #666; margin-bottom: 24px; }
-    .about-links { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-    .about-links a { color: #337ab7; text-decoration: none; font-size: 14px; }
-    .about-links a:hover { text-decoration: underline; }
-    .about-support { border-top: 1px solid #ddd; padding-top: 24px; }
-    .about-support p { font-size: 13px; color: #666; margin: 0 0 14px; line-height: 1.5; }
-    .about-support a#about-donate { display: inline-block; padding: 7px 18px; background: #0070ba; color: #fff; border-radius: 4px; text-decoration: none; font-size: 14px; }
-    .about-support a#about-donate:hover { background: #005ea6; }
-
-    /* Tabs visibility */
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-  </style>
+  <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="layout">
@@ -120,7 +69,7 @@
           <a id="about-store" href="https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej" target="_blank"></a>
           <a id="about-changelog" href="https://github.com/vegekku/pixelatoy-extension/blob/main/CHANGELOG.md" target="_blank"></a>
           <a id="about-issues" href="https://github.com/vegekku/pixelatoy-extension/issues/new" target="_blank"></a>
-          <a id="about-privacy" href="https://vegekku.github.io/pixelatoy-extension/src/privacy.html" target="_blank"></a>
+          <a id="about-privacy" href="https://vegekku.github.io/pixelatoy-extension/docs/privacy.html" target="_blank"></a>
         </div>
         <div class="about-support">
           <p id="about-support-text"></p>

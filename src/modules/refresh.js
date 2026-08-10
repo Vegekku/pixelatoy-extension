@@ -6,8 +6,9 @@
 
 import { STORAGE_KEY, addThreeMonths, getDataRows, getConfig } from "../helpers.js";
 import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t, translateAvailableFrom, translateComingSoon } from "../i18n.js";
+import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 import { isWarehouseRow, updateTabBadge } from "./tab.js";
+import { addResolvedLinkIcon, linkifyProductName } from "./column.js";
 
 /**
  * Shows a temporary toast message above the preorder table.
@@ -91,27 +92,67 @@ function createInfoOverlay(row, changes, onAccept, onReject) {
 }
 
 /**
+ * Applies silent URL-related visual changes to the product name cell.
+ * @param {HTMLTableCellElement} nameCell
+ * @param {{resolvedUrl?: string|null, brokenLink?: boolean}} fields
+ * @param {{productUrl?: string}} stored
+ */
+function applySilentUrlChanges(nameCell, fields, stored) {
+  if (fields.resolvedUrl) {
+    nameCell?.querySelector(".fa-chain-broken")?.remove();
+    linkifyProductName(nameCell, fields.resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+    addResolvedLinkIcon(nameCell);
+  } else if (fields.brokenLink === false && fields.resolvedUrl === null) {
+    nameCell?.querySelector(".fa-chain-broken")?.remove();
+    nameCell?.querySelector(".fa-random")?.remove();
+    if (stored.productUrl) linkifyProductName(nameCell, stored.productUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+  }
+}
+
+/**
  * Fetches fresh data for a single row and compares with stored values.
- * @returns {Promise<{changes: Array, newFields: Object, productUrl: string}|null>}
+ * @returns {Promise<{changes: Array, newFields: Object, silentFields: Object, productUrl: string}|{changes: [], newFields: Object, productUrl: string, silent: true}|null>}
  */
 async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDate }) {
   let productUrl = stored?.productUrl || null;
+  let resolvedUrl = stored?.resolvedUrl || null;
 
   if (!productUrl) {
     productUrl = await resolveProductUrl(row, key);
   }
   if (!productUrl) return null;
 
-  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl);
+  // Try original URL first (may have been reactivated)
+  let fetchResult = await fetchDateFromProduct(productUrl);
+
+  // If original is still broken but we have a resolvedUrl, try it
+  if (fetchResult.brokenLink && resolvedUrl) {
+    const retryResult = await fetchDateFromProduct(resolvedUrl);
+    if (!retryResult.brokenLink) fetchResult = { ...retryResult, resolvedUrl };
+  }
+
+  const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = fetchResult;
+  const newResolvedUrl = fetchResult.resolvedUrl ?? null;
 
   const changes = [];
   const newFields = {};
+
+  // URL reactivated: original works again, clear brokenLink and resolvedUrl silently
+  if (stored?.brokenLink && !brokenLink && !newResolvedUrl) {
+    newFields.brokenLink = false;
+    newFields.resolvedUrl = null;
+  }
+
+  // New resolvedUrl found or changed
+  if (newResolvedUrl && newResolvedUrl !== resolvedUrl) {
+    newFields.resolvedUrl = newResolvedUrl;
+  }
 
   if (!stored?.productUrl && productUrl) {
     changes.push({ label: "URL", oldVal: null, newVal: "encontrada" });
     newFields.productUrl = productUrl;
   } else if (stored?.brokenLink && !brokenLink) {
-    changes.push({ label: "Enlace", oldVal: "roto", newVal: "corregido" });
+    // brokenLink cleared silently (either reactivated or resolved)
     newFields.brokenLink = false;
   }
 
@@ -136,8 +177,18 @@ async function refreshRowData(row, key, stored, { normalizeDateTime, getStoredDa
     newFields.availableFromDate = availableFromDate;
   }
 
-  if (changes.length === 0) return null;
-  return { changes, newFields, productUrl };
+  // Silent fields: always applied regardless of user accept/reject
+  const silentFields = {};
+  if ("resolvedUrl" in newFields) silentFields.resolvedUrl = newFields.resolvedUrl;
+  if (newFields.brokenLink === false && stored?.brokenLink) silentFields.brokenLink = false;
+  delete newFields.resolvedUrl;
+  delete newFields.brokenLink;
+
+  if (changes.length === 0) {
+    if (Object.keys(silentFields).length) return { changes: [], newFields: silentFields, productUrl, silent: true };
+    return null;
+  }
+  return { changes, newFields, silentFields, productUrl };
 }
 
 /**
@@ -175,18 +226,29 @@ export async function refreshAllData({ getRowKey, saveToStorage, linkifyProductN
     overlays[i].remove();
     if (result.status !== "fulfilled" || !result.value) return;
 
-    const { changes, newFields, productUrl } = result.value;
+    const { changes, newFields, silentFields = {}, productUrl, silent } = result.value;
     const { row, key, cell } = tasks[i];
     const nameCell = row.children[COLUMN_INDEX_KEY];
     const rowTab = isWarehouseRow(row) ? "warehouse" : "unavailable";
+
+    if (silent) {
+      saveToStorage(key, newFields, row);
+      applySilentUrlChanges(nameCell, newFields, tasks[i].stored);
+      return;
+    }
+
+    // Apply silent fields immediately (URL resolution, brokenLink) regardless of overlay outcome
+    if (Object.keys(silentFields).length) {
+      saveToStorage(key, silentFields, row);
+      applySilentUrlChanges(nameCell, silentFields, tasks[i].stored);
+    }
+
     tabCounts[rowTab]++;
 
     pendingOverlays.push(new Promise(resolve => {
       createInfoOverlay(row, changes,
         () => {
           saveToStorage(key, newFields, row);
-          if (newFields.productUrl) linkifyProductName(nameCell, newFields.productUrl, newFields.brokenLink);
-          if (newFields.brokenLink === false) nameCell?.querySelector("span[title]")?.remove();
           if (newFields.date) updateCell(cell, row, addThreeMonths(newFields.date));
           else if (newFields.comingSoon) updateCell(cell, row, null, null, null, newFields.comingSoon);
           else if (newFields.availableFrom) updateCell(cell, row, null, translateAvailableFrom(newFields.availableFrom, newFields.availableFromDate), newFields.availableFromDate);

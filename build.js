@@ -1,3 +1,9 @@
+/**
+ * @module build
+ * @description Bundlea los ficheros fuente de src/ a dist/ usando esbuild.
+ * Uso: node build.js [--watch] [--dev] [--test]
+ */
+
 import esbuild from "esbuild";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 
@@ -7,9 +13,13 @@ const test = process.argv.includes("--test");
 
 mkdirSync("dist/icons", { recursive: true });
 
-["icons/icon16.png", "icons/icon48.png", "icons/icon128.png", "src/popup.html", "src/options.html", "src/privacy.html", "manifest.json"].forEach(f => {
-  copyFileSync(f, `dist/${f.replace("src/", "")}`);
-});
+const staticFiles = [
+  "icons/icon16.png", "icons/icon48.png", "icons/icon128.png",
+  "src/popup.html", "src/options.html",
+  "src/styles/styles.css", "src/styles/popup.css", "src/styles/options.css",
+  "manifest.json",
+];
+staticFiles.forEach(f => copyFileSync(f, `dist/${f.replace("src/styles/", "").replace("src/", "")}`));
 
 if (test) {
   const manifest = JSON.parse(readFileSync("dist/manifest.json", "utf8"));
@@ -22,14 +32,14 @@ const entryPoints = {
   "background": "src/background.js",
   "popup":      "src/popup.js",
   "options":    "src/options.js",
-  "styles":     "src/content.css",
 };
 
 if (test) {
   entryPoints["test-helpers"] = "test-helpers.js";
 }
 
-const logPlugin = { name: "log", setup(build) { build.onEnd(() => console.log("rebuilt")); } };
+const ts = () => `[${new Date().toLocaleString("es-ES")}]`;
+const logPlugin = { name: "log", setup(build) { build.onEnd(() => console.log(`${ts()} rebuilt`)); } };
 
 const ctx = await esbuild.context({
   entryPoints,
@@ -45,16 +55,17 @@ const ctx = await esbuild.context({
 
 if (watch) {
   await ctx.watch();
-  console.log("esbuild watching...");
+  console.log(`${ts()} esbuild watching...`);
   const { watch: fsWatch } = await import("fs");
-  ["src/popup.html", "src/options.html", "src/privacy.html", "manifest.json"].forEach(f => {
+  [...staticFiles].forEach(f => {
     fsWatch(f, () => {
-      copyFileSync(f, `dist/${f.replace("src/", "")}`);
-      console.log(`copied ${f}`);
+      copyFileSync(f, `dist/${f.replace("src/styles/", "").replace("src/", "")}`);
+      console.log(`${ts()} copied ${f}`);
+      ctx.rebuild();
     });
   });
 } else {
   await ctx.rebuild();
   await ctx.dispose();
-  console.log("Build done.");
+  console.log(`${ts()} Build done.`);
 }

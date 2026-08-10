@@ -115,12 +115,21 @@ export function getRowKey(row) {
 }
 
 function addBrokenLinkWarning(cell) {
-  if (!cell || cell.querySelector("span[title]")) return;
-  const warn = document.createElement("span");
-  warn.textContent = " \u26D3\uFE0F\u200D\uD83D\uDCA5";
-  warn.title = t("broken_link_tooltip");
-  warn.style.cursor = "help";
-  cell.appendChild(warn);
+  if (!cell || cell.querySelector(".fa-chain-broken")) return;
+  const icon = document.createElement("i");
+  icon.className = "fa fa-chain-broken";
+  icon.title = t("broken_link_tooltip");
+  icon.style.cssText = "margin-left:4px;font-size:0.85em;color:#a94442;cursor:help;";
+  cell.appendChild(icon);
+}
+
+export function addResolvedLinkIcon(cell) {
+  if (!cell || cell.querySelector("i.fa-random")) return;
+  const icon = document.createElement("i");
+  icon.className = "fa fa-random";
+  icon.title = t("resolved_link_tooltip");
+  icon.style.cssText = "margin-left:4px;font-size:0.85em;color:#888;cursor:help;";
+  cell.appendChild(icon);
 }
 
 /**
@@ -130,16 +139,31 @@ function addBrokenLinkWarning(cell) {
  * @param {boolean} [brokenLink=false]
  */
 export function linkifyProductName(cell, url, brokenLink) {
-  if (!cell || cell.querySelector("a[data-pixelatoy-link]")) return;
-  const text = cell.textContent.trim();
-  const a = document.createElement("a");
-  a.href = url;
-  a.target = "_blank";
-  a.setAttribute("data-pixelatoy-link", "");
-  a.textContent = text;
+  if (!cell) return;
+  const existing = cell.querySelector("[data-pixelatoy-link]");
+  if (existing) {
+    if (brokenLink) return;
+    if (existing.tagName === "A" && existing.href === url) return;
+    existing.remove();
+    cell.querySelector(".fa-chain-broken")?.remove();
+    cell.querySelector(".fa-random")?.remove();
+  }
+  const text = existing?.textContent.trim() || cell.textContent.trim();
   cell.textContent = "";
-  cell.appendChild(a);
-  if (brokenLink) addBrokenLinkWarning(cell);
+  if (!brokenLink) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.setAttribute("data-pixelatoy-link", "");
+    a.textContent = text;
+    cell.appendChild(a);
+  } else {
+    const span = document.createElement("span");
+    span.setAttribute("data-pixelatoy-link", "");
+    span.textContent = text;
+    cell.appendChild(span);
+    addBrokenLinkWarning(cell);
+  }
 }
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -266,14 +290,14 @@ function getActionsCell(row) {
 async function autoFetchRowData(row, key, cell, stored) {
   const hasDate = !!getStoredDate(stored);
   const hasUrl = !!(stored && stored.productUrl);
-  if (hasDate && hasUrl) return;
+  if (hasDate && hasUrl && !stored?.brokenLink) return;
 
   const actionsCell = getActionsCell(row);
-  const needsDate = !hasDate && !stored?.brokenLink && (
-    actionsCell?.querySelector("form") ||
-    actionsCell?.textContent.trim() === t("not_available")
-  );
-  if (hasUrl && !needsDate && (stored?.availableFrom || stored?.comingSoon)) return;
+  const rowHasAction = actionsCell?.querySelector("form") || actionsCell?.textContent.trim() === t("not_available");
+  const needsDate = !hasDate && !stored?.brokenLink && rowHasAction;
+  const needsResolve = stored?.brokenLink && hasUrl;
+
+  if (hasUrl && !needsDate && !needsResolve && (stored?.availableFrom || stored?.comingSoon)) return;
 
   cell.setAttribute("data-fetching", "1");
   const overlayDiv = createOverlay(row);
@@ -289,20 +313,29 @@ async function autoFetchRowData(row, key, cell, stored) {
       }
     }
 
-    if (needsDate && productUrl) {
-      const { date, brokenLink, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl);
+    if ((needsDate || needsResolve) && productUrl) {
+      const { date, brokenLink, resolvedUrl, availableFrom, availableFromDate, comingSoon } = await fetchDateFromProduct(productUrl);
       if (brokenLink) {
-        saveToStorage(key, { brokenLink: true }, row);
+        saveToStorage(key, { brokenLink: true, resolvedUrl: resolvedUrl ?? null }, row);
         addBrokenLinkWarning(row.children[COLUMN_INDEX_KEY]);
-      } else if (date) {
-        saveToStorage(key, { date, brokenLink: false, availableFrom, availableFromDate, comingSoon: null }, row);
-        updateCell(cell, row, addThreeMonths(date));
-      } else if (comingSoon) {
-        saveToStorage(key, { comingSoon, availableFrom, availableFromDate }, row);
-        updateCell(cell, row, null, null, null, comingSoon);
-      } else if (availableFrom) {
-        saveToStorage(key, { availableFrom, availableFromDate }, row);
-        updateCell(cell, row, null, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate);
+      } else {
+        const nameCell = row.children[COLUMN_INDEX_KEY];
+        if (resolvedUrl) {
+          linkifyProductName(nameCell, resolvedUrl.replace(/\/(es|en)\//, `/${LANG}/`));
+          addResolvedLinkIcon(nameCell);
+        }
+        if (date) {
+          saveToStorage(key, { date, brokenLink: false, resolvedUrl: resolvedUrl ?? null, availableFrom, availableFromDate, comingSoon: null }, row);
+          updateCell(cell, row, addThreeMonths(date));
+        } else if (comingSoon) {
+          saveToStorage(key, { comingSoon, availableFrom, availableFromDate, brokenLink: false, resolvedUrl: resolvedUrl ?? null }, row);
+          updateCell(cell, row, null, null, null, comingSoon);
+        } else if (availableFrom) {
+          saveToStorage(key, { availableFrom, availableFromDate, brokenLink: false, resolvedUrl: resolvedUrl ?? null }, row);
+          updateCell(cell, row, null, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate);
+        } else {
+          saveToStorage(key, { brokenLink: false, resolvedUrl: resolvedUrl ?? null }, row);
+        }
       }
     }
   } catch (e) {
@@ -323,7 +356,7 @@ function autoFetchMissingData(storedTexts) {
     if (stored.productUrl && getStoredDate(stored)) return;
     const hasNonDateData = stored.availableFrom || stored.comingSoon;
     const rowHasForm = getActionsCell(row)?.querySelector("form");
-    if (stored.productUrl && hasNonDateData && !rowHasForm) return;
+    if (stored.productUrl && hasNonDateData && !rowHasForm && !stored.brokenLink) return;
     const cell = row.querySelector(`[${DATA_INSERT}]`);
     if (!cell) return;
     autoFetchRowData(row, key, cell, stored);
@@ -370,8 +403,15 @@ export function applyCustomColumn(config) {
         const { availableFrom, availableFromDate, comingSoon } = storedTexts[key] || {};
         updateCell(cell, row, limitDate, translateAvailableFrom(availableFrom, availableFromDate), availableFromDate, comingSoon, activeThresholds);
 
-        if (storedTexts[key]?.productUrl) {
-          linkifyProductName(cells[COLUMN_INDEX_KEY], storedTexts[key].productUrl.replace(/\/(es|en)\//, `/${LANG}/`), storedTexts[key].brokenLink);
+        const entry = storedTexts[key];
+        if (entry?.productUrl || entry?.resolvedUrl) {
+          const effectiveUrl = (entry.brokenLink ? null : (entry.resolvedUrl || entry.productUrl)) ?? entry.productUrl;
+          if (!entry.brokenLink) {
+            linkifyProductName(cells[COLUMN_INDEX_KEY], effectiveUrl.replace(/\/(es|en)\//, `/${LANG}/`), false);
+            if (entry.resolvedUrl) addResolvedLinkIcon(cells[COLUMN_INDEX_KEY]);
+          } else {
+            addBrokenLinkWarning(cells[COLUMN_INDEX_KEY]);
+          }
         }
 
         row.insertBefore(cell, cells[INSERT_COLUMN_INDEX] || null);

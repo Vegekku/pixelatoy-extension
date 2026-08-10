@@ -99,20 +99,43 @@ function isValidProductPage(html) {
 }
 
 /**
- * Fetches and parses product data (date, availability, broken link status).
- * @param {string} productUrl - URL of the product detail page.
- * @returns {Promise<{date: string|null, brokenLink: boolean, availableFrom: string|null, availableFromDate: string|null, comingSoon: string|null}>}
+ * Extracts the product reference (last number ≥7 digits) from a product URL.
+ * @param {string} url
+ * @returns {string|null}
  */
-export async function fetchDateFromProduct(productUrl) {
-  const empty = { date: null, brokenLink: false, availableFrom: null, availableFromDate: null };
-  const productHTML = await fetchHTML(productUrl);
-  if (!productHTML) return empty;
+export function extractReference(url) {
+  const match = url?.match(/-(\d{7,})(?:\.html|$)/i);
+  return match ? match[1] : null;
+}
 
-  if (!isValidProductPage(productHTML)) {
-    return { ...empty, brokenLink: true };
+/**
+ * Resolves a product URL by querying the Pixelatoy search API with a product reference.
+ * @param {string} reference - Product reference number.
+ * @param {string} [lang="es"] - Language code for the API URL.
+ * @returns {Promise<string|null>}
+ */
+export async function resolveUrlByReference(reference, lang = "es") {
+  const apiUrl = `https://www.pixelatoy.com/${lang}/module/ambjolisearch/jolisearch?s=${reference}&ajax=true&use_rendered_products=false`;
+  const raw = await fetchHTML(apiUrl);
+  if (!raw) return null;
+  try {
+    const json = JSON.parse(raw);
+    const rendered = json?.rendered_products ?? "";
+    const match = rendered.match(/href="(https:\/\/www\.pixelatoy\.com\/[^"]+\.html)"/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
   }
+}
 
-  const productDoc = parseHTML(productHTML);
+/**
+ * Parses product data (date, availability) from an HTML string.
+ * @param {string} html
+ * @param {string} productUrl - Used to detect page language.
+ * @returns {{date: string|null, availableFrom: string|null, availableFromDate: string|null, comingSoon: string|null}}
+ */
+function parseDateFromHTML(html, productUrl) {
+  const productDoc = parseHTML(html);
   const urlLang = productUrl.match(/\/(es|en)\//)?.[1] ?? null;
   const labelDate = t("fetch_label_date", urlLang);
   const labelAvail = t("fetch_label_avail", urlLang);
@@ -137,5 +160,35 @@ export async function fetchDateFromProduct(productUrl) {
       availableFromDate = parseAvailableFrom(value);
     }
   }
-  return { date, brokenLink: false, availableFrom, availableFromDate, comingSoon };
+  return { date, availableFrom, availableFromDate, comingSoon };
+}
+
+/**
+ * Fetches and parses product data (date, availability, broken link status).
+ * When the product URL is broken, attempts to resolve it via the search API.
+ * @param {string} productUrl - URL of the product detail page.
+ * @returns {Promise<{date: string|null, brokenLink: boolean, resolvedUrl: string|null, availableFrom: string|null, availableFromDate: string|null, comingSoon: string|null}>}
+ */
+export async function fetchDateFromProduct(productUrl) {
+  const empty = { date: null, brokenLink: false, resolvedUrl: null, availableFrom: null, availableFromDate: null, comingSoon: null };
+  const productHTML = await fetchHTML(productUrl);
+  if (!productHTML) return empty;
+
+  if (!isValidProductPage(productHTML)) {
+    const reference = extractReference(productUrl);
+    if (!reference) return { ...empty, brokenLink: true };
+
+    const lang = productUrl.match(/\/(es|en)\//)?.[1] ?? "es";
+    const resolvedUrl = await resolveUrlByReference(reference, lang);
+    if (!resolvedUrl) return { ...empty, brokenLink: true };
+
+    const resolvedHTML = await fetchHTML(resolvedUrl);
+    if (!resolvedHTML || !isValidProductPage(resolvedHTML)) {
+      return { ...empty, brokenLink: true, resolvedUrl };
+    }
+
+    return { ...parseDateFromHTML(resolvedHTML, resolvedUrl), brokenLink: false, resolvedUrl };
+  }
+
+  return { ...parseDateFromHTML(productHTML, productUrl), brokenLink: false, resolvedUrl: null };
 }

@@ -58,7 +58,9 @@ Las filas se colorean automáticamente según el tiempo restante hasta el límit
 
 ### Enlace al detalle del producto
 - El nombre del producto en la tabla es un enlace que abre su página de detalle en nueva pestaña.
-- Si el enlace está roto (la página no corresponde al producto), se muestra un icono ⛓️‍💥 junto al nombre.
+- Si el enlace está roto, se intenta resolver automáticamente buscando el producto por su referencia en la API de Pixelatoy.
+- Si se resuelve, se muestra el icono 🔀 junto al nombre (URL actualizada automáticamente).
+- Si no se puede resolver, se muestra el icono ⛓️‍💥 junto al nombre. Los enlaces rotos se reintentan al refrescar datos.
 
 ### Refrescar datos
 - Botón "Refrescar datos" junto a la leyenda para re-consultar la información de todos los productos.
@@ -108,7 +110,7 @@ Instala la extensión directamente desde la [Chrome Web Store](https://chromeweb
 
 Los datos introducidos se guardan en `chrome.storage.local`, vinculados al navegador y al perfil de Chrome.
 
-Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, availableFrom, availableFromDate, comingSoon }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL de la página de detalle, `brokenLink` indica si el enlace al producto es inválido, `availableFrom` es el texto de disponibilidad estimada, `availableFromDate` la fecha aproximada parseable y `comingSoon` el texto de próxima llegada cuando el producto aún no tiene fecha.
+Cada producto se almacena con la estructura `{ date, img, productUrl, brokenLink, resolvedUrl, availableFrom, availableFromDate, comingSoon }`, donde `date` es la fecha de entrada, `img` la URL de la imagen del producto, `productUrl` la URL original de la página de detalle (nunca se modifica), `brokenLink` indica si el enlace original es inválido, `resolvedUrl` es la URL resuelta automáticamente por búsqueda de referencia cuando `productUrl` está rota, `availableFrom` es el texto de disponibilidad estimada, `availableFromDate` la fecha aproximada parseable y `comingSoon` el texto de próxima llegada cuando el producto aún no tiene fecha.
 
 - **Desactivar la extensión**: los datos se conservan.
 - **Desinstalar la extensión**: los datos se eliminan permanentemente.
@@ -127,7 +129,10 @@ pixelatoy-extension/
 │   │   ├── orphans.js   # Reservas no encontradas
 │   │   ├── refresh.js   # Refresco manual de datos
 │   │   └── sort.js      # Ordenación por columnas
-│   ├── content.css      # Estilos del content script (urgencia, overlays, botones)
+│   ├── styles/
+│   │   ├── styles.css   # Estilos del content script (urgencia, overlays, botones)
+│   │   ├── popup.css    # Estilos del popup
+│   │   └── options.css  # Estilos de la página de opciones
 │   ├── content.js       # Punto de entrada del content script
 │   ├── background.js    # Service worker: notificaciones, alarmas y fetch delegado
 │   ├── helpers.js       # Constantes y funciones compartidas (módulo ES)
