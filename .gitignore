@@ -1,7 +1,7 @@
 .DS_Store
 .amazonq
-test-helpers.js
-node_modules/
 dist/
+node_modules/
 packages/
 STORE.md
+test-helpers.js
