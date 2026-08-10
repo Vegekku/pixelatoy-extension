@@ -15,7 +15,7 @@ mkdirSync("dist/icons", { recursive: true });
 
 const staticFiles = [
   "icons/icon16.png", "icons/icon48.png", "icons/icon128.png",
-  "src/popup.html", "src/options.html", "src/privacy.html",
+  "src/popup.html", "src/options.html",
   "src/styles/styles.css", "src/styles/popup.css", "src/styles/options.css",
   "manifest.json",
 ];
