@@ -8,7 +8,7 @@ import { STORAGE_KEY, addThreeMonths, getDataRows, getConfig } from "../helpers.
 import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
 import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
 import { isWarehouseRow, updateTabBadge } from "./tab.js";
-import { addResolvedLinkIcon } from "./column.js";
+import { addResolvedLinkIcon, linkifyProductName } from "./column.js";
 
 /**
  * Shows a temporary toast message above the preorder table.
