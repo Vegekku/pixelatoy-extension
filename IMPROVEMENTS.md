@@ -5,7 +5,7 @@
 | Prioridad | Puntos |
 |-----------|--------|
 | 1 — Bugs críticos | |
-| 2 — Infraestructura y calidad | [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado), [9.14](#914-análisis-estático-y-revisión-automática-de-código), [9.15](#915-alinear-flujo-de-releases-con-cardmarket-extension), [9.16](#916-refactor-i18n-separar-lógica-de-negocio-y-adoptar-patrón-getmessagesapplymessages) |
+| 2 — Infraestructura y calidad | [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado), [9.14](#914-análisis-estático-y-revisión-automática-de-código), [9.16](#916-refactor-i18n-separar-lógica-de-negocio-y-adoptar-patrón-getmessagesapplymessages) |
 | 3 — UX | [2.2](#22-fusión-de-columnas-precio-y-pagado), [2.3](#23-formato-del-contador-de-tiempo-restante), [2.4](#24-autoeliminación-de-reservas-no-encontradas), [3.1](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura), [3.2](#32-introducción-manual-de-la-fecha-de-disponibilidad-estimada), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs), [9.13](#913-iconos-font-awesome-propios-subconjunto) |
 | 4 — Funcionalidad nueva | [1.1](#11-auto-fetch-en-segundo-plano), [1.3](#13-variantes-de-texto-en-campos-i18n), [2.1](#21-barra-de-progreso-global-en-auto-fetch-y-refresh), [6.1](#61-badge-en-el-icono-de-la-extensión), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [7](#7-historial-de-fechas), [9.12](#912-clase-reserva) |
 | 5 — Expansión | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos), [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo), [5.2](#52-precio-más-bajo-en-tarjetas-del-catálogo), [5.3](#53-alerta-de-bajada-de-precio-en-favoritos), [5.4](#54-historial-de-precios-en-el-detalle-del-producto) |
@@ -640,20 +640,6 @@ Integrar herramientas de análisis automático para detectar bugs, vulnerabilida
 - Abre PRs automáticas cuando hay actualizaciones o vulnerabilidades conocidas en `package.json`.
 
 Ficheros afectados: `.github/workflows/sonarcloud.yml` (nuevo), `.github/dependabot.yml` (nuevo), `sonar-project.properties` (nuevo).
-
-### 9.15 Alinear flujo de releases con cardmarket-extension
-
-El flujo de releases actual usa el Action `auto-release-pr.yml` para crear una PR automática `release → develop` tras mergear a `main`. Este enfoque genera merge commits extra en `develop` y no sincroniza las ramas limpiamente. Alinearlo con el flujo de cardmarket-extension:
-
-- Sustituir la creación de PR automática por un fast-forward directo de `develop` al SHA de `main` usando un `RELEASE_PAT` (fine-grained token con bypass de ruleset)
-- Crear el secret `RELEASE_PAT` en el repositorio
-- Añadir `Repository admin` al bypass list del ruleset de `develop`
-- Corregir `auto-delete-branches.yml`: las ramas `release/*` deben eliminarse cuando la base es `main`, no `develop`
-- Sincronizar manualmente `develop` con `main` una vez (están divergidos desde `v1.7.0`)
-
-Ficheros afectados:
-- `.github/workflows/auto-release-pr.yml` — reemplazar creación de PR por PATCH directo con `RELEASE_PAT`
-- `.github/workflows/auto-delete-branches.yml` — cambiar condición `develop` por `main`
 
 ### 9.16 Refactor i18n: separar lógica de negocio y adoptar patrón getMessages/applyMessages
 
