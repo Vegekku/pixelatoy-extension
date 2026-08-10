@@ -27,7 +27,7 @@ function getSortValue(cell, colIndex) {
  * Updates sort indicator arrows (▲▼) in header cells.
  * @param {HTMLTableCellElement[]} ths
  */
-function applySortIndicator(ths) {
+export function applySortIndicator(ths) {
   ths.forEach((th, i) => {
     if (!SORTABLE_COLUMNS.has(i)) return;
     const base = th.getAttribute("data-original-text") || th.textContent.trim();

@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
   ],
   defaultTab: "warehouse",
   instructionsOpen: false,
+  refreshToast: true,
   lang: "en",
   schemaVersion: "0.0.0",
 };
@@ -74,6 +75,92 @@ export const MONTHS = {
  */
 export function toISODateTime(yyyy, mm, dd, hh = "00", min = "00") {
   return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")} ${String(hh).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+/**
+ * Parses natural-language date strings like "15 marzo 2024" or "March 15, 2024" or "July 3. 2026".
+ * @param {string} dateStr
+ * @returns {Date|null}
+ */
+export function parseNaturalDate(dateStr) {
+  const matchDD = dateStr.match(/^(\d{1,2})\s+([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{4})$/i);
+  if (matchDD) {
+    const [, dd, monthName, yyyy] = matchDD;
+    const mm = MONTHS[monthName.toLowerCase()];
+    if (!mm) return null;
+    return new Date(Number(yyyy), mm - 1, Number(dd));
+  }
+
+  const matchEN = dateStr.match(/^([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(\d{1,2})\s*[,.]?\s*(\d{4})$/i);
+  if (matchEN) {
+    const [, monthName, dd, yyyy] = matchEN;
+    const mm = MONTHS[monthName.toLowerCase()];
+    if (!mm) return null;
+    return new Date(Number(yyyy), mm - 1, Number(dd));
+  }
+
+  return null;
+}
+
+/**
+ * Normalises user input into `YYYY-MM-DD HH:MM` format.
+ * Accepts: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, natural dates (ES/EN), with optional time.
+ * @param {string} value - Raw user input.
+ * @returns {string} Normalised date string or original value if unrecognised.
+ */
+export function normalizeDateTime(value) {
+  const withTime = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (withTime) {
+    const [, dd, mm, yyyy, hh, min] = withTime;
+    if (dd > 31 || mm > 12 || hh > 23 || min > 59) return value;
+    return toISODateTime(yyyy, mm, dd, hh, min);
+  }
+
+  const dateOnly = value.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (dateOnly) {
+    const [, dd, mm, yyyy] = dateOnly;
+    if (dd > 31 || mm > 12) return value;
+    return toISODateTime(yyyy, mm, dd);
+  }
+
+  const isoOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoOnly) {
+    const [, yyyy, mm, dd] = isoOnly;
+    if (dd > 31 || mm > 12) return value;
+    return toISODateTime(yyyy, mm, dd);
+  }
+
+  const naturalMatch =
+    value.match(/^\d{1,2}\s+[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{4}(?:\s+\d{1,2}:\d{2})?$/i) ||
+    value.match(/^[a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+\s+\d{1,2}\s*[,.]?\s*\d{4}(?:\s+\d{1,2}:\d{2})?$/i);
+  if (naturalMatch) {
+    const timeMatch = value.match(/(\d{1,2}):(\d{2})$/);
+    const datePart = timeMatch ? value.replace(timeMatch[0], "").trim() : value;
+    const parsed = parseNaturalDate(datePart);
+    if (!parsed) return value;
+    return toISODateTime(
+      parsed.getFullYear(),
+      parsed.getMonth() + 1,
+      parsed.getDate(),
+      timeMatch ? timeMatch[1] : "00",
+      timeMatch ? timeMatch[2] : "00"
+    );
+  }
+
+  return value;
+}
+
+/**
+ * Parses an availability text (e.g. "enero de 2025") into an ISO date string.
+ * @param {string} text
+ * @returns {string|null} `YYYY-MM-DD HH:MM` (day 01) or null.
+ */
+export function parseAvailableFrom(text) {
+  const match = text.match(/([a-z\u00e1\u00e9\u00ed\u00f3\u00fa]+)\s+(?:de\s+)?(\d{4})/i);
+  if (!match) return null;
+  const mm = MONTHS[match[1].toLowerCase()];
+  if (!mm) return null;
+  return toISODateTime(match[2], mm, "01");
 }
 
 /**

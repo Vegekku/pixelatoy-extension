@@ -48,28 +48,28 @@ export function addLegend(refreshAllData, instructionsOpen = false, thresholds =
   const exampleNaturalES = `${now.getDate()} ${MONTHS_ES[now.getMonth()]} ${now.getFullYear()}`;
   const exampleNaturalEN = `${MONTHS_EN[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 
-  const colHeader = t("col_header");
-  const instr1 = t("instr_1").replace("BROKEN_ICON", "BROKEN_ICON_PLACEHOLDER");
-  const instr3 = `${t("instr_3_a")} <em>${colHeader}</em>${t("instr_3_b")} <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>)${t("instr_3_c")} (<code>HH:MM</code>).`;
+  const instr1 = `${t("instr_1")}
+        <ul style="margin:4px 0 0 0;padding-left:16px; list-style: circle;">
+          <li><i class="fa fa-chain-broken"></i> ${t("instr_1_broken")}</li>
+          <li><i class="fa fa-random"></i> ${t("instr_1_resolved")}</li>
+        </ul>`;
+  const instr3 = `${t("instr_3_a")} <code>YYYY-MM-DD</code>, <code>DD/MM/YYYY</code>, <code>DD mes YYYY</code> (ej: <code>${exampleNaturalES}</code>), <code>mes DD, YYYY</code> (ej: <code>${exampleNaturalEN}</code>)${t("instr_3_c")} (<code>HH:MM</code>).`;
 
   const instructions = document.createElement("div");
   instructions.style.cssText = "margin-top:10px;padding:10px 14px;background:#f5f5f5;border-radius:4px;font-size:13px;color:#333;line-height:1.6;";
   instructions.innerHTML = `
     <strong style="cursor:pointer;user-select:none;" id="pixelatoy-instr-toggle">▶ ${t("instr_toggle")}</strong>
-    <ul id="pixelatoy-instr-list" style="display:none;margin:6px 0 0 0;padding-left:18px;">
-      <li class="pixelatoy-instr-broken">${instr1}</li>
-      <li>${t("instr_2")}</li>
-      <li>${instr3}</li>
-      <li>${t("instr_4")}</li>
-      <li>${t("instr_5")}</li>
-      <li>${t("instr_6")}</li>
-      <li>${t("instr_7")}</li>
+    <ul id="pixelatoy-instr-list" style="display:none;margin:6px 0 0 0;padding-left:18px; list-style: disc;">
+      <li><strong>${t("instr_1_title")}</strong>: ${instr1}</li>
+      <li><strong>${t("instr_tabs_title")}</strong>: ${t("instr_tabs")}</li>
+      <li><strong>${t("instr_2_title")}</strong>: ${t("instr_2")}</li>
+      <li><strong>${t("instr_3_title")}</strong>: ${instr3}</li>
+      <li><strong>${t("instr_4_title")}</strong>: ${t("instr_4")}</li>
+      <li><strong>${t("instr_5_title")}</strong>: ${t("instr_5")}</li>
+      <li><strong>${t("instr_6_title")}</strong>: ${t("instr_6")}</li>
+      <li><strong>${t("instr_7_title")}</strong>: ${t("instr_7")}</li>
     </ul>
   `;
-  const brokenIcon = document.createElement("span");
-  brokenIcon.textContent = " \u26D3\uFE0F\u200D\uD83D\uDCA5";
-  instructions.querySelector(".pixelatoy-instr-broken").innerHTML =
-    instructions.querySelector(".pixelatoy-instr-broken").innerHTML.replace("BROKEN_ICON_PLACEHOLDER", brokenIcon.outerHTML);
 
   const toggle = instructions.querySelector("#pixelatoy-instr-toggle");
   const list = instructions.querySelector("#pixelatoy-instr-list");

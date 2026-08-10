@@ -1,0 +1,23 @@
+name: Fast-forward develop to main on release merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  fast-forward:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Fast-forward develop to main
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+        run: |
+          SHA=$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq '.object.sha')
+          gh api repos/${{ github.repository }}/git/refs/heads/develop \
+            -X PATCH -f sha="$SHA" -F force=false \
+            || { echo "Fast-forward failed: develop has diverged from main"; exit 1; }
