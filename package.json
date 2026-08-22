@@ -4,6 +4,7 @@
   "description": "Extensión de Chrome que mejora la tabla de reservas de [Pixelatoy](https://www.pixelatoy.com) añadiendo seguimiento de fechas de almacén, enlaces a productos con detección de enlaces rotos, refresco manual de datos, contador de tiempo restante y ordenación por columnas.",
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "build": "node build.js",
     "dev": "node build.js --watch",
     "dev:build": "node build.js --dev",
@@ -15,7 +16,7 @@
     "url": "git+https://github.com/Vegekku/pixelatoy-extension.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "vegekku",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Vegekku/pixelatoy-extension/issues"

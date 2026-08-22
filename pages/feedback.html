@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="title">Feedback – Pixelatoy Preorder Manager</title>
+  <style>
+    body { font-family: sans-serif; max-width: 560px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+    h1 { font-size: 1.4em; margin-bottom: 8px; }
+    p.subtitle { color: #666; font-size: 0.9em; margin-top: 0; margin-bottom: 28px; }
+    label { display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; }
+    select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9em; font-family: inherit; box-sizing: border-box; }
+    textarea { resize: vertical; min-height: 100px; }
+    .field { margin-bottom: 18px; }
+    .hint { font-size: 0.8em; color: #999; margin-top: 3px; }
+    button[type=submit] { background: #e85d04; color: #fff; border: none; border-radius: 4px; padding: 9px 22px; font-size: 0.9em; cursor: pointer; }
+    button[type=submit]:hover { background: #c94e00; }
+    button[type=submit]:disabled { background: #aaa; cursor: default; }
+    #status { margin-top: 16px; font-size: 0.9em; }
+    #status.ok { color: #2a7a2a; }
+    #status.err { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <p style="margin-bottom:2em"><a href="index.html">← Pixelatoy Preorder Manager</a></p>
+  <h1 data-i18n="title"></h1>
+  <p class="subtitle" data-i18n="subtitle"></p>
+
+  <form id="feedbackForm">
+    <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+
+    <div class="field">
+      <label for="type" data-i18n="labelType"></label>
+      <select id="type" name="type" required>
+        <option value="" disabled selected data-i18n="optionSelect"></option>
+        <option value="bug" data-i18n="optionBug"></option>
+        <option value="suggestion" data-i18n="optionSuggestion"></option>
+        <option value="question" data-i18n="optionQuestion"></option>
+        <option value="other" data-i18n="optionOther"></option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="description" data-i18n="labelDescription"></label>
+      <textarea id="description" name="description" required data-i18n-placeholder="placeholderDescription"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="url" data-i18n="labelUrl"></label>
+      <input type="url" id="url" name="url" data-i18n-placeholder="placeholderUrl" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:4px;font-size:0.9em;box-sizing:border-box;">
+      <div class="hint" data-i18n="hintUrl"></div>
+    </div>
+
+    <button type="submit" data-i18n="btnSubmit"></button>
+    <p id="status"></p>
+  </form>
+
+  <script>
+    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbxhuBQnqnP4WfGQooDoRCHDIDpQqV7ll8nno-3t8MFKVHKUrjj2hq8a0cEyx2O6rADP/exec';
+
+    const COMMON = {
+      title:          'Feedback – Pixelatoy Preorder Manager',
+      optionBug:      'Bug',
+      placeholderUrl: 'https://www.pixelatoy.com/...',
+    };
+
+    const I18N = {
+      es: {
+        subtitle:               '¿Encontraste un bug o tienes una sugerencia? Cuéntanos.',
+        labelType:              'Tipo de feedback',
+        optionSelect:           'Selecciona una opción',
+        optionSuggestion:       'Sugerencia',
+        optionQuestion:         'Pregunta',
+        optionOther:            'Otro',
+        labelDescription:       'Descripción',
+        placeholderDescription: 'Describe el problema o sugerencia con el mayor detalle posible...',
+        labelUrl:               'URL de la página (opcional)',
+        hintUrl:                'La página de Pixelatoy donde ocurrió el problema, si aplica.',
+        btnSubmit:              'Enviar',
+        sending:                'Enviando...',
+        ok:                     '¡Gracias! Tu feedback ha sido enviado.',
+        err:                    'Error al enviar. Inténtalo de nuevo.',
+      },
+      en: {
+        subtitle:               'Found a bug or have a suggestion? Let us know.',
+        labelType:              'Feedback type',
+        optionSelect:           'Select an option',
+        optionSuggestion:       'Suggestion',
+        optionQuestion:         'Question',
+        optionOther:            'Other',
+        labelDescription:       'Description',
+        placeholderDescription: 'Describe the issue or suggestion in as much detail as possible...',
+        labelUrl:               'Page URL (optional)',
+        hintUrl:                'The Pixelatoy page where the issue occurred, if applicable.',
+        btnSubmit:              'Submit',
+        sending:                'Sending...',
+        ok:                     'Thank you! Your feedback has been sent.',
+        err:                    'Error sending. Please try again.',
+      },
+    };
+
+    const params = new URLSearchParams(location.search);
+    const meta = {
+      version: params.get('version') || '',
+      lang:    params.get('lang')    || 'es',
+      theme:   params.get('theme')   || '',
+    };
+
+    const m = { ...COMMON, ...(I18N[meta.lang] || I18N.es) };
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = m[el.dataset.i18n] ?? el.textContent;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.placeholder = m[el.dataset.i18nPlaceholder] ?? el.placeholder;
+    });
+
+    document.getElementById('feedbackForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const submitBtn = form.querySelector('button[type=submit]');
+      const status = document.getElementById('status');
+
+      if (form.website.value) return;
+
+      submitBtn.disabled = true;
+      status.className = '';
+      status.textContent = m.sending;
+
+      try {
+        await fetch(ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: JSON.stringify({
+            type:        form.type.value,
+            description: form.description.value,
+            url:         form.url.value,
+            version:     meta.version,
+            lang:        meta.lang,
+            theme:       meta.theme,
+          }),
+        });
+        status.className = 'ok';
+        status.textContent = m.ok;
+        form.reset();
+      } catch {
+        status.className = 'err';
+        status.textContent = m.err;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

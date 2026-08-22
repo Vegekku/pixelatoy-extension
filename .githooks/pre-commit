@@ -1,0 +1,6 @@
+#!/bin/sh
+branch=$(git symbolic-ref --short HEAD)
+if [ "$branch" = "main" ] || [ "$branch" = "develop" ]; then
+  echo "error: direct commits to '$branch' are not allowed. Use a feature branch."
+  exit 1
+fi

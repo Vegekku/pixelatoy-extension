@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixelatoy Preorder Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.7; }
+    h1 { font-size: 1.6em; margin-bottom: 4px; }
+    h2 { font-size: 1.1em; margin-top: 2em; border-bottom: 1px solid #e0e0e0; padding-bottom: 4px; }
+    p.subtitle { color: #666; font-size: 0.95em; margin-top: 0; }
+    ul { padding-left: 1.4em; }
+    li { margin-bottom: 4px; }
+    .badge { display: inline-block; margin-top: 16px; }
+    .badge a { display: inline-flex; align-items: center; gap: 8px; background: #e85d04; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-size: 0.9em; }
+    .badge a:hover { background: #c94e00; }
+    .steps { counter-reset: steps; padding-left: 0; list-style: none; }
+    .steps li { counter-increment: steps; display: flex; gap: 12px; margin-bottom: 10px; align-items: baseline; }
+    .steps li::before { content: counter(steps); background: #e85d04; color: #fff; border-radius: 50%; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold; flex-shrink: 0; position: relative; top: 2px; }
+    code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .feature-card { background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 6px; padding: 12px 14px; }
+    .feature-card strong { display: block; margin-bottom: 4px; font-size: 0.9em; }
+    .feature-card p { margin: 0; font-size: 0.85em; color: #555; line-height: 1.5; }
+    footer { margin-top: 3em; padding-top: 1em; border-top: 1px solid #e0e0e0; font-size: 0.85em; color: #888; display: flex; gap: 16px; flex-wrap: wrap; }
+    footer a { color: #888; }
+    @media (max-width: 520px) { .features-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <h1>Pixelatoy Preorder Manager</h1>
+  <p class="subtitle">Extensión de Chrome que mejora la gestión de reservas en <a href="https://www.pixelatoy.com" target="_blank" rel="noopener">Pixelatoy</a>: seguimiento de fechas de almacén, alertas de urgencia, obtención automática de datos y más.</p>
+
+  <div class="badge">
+    <a href="https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej?hl=es" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Instalar desde la Chrome Web Store
+    </a>
+  </div>
+
+  <h2>¿Qué hace?</h2>
+  <p>
+    Cuando tienes reservas en Pixelatoy, los productos entran en almacén durante un tiempo limitado antes de que el plazo expire.
+    Pixelatoy Preorder Manager añade una columna a la tabla de reservas donde puedes registrar la fecha de entrada en almacén
+    y ver un contador de tiempo restante con código de colores según la urgencia.
+  </p>
+  <p>
+    Además obtiene automáticamente los datos de cada producto al cargar la página, permite refrescar manualmente para detectar cambios,
+    organiza las reservas en pestañas y muestra un resumen rápido desde el popup del icono.
+  </p>
+
+  <h2>Funcionalidades</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <strong>Contador de tiempo restante</strong>
+      <p>Registra la fecha de entrada en almacén y la extensión calcula automáticamente el tiempo restante hasta el límite (fecha + 3 meses), actualizado cada minuto.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Coloreado por urgencia</strong>
+      <p>Las filas se colorean en negro, rojo, naranja o verde según el tiempo restante. Los umbrales y colores son configurables desde opciones.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Obtención automática de datos</strong>
+      <p>Al cargar la página, la extensión obtiene automáticamente la URL del producto y la fecha de entrada en almacén para los productos sin datos guardados.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Refrescar datos</strong>
+      <p>Botón para re-consultar todos los productos y ver los cambios respecto a los datos guardados, con overlays por fila para aceptar o rechazar individualmente.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Pestañas En almacén / No disponible</strong>
+      <p>La tabla se divide en dos pestañas según el estado del producto. Cada pestaña muestra el número de productos y un badge con cambios pendientes.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Popup de estado</strong>
+      <p>Resumen de productos agrupados por urgencia accesible desde el icono de la extensión, con toggles desplegables y botón directo a la página de reservas.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Reservas no encontradas</strong>
+      <p>Si un producto desaparece de la tabla pero tiene datos guardados, se muestra en una sección colapsable con su estado de límite y opción de eliminar.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Detección de enlaces rotos</strong>
+      <p>Si el enlace al producto está roto, la extensión intenta resolverlo automáticamente buscando por referencia en la API de Pixelatoy.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Ordenación por columnas</strong>
+      <p>Haz click en cualquier cabecera con ▲▼ para ordenar ascendente, descendente o restaurar el orden original.</p>
+    </div>
+    <div class="feature-card">
+      <strong>Bilingüe ES/EN</strong>
+      <p>La extensión detecta automáticamente el idioma de la página de Pixelatoy y adapta todos los textos.</p>
+    </div>
+  </div>
+
+  <h2>Cómo instalar</h2>
+  <ol class="steps">
+    <li><span>Haz click en el botón <strong>Instalar desde la Chrome Web Store</strong> de arriba.</span></li>
+    <li><span>En la ficha de la extensión, pulsa <strong>Añadir a Chrome</strong> y confirma los permisos.</span></li>
+    <li><span>Aparecerá el icono de la extensión en la barra de herramientas de Chrome.</span></li>
+  </ol>
+
+  <h2>Cómo usar</h2>
+  <ol class="steps">
+    <li><span>Ve a tu página de reservas en Pixelatoy. La extensión se activa automáticamente.</span></li>
+    <li><span>Haz click en cualquier celda de la columna <strong>En almacén</strong> para introducir la fecha de entrada. La extensión también la obtiene automáticamente si está disponible.</span></li>
+    <li><span>La fila se colorea según el tiempo restante hasta el límite. Usa el popup del icono para ver el resumen de urgencia.</span></li>
+    <li><span>Pulsa <strong>Refrescar datos</strong> para detectar cambios en los productos y aceptarlos o rechazarlos uno a uno.</span></li>
+  </ol>
+
+  <h2>Privacidad</h2>
+  <p>
+    La extensión no recoge ni transmite ningún dato personal. Toda la información (fechas, URLs e imágenes de productos) se guarda
+    exclusivamente en <code>chrome.storage.local</code>, vinculado a tu perfil de Chrome y nunca sale del dispositivo.
+    Consulta la <a href="privacy.html">política de privacidad completa</a>.
+  </p>
+
+  <footer>
+    <a href="privacy.html">Política de privacidad</a>
+    <a href="feedback.html">Enviar feedback</a>
+    <a href="https://github.com/Vegekku/pixelatoy-extension" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej?hl=es" target="_blank" rel="noopener">Chrome Web Store</a>
+  </footer>
+
+</body>
+</html>
