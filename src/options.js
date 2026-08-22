@@ -141,7 +141,17 @@ function applyLabels(lang, version) {
   document.getElementById("about-version").textContent = `${t("options_about_version", lang)} ${version}`;
   document.getElementById("about-store").textContent = t("options_about_store", lang);
   document.getElementById("about-changelog").textContent = t("options_about_changelog", lang);
-  document.getElementById("about-issues").textContent = t("options_about_issues", lang);
+  document.getElementById("about-feedback").textContent = t("options_about_feedback", lang);
+  const feedbackLink = document.getElementById("about-feedback");
+  if (feedbackLink) {
+    chrome.storage.local.get("pixelatoyConfig", data => {
+      const storedLang = data.pixelatoyConfig?.lang || lang;
+      const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const version = chrome.runtime.getManifest().version;
+      const params = new URLSearchParams({ version, lang: storedLang, theme });
+      feedbackLink.href = `https://vegekku.github.io/pixelatoy-extension/feedback.html?${params}`;
+    });
+  }
   document.getElementById("about-privacy").textContent = t("options_about_privacy", lang);
   document.getElementById("about-donate").textContent = t("options_about_donate", lang);
   document.getElementById("about-support-text").textContent = t("options_about_support", lang);

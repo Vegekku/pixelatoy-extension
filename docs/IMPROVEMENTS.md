@@ -2,12 +2,19 @@
 
 ## Priorización
 
+| # | Punto |
+|---|-------|
+
+---
+
+## Tipología
+
 | Prioridad | Puntos |
 |-----------|--------|
 | 1 — Bugs críticos | |
 | 2 — Infraestructura y calidad | [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado), [9.14](#914-análisis-estático-y-revisión-automática-de-código), [9.16](#916-refactor-i18n-separar-lógica-de-negocio-y-adoptar-patrón-getmessagesapplymessages) |
-| 3 — UX | [2.2](#22-fusión-de-columnas-precio-y-pagado), [2.3](#23-formato-del-contador-de-tiempo-restante), [2.4](#24-autoeliminación-de-reservas-no-encontradas), [3.1](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura), [3.2](#32-introducción-manual-de-la-fecha-de-disponibilidad-estimada), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.10](#910-canal-de-soporte-para-usuarios-sin-cuenta-github), [9.11](#911-mover-github-pages-a-docs), [9.13](#913-iconos-font-awesome-propios-subconjunto) |
-| 4 — Funcionalidad nueva | [1.1](#11-auto-fetch-en-segundo-plano), [1.3](#13-variantes-de-texto-en-campos-i18n), [2.1](#21-barra-de-progreso-global-en-auto-fetch-y-refresh), [6.1](#61-badge-en-el-icono-de-la-extensión), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [7](#7-historial-de-fechas), [9.12](#912-clase-reserva) |
+| 3 — UX | [2.2](#22-fusión-de-columnas-precio-y-pagado), [2.3](#23-formato-del-contador-de-tiempo-restante), [2.4](#24-autoeliminación-de-reservas-no-encontradas), [3.1](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura), [3.2](#32-introducción-manual-de-la-fecha-de-disponibilidad-estimada), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.13](#913-iconos-font-awesome-propios-subconjunto) |
+| 4 — Funcionalidad nueva | [1.1](#11-auto-fetch-en-segundo-plano), [1.3](#13-variantes-de-texto-en-campos-i18n), [2.1](#21-barra-de-progreso-global-en-auto-fetch-y-refresh), [6.1](#61-badge-en-el-icono-de-la-extensión), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [6.6](#66-mostrar-orphans-con-fecha-límite-en-el-popup), [6.7](#67-notificaciones-vía-email-gmail-api), [7](#7-historial-de-fechas), [9.12](#912-clase-reserva) |
 | 5 — Expansión | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos), [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo), [5.2](#52-precio-más-bajo-en-tarjetas-del-catálogo), [5.3](#53-alerta-de-bajada-de-precio-en-favoritos), [5.4](#54-historial-de-precios-en-el-detalle-del-producto) |
 
 ---
@@ -383,6 +390,63 @@ Puntos a definir:
 
 Ficheros afectados: `src/popup.html`, `src/popup.js`, posiblemente `src/background.js` para delegar el POST si hay restricciones de CORS.
 
+### 6.6 Mostrar orphans con fecha límite en el popup
+
+Actualmente el popup solo muestra productos que siguen apareciendo en la tabla de reservas. Las reservas no encontradas (orphans) que tienen fecha de entrada en almacén (`date`) y por tanto un límite activo no aparecen en el popup, aunque su urgencia sigue siendo real.
+
+Estas reservas suelen corresponder a productos ya enviados, pero mientras el usuario no las elimine manualmente, su límite sigue corriendo. Tiene sentido mostrarlas en el popup para que el usuario sea consciente y pueda actuar.
+
+**Comportamiento propuesto:**
+- Los orphans con `date` se incluyen en los grupos de urgencia del popup, igual que los productos activos.
+- Se distinguen visualmente de los productos activos: icono o estilo diferente (ej. opacidad reducida, borde discontinuo, icono ⚠️ o similar).
+- Al hacer click en la imagen/nombre se abre la página de reservas (igual que ahora), donde el usuario puede eliminarlos desde la sección de orphans.
+- Los orphans sin `date` (sin límite activo) no se muestran en el popup.
+
+**Puntos a definir:**
+- ¿Mostrarlos mezclados con los productos activos en cada grupo de urgencia, o en una subsección separada dentro del grupo?
+- ¿Qué diferenciador visual es más claro sin sobrecargar el popup?
+- ¿Añadir un botón de eliminación directa desde el popup, o solo enlazar a la página de reservas?
+
+Ficheros afectados: `src/popup.js`, `src/popup.css`.
+
+### 6.7 Notificaciones vía email (Gmail API)
+
+Permitir al usuario configurar su cuenta de Gmail para recibirse notificaciones por email cuando haya cambios en sus reservas.
+
+**Flujo técnico:**
+
+1. El usuario hace click en "Conectar cuenta Gmail" en la página de opciones.
+2. `chrome.identity.launchWebAuthFlow` con PKCE abre el popup de autorización de Google.
+3. El usuario autoriza el scope `https://www.googleapis.com/auth/gmail.send`.
+4. La extensión recibe y guarda el `access_token` y `refresh_token` en `chrome.storage.local`.
+5. Cuando hay que notificar, el service worker llama directamente a `POST https://gmail.googleapis.com/gmail/v1/users/me/messages/send`.
+6. Si el `access_token` ha expirado, se renueva automáticamente con el `refresh_token`.
+
+**Sin servidor intermedio**: con PKCE el `client_secret` no es necesario — Google lo permite explícitamente para extensiones de Chrome. Solo se necesita un `client_id` registrado en Google Cloud Console, que puede estar en el código sin riesgo (es un identificador público, no un secreto).
+
+**Coste**: Gmail API es gratuita. Límite de 500 emails/día por usuario, más que suficiente.
+
+**Verificación OAuth de Google**: el scope `gmail.send` es sensible. Para la Chrome Web Store pública, Google puede requerir verificación manual de la app OAuth2 (proceso gratuito pero lento). En modo no verificado, el usuario ve una pantalla de advertencia al autorizar pero puede continuar.
+
+**Configuración en opciones:**
+- Botón "Conectar cuenta Gmail" / "Desconectar".
+- Estado de conexión visible (email autorizado o no conectado).
+- Toggle para activar/desactivar notificaciones por email independientemente de las push.
+- Selector de qué tipos de aviso generan email (mismos tipos que [6.5](#65-notificaciones-configurables-por-tipo-de-aviso)).
+
+**Puntos a definir:**
+- ¿Qué eventos disparan email? ¿Los mismos que las notificaciones push, o un subconjunto (solo los más importantes)?
+- ¿Formato del email: texto plano o HTML con tabla de productos?
+- ¿Agrupar varios cambios en un solo email (digest) o un email por cambio?
+- ¿Dónde guardar `access_token` y `refresh_token`? En `pixelatoyConfig` o en una clave separada `pixelatoyGmail`.
+
+**Cambios en storage:**
+- Nueva clave `pixelatoyGmail`: `{ accessToken, refreshToken, email, connectedAt }`.
+- `pixelatoyConfig.emailNotifications`: booleano, activa/desactiva notificaciones por email.
+- `pixelatoyConfig.emailNotificationTypes`: objeto con booleano por tipo de aviso (igual que `announceTypes`).
+
+Ficheros afectados: `src/background.js`, `src/options.html`, `src/options.js`, `src/helpers.js`, `src/migrations.js`.
+
 ### 6.5 Notificaciones configurables por tipo de aviso
 
 El usuario puede activar/desactivar individualmente cada tipo de aviso desde opciones. Cada tipo puede notificar via badge, push y/o pulso en el popup y en la fila de reservas.
@@ -555,18 +619,6 @@ El mayor ROI está en cubrir el parseo de fechas y las migraciones: son los punt
 
 **Tests de integración (fase posterior)**
 - Puppeteer/Playwright con la extensión cargada para flujos completos (abrir options, guardar, verificar storage; cargar página de reservas, comprobar columna inyectada).
-
-### 9.10 Canal de soporte para usuarios sin cuenta GitHub
-
-Actualmente el único canal para reportar problemas es la lista de issues de GitHub, que requiere cuenta. Explorar alternativas accesibles para cualquier usuario:
-
-- **Formulario web**: Google Forms o similar embebido/enlazado desde la página de opciones. Sin exposición del email, sin spam directo.
-- **Email con alias**: usar un alias (ej. SimpleLogin, Fastmail) para no exponer el correo personal y poder desactivarlo si hay abuso.
-
-Lo que se elija se añade en la sección **Acerca de** de la página de opciones junto al enlace a issues.
-
-### 9.11 Mover GitHub Pages a `docs/`
-Actualmente `privacy.html` está en `src/` pero se sirve vía GitHub Pages, no forma parte del bundle. Moverla a `docs/` y añadir un `index.html` mínimo (landing con enlace a la Chrome Web Store, política de privacidad y enlaces al repo para README/CHANGELOG). No duplicar contenido de los markdowns: enlazar a GitHub directamente.
 
 ### 9.12 Clase `Reserva`
 

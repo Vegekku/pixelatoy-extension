@@ -18,20 +18,20 @@ Pixelatoy Preorder Manager añade funcionalidades avanzadas a la tabla de reserv
 
 Funcionalidades principales:
 
-• Obtención automática de la fecha de entrada en almacén y del enlace al producto al cargar la página.
-• Fecha estimada de disponibilidad para productos aún no disponibles, usada también para ordenar.
-• Contador de tiempo restante hasta el límite de almacén (fecha de entrada + 3 meses), actualizado cada minuto.
-• Coloreado de filas por urgencia: negro (<7 días), rojo (<30 días), naranja (<60 días), verde (≥60 días).
-• Resolución automática de enlaces rotos: cuando la URL de un producto deja de ser válida, la extensión la busca por referencia en la API de Pixelatoy. Los enlaces resueltos muestran 🔀; los no resolvibles muestran ⛓️‍💥 y se reintentan al refrescar.
-• Botón "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Muestra un toast con el número de cambios pendientes y un badge rojo por tab cuando los cambios están en el tab inactivo.
-• Ordenación por columnas con ciclo ascendente/descendente/original.
-• Sección "Reservas no encontradas" para productos eliminados de la tabla pero con datos guardados.
-• Tabs "En almacén" / "No disponible": separa los productos listos para enviar de los no disponibles, con tab activo configurable y restaurado automáticamente al recargar.
-• Página de opciones para configurar el comportamiento de la extensión: notificaciones, popup, tabs, tab por defecto, umbrales de urgencia y colores de cada rango.
-• Exportación e importación de todos los datos (fechas, configuración) desde la página de opciones.
-• Popup del icono con resumen de productos agrupados por urgencia (configurable; si está desactivado, el icono abre directamente la página de reservas).
-• Al hacer click en el icono con el popup desactivado, abre o enfoca directamente la página de reservas.
-• Soporte bilingüe ES/EN: la extensión detecta automáticamente el idioma de la página y adapta todos los textos.
+- Obtención automática de la fecha de entrada en almacén y del enlace al producto al cargar la página.
+- Fecha estimada de disponibilidad para productos aún no disponibles, usada también para ordenar.
+- Contador de tiempo restante hasta el límite de almacén (fecha de entrada + 3 meses), actualizado cada minuto.
+- Coloreado de filas por urgencia: negro (<7 días), rojo (<30 días), naranja (<60 días), verde (≥60 días).
+- Resolución automática de enlaces rotos: cuando la URL de un producto deja de ser válida, la extensión la busca por referencia en la API de Pixelatoy. Los enlaces resueltos muestran 🔀; los no resolvibles muestran ⛓️‍💥 y se reintentan al refrescar.
+- Botón "Refrescar datos" para actualizar la información y reintentar enlaces rotos. Muestra un toast con el número de cambios pendientes y un badge rojo por tab cuando los cambios están en el tab inactivo.
+- Ordenación por columnas con ciclo ascendente/descendente/original.
+- Sección "Reservas no encontradas" para productos eliminados de la tabla pero con datos guardados.
+- Tabs "En almacén" / "No disponible": separa los productos listos para enviar de los no disponibles, con tab activo configurable y restaurado automáticamente al recargar.
+- Página de opciones para configurar el comportamiento de la extensión: notificaciones, popup, tabs, tab por defecto, umbrales de urgencia y colores de cada rango.
+- Exportación e importación de todos los datos (fechas, configuración) desde la página de opciones.
+- Popup del icono con resumen de productos agrupados por urgencia (configurable; si está desactivado, el icono abre directamente la página de reservas).
+- Al hacer click en el icono con el popup desactivado, abre o enfoca directamente la página de reservas.
+- Soporte bilingüe ES/EN: la extensión detecta automáticamente el idioma de la página y adapta todos los textos.
 
 Compatibilidad: Chrome con Manifest V3. Funciona en la página de reservas de Pixelatoy en español e inglés.
 
@@ -45,12 +45,20 @@ Español (es)
 
 #### Capturas de pantalla (máx. 5 capturas)
 
-<!-- ⚠️ Rehacer capturas 1, 2 y 3: la tabla ahora tiene barra de tabs encima (novedad v1.6.0) -->
-1. Tabla de reservas parte 1. Barra de tabs "En almacén" / "No disponible" visible en la parte superior. Cabeceras de columnas y filas con disponibilidad y urgencias (leve y media) con sus contadores en la columna "En almacén".
-2. Tabla de reservas parte 2. Resto de la tabla con filas de urgencia alta y enlaces rotos. A continuación leyenda, instrucciones desplegadas y reservas no encontradas.
-3. Tabla de reservas refrescando. Filas con overlay de refetch tras pulsar "Refrescar datos", con tabs visibles en la parte superior.
-4. Popup del icono. Muestra el popup con las urgencias alta y leve desplegadas mostrando las imágenes de sus artículos.
-5. Página de opciones. Vista de la página de opciones con sidebar vertical y los tres paneles: Configuración (notificaciones, popup, tabs, umbrales, colores), Datos (exportar/importar) y Acerca de.
+1. **Pestaña "En almacén"**. Muestra solo los artículos ya disponibles en el almacén, cada uno coloreado por su urgencia y con su contador. También muestra la leyenda de colores, el botón de "Refrescar datos" y las instrucciones colapsadas. 
+<a href="../imgs/screenshoot_1.png" target="_blank"><img src="../imgs/screenshoot_1.png" width="640" alt="Pestaña en almacén"></a>
+
+2. **Pestaña "No disponible"**. Muestra el resto de artículos que aún no están disponibles junto con su texto de disponibilidad estimada. Hay ejemplos de artículos con icono de enlace roto.
+<a href="../imgs/screenshoot_2.png" target="_blank"><img src="../imgs/screenshoot_2.png" width="640" alt="Pestaña no disponible"></a>
+
+3. **Refresco de datos**. Filas con overlay de refetch tras pulsar "Refrescar datos". La captura es de cuando no había pestañas, pero cumple con el objetivo.
+<a href="../imgs/screenshoot_3.png" target="_blank"><img src="../imgs/screenshoot_3.png" width="640" alt="Refresco de datos"></a>
+
+4. **Popup del icono**. Muestra el popup con las urgencias alta y leve desplegadas mostrando las imágenes de sus artículos.
+<a href="../imgs/screenshoot_4.jpeg" target="_blank"><img src="../imgs/screenshoot_4.jpeg" width="640" alt="Popup del icono"></a>
+
+5. **Página de opciones**. Vista de la página de opciones con sidebar vertical y los tres paneles: Configuración (notificaciones, popup, tabs, umbrales, colores), Datos (exportar/importar) y Acerca de. En la captura el panel activo es el de Configuración.
+<a href="../imgs/screenshoot_5.png" target="_blank"><img src="../imgs/screenshoot_5.png" width="640" alt="Página de opciones"></a>
 
 ## Privacidad
 

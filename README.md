@@ -141,19 +141,27 @@ pixelatoy-extension/
 │   ├── options.html     # Página de opciones de la extensión
 │   ├── options.js       # Lógica de la página de opciones
 │   ├── popup.html       # Popup del icono de la extensión
-│   ├── popup.js         # Lógica del popup
+│   └── popup.js         # Lógica del popup
+├── pages/               # GitHub Pages (https://vegekku.github.io/pixelatoy-extension/)
+│   ├── index.html       # Landing page
+│   ├── feedback.html    # Formulario de feedback
 │   └── privacy.html     # Política de privacidad
+├── docs/                # Documentación interna
+│   └── STORE.md         # Descripción para la Chrome Web Store
+├── imgs/                # Capturas de pantalla para la Chrome Web Store
 ├── dist/                # Generado por el bundler (no se commitea)
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
+├── .githooks/
+│   └── pre-commit       # Bloquea commits directos a main/develop
 ├── build.js             # Script de build (esbuild)
 ├── manifest.json        # Configuración de la extensión
 ├── package.json         # Dependencias y scripts npm
 ├── .nvmrc               # Versión de Node (22 LTS)
 ├── CHANGELOG.md         # Historial de versiones
-└── IMPROVEMENTS.md      # Ideas y mejoras pendientes
+└── docs/IMPROVEMENTS.md # Ideas y mejoras pendientes
 ```
 
 ## Desarrollo
@@ -168,6 +176,14 @@ npm run build      # build único, minificado
 ```
 
 Carga la extensión en Chrome apuntando a la carpeta `dist/` del proyecto (donde está el `manifest.json` generado).
+
+### Git hooks
+
+El repositorio incluye un hook `pre-commit` que bloquea commits directos a `main` y `develop`. Se activa automáticamente al ejecutar `npm install` (script `prepare`). Si necesitas activarlo manualmente:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## Compatibilidad
 

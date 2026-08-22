@@ -3,6 +3,7 @@
   "name": "Pixelatoy Preorder Manager",
   "version": "1.8.0",
   "description": "Mejora la tabla de reservas de Pixelatoy: fechas de almacén, enlaces a productos, detección de enlaces rotos y refresco de datos.",
+  "homepage_url": "https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej",
   "permissions": ["storage", "notifications", "alarms", "tabs"],
   "host_permissions": ["https://www.pixelatoy.com/*"],
   "background": {
