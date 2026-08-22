@@ -141,9 +141,9 @@ function applyLabels(lang, version) {
   document.getElementById("about-version").textContent = `${t("options_about_version", lang)} ${version}`;
   document.getElementById("about-store").textContent = t("options_about_store", lang);
   document.getElementById("about-changelog").textContent = t("options_about_changelog", lang);
-  document.getElementById("about-feedback").textContent = t("options_about_feedback", lang);
   const feedbackLink = document.getElementById("about-feedback");
   if (feedbackLink) {
+    feedbackLink.textContent = t("options_about_feedback", lang);
     chrome.storage.local.get("pixelatoyConfig", data => {
       const storedLang = data.pixelatoyConfig?.lang || lang;
       const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
