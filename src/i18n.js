@@ -260,6 +260,42 @@ const MESSAGES = {
 };
 
 /**
+ * Returns the messages object for the given language, with fallback to "en".
+ * @param {string} lang
+ * @returns {Record<string, string>}
+ */
+export function getMessages(lang) {
+  return MESSAGES[lang] ?? MESSAGES.en;
+}
+
+/**
+ * Reads the saved language from storage and returns the corresponding messages object.
+ * @returns {Promise<Record<string, string>>}
+ */
+export function loadMessages() {
+  return getLang().then(getMessages);
+}
+
+/**
+ * Applies translations to the current document using data-i18n attributes.
+ * - `data-i18n` → textContent
+ * - `data-i18n-placeholder` → placeholder
+ * - `data-i18n-title` → title
+ * @param {Record<string, string>} m
+ */
+export function applyMessages(m) {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = m[el.dataset.i18n] ?? el.textContent;
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    el.placeholder = m[el.dataset.i18nPlaceholder] ?? el.placeholder;
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    el.title = m[el.dataset.i18nTitle] ?? el.title;
+  });
+}
+
+/**
  * Returns the translated string for the given key.
  * @param {string} key - Message key from MESSAGES.
  * @param {string|null} [lang] - Language override; defaults to LANG.
@@ -268,6 +304,18 @@ const MESSAGES = {
 export function t(key, lang) {
   const l = lang ?? LANG;
   return (MESSAGES[l] ?? MESSAGES.en)[key] ?? MESSAGES.en[key] ?? key;
+}
+
+/** Month names indexed by language and 0-based position. */
+export const MONTHS_BY_NUM = {
+  es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+  en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+};
+
+/** Map of lowercase month name → 1-based month number (ES + EN). */
+export const MONTHS_TO_NUM = {};
+for (const arr of Object.values(MONTHS_BY_NUM)) {
+  arr.forEach((m, i) => { MONTHS_TO_NUM[m.toLowerCase()] = i + 1; });
 }
 
 /**
@@ -285,16 +333,6 @@ export function thresholdLabel(days, prevDays, lang) {
   return l === "es" ? `Menos de ${days} días` : `Less than ${days} days`;
 }
 
-const MONTHS_BY_NUM = {
-  es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
-  en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
-};
-
-const MONTHS_TO_NUM = {};
-for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
-  arr.forEach((m, i) => { MONTHS_TO_NUM[m.toLowerCase()] = i + 1; });
-}
-
 /**
  * Translates an availability text to the current page language.
  * Uses availableFromDate (ISO) when available to avoid re-parsing already-translated text.
@@ -305,7 +343,6 @@ for (const [lang, arr] of Object.entries(MONTHS_BY_NUM)) {
 export function translateAvailableFrom(text, isoDate) {
   if (!text) return text;
 
-  // If we have a parsed ISO date, reconstruct the translated string from it
   if (isoDate) {
     const match = isoDate.match(/^(\d{4})-(\d{2})/);
     if (match) {
@@ -318,7 +355,6 @@ export function translateAvailableFrom(text, isoDate) {
     }
   }
 
-  // Fallback: try to parse the text directly (raw text from Pixelatoy)
   const match = text.match(/([a-z\u00e0-\u00ff]+)\s+(\d{4})/i);
   if (!match) return text;
   const mm = MONTHS_TO_NUM[match[1].toLowerCase()];
