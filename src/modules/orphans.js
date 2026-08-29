@@ -4,8 +4,8 @@
  * (e.g. shipped or removed). Shows them in a collapsible section with delete options.
  */
 
-import { STORAGE_KEY, addThreeMonths, formatCountdown, getDataRows } from "../helpers.js";
-import { t, LANG, translateAvailableFrom } from "../i18n.js";
+import { STORAGE_KEY, addThreeMonths, formatCountdown, getDataRows } from "../shared/helpers.js";
+import { t, LANG, translateAvailableFrom } from "../shared/i18n.js";
 
 const COLUMN_INDEX_KEY = 2;
 

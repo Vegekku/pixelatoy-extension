@@ -4,9 +4,9 @@
  * allowing the user to accept or reject each change individually.
  */
 
-import { STORAGE_KEY, addThreeMonths, getDataRows, getConfig } from "../helpers.js";
+import { STORAGE_KEY, addThreeMonths, getDataRows, getConfig } from "../shared/helpers.js";
 import { createOverlay, createRowOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t, LANG, translateAvailableFrom, translateComingSoon } from "../i18n.js";
+import { t, LANG, translateAvailableFrom, translateComingSoon } from "../shared/i18n.js";
 import { isWarehouseRow, updateTabBadge } from "./tab.js";
 import { addResolvedLinkIcon, linkifyProductName } from "./column.js";
 

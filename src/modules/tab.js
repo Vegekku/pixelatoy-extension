@@ -4,8 +4,8 @@
  * Tabs filter row visibility and update the custom column header label accordingly.
  */
 
-import { getDataRows, DATA_INSERT } from "../helpers.js";
-import { t } from "../i18n.js";
+import { getDataRows, DATA_INSERT } from "../shared/helpers.js";
+import { t } from "../shared/i18n.js";
 import { applySortIndicator } from "./sort.js";
 
 const SESSION_TAB_KEY = "pixelatoy-active-tab";

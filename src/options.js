@@ -4,9 +4,9 @@
  * saves changes and resets to defaults.
  */
 
-import { CONFIG_KEY, DEFAULT_CONFIG, STORAGE_KEY } from "./helpers.js";
-import { getLang, loadMessages, applyMessages, t } from "./i18n.js";
-import { runMigrations } from "./migrations.js";
+import { CONFIG_KEY, DEFAULT_CONFIG, STORAGE_KEY } from "./shared/helpers.js";
+import { getLang, loadMessages, applyMessages, t } from "./shared/i18n.js";
+import { runMigrations } from "./shared/migrations.js";
 
 /** Valid keys for each product entry in STORAGE_KEY. */
 const PRODUCT_SCHEMA = {

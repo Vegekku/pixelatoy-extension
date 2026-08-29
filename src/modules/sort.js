@@ -4,7 +4,7 @@
  * Cycles through ascending → descending → original order on each click.
  */
 
-import { parseDateTime, getDataRows } from "../helpers.js";
+import { parseDateTime, getDataRows } from "../shared/helpers.js";
 
 /** Set of column indices that support sorting. */
 const SORTABLE_COLUMNS = new Set([2, 3, 4, 5, 6, 8]);

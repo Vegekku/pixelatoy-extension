@@ -4,8 +4,8 @@
  * Provides overlay UI during loading and extracts product data from HTML.
  */
 
-import { parseDateTime, DATA_INSERT, parseAvailableFrom, normalizeDateTime } from "../helpers.js";
-import { t } from "../i18n.js";
+import { parseDateTime, DATA_INSERT, parseAvailableFrom, normalizeDateTime } from "../shared/helpers.js";
+import { t } from "../shared/i18n.js";
 
 /**
  * Fetches HTML content of a URL via the background service worker.
