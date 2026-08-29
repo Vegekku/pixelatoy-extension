@@ -4,8 +4,8 @@
  * below the preorder table.
  */
 
-import { THRESHOLDS } from "../helpers.js";
-import { t } from "../i18n.js";
+import { THRESHOLDS } from "../shared/helpers.js";
+import { t } from "../shared/i18n.js";
 
 /**
  * Creates and inserts the legend (colour key + refresh button + instructions).

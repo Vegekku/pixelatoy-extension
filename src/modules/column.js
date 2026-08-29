@@ -5,10 +5,10 @@
  * row colouring based on urgency thresholds.
  */
 
-import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, getDataRows, formatCountdown, normalizeDateTime } from "../helpers.js";
+import { STORAGE_KEY, DATA_INSERT, DEFAULT_CONFIG, THRESHOLDS, parseDateTime, addThreeMonths, getDataRows, formatCountdown, normalizeDateTime } from "../shared/helpers.js";
 import { applyColumnSorting } from "./sort.js";
 import { createOverlay, resolveProductUrl, fetchDateFromProduct } from "./fetch.js";
-import { t, LANG, thresholdLabel, translateAvailableFrom, translateComingSoon } from "../i18n.js";
+import { t, LANG, thresholdLabel, translateAvailableFrom, translateComingSoon } from "../shared/i18n.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

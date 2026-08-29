@@ -9,9 +9,9 @@ import { addLegend } from "./modules/legend.js";
 import { refreshAllData as _refreshAllData } from "./modules/refresh.js";
 import { applyCustomColumn, buildThresholds, refreshCountdowns, getRowKey, saveToStorage, linkifyProductName, updateCell, getStoredDate, COLUMN_INDEX_KEY, DATA_INSERT } from "./modules/column.js";
 import { buildTabs } from "./modules/tab.js";
-import { saveLang } from "./i18n.js";
-import { getConfig, normalizeDateTime } from "./helpers.js";
-import { runMigrations } from "./migrations.js";
+import { saveLang } from "./shared/i18n.js";
+import { getConfig, normalizeDateTime } from "./shared/helpers.js";
+import { runMigrations } from "./shared/migrations.js";
 
 if (typeof __BUILD_TIME__ !== "undefined") console.log(`[Pixelatoy] build: ${__BUILD_TIME__}`);
 

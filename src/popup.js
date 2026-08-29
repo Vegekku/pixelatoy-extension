@@ -5,8 +5,8 @@
  * Language and config are read from storage (saved by content.js).
  */
 
-import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, THRESHOLDS, groupByThreshold } from "./helpers.js";
-import { t, getLang, loadMessages, applyMessages, thresholdLabel } from "./i18n.js";
+import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, THRESHOLDS, groupByThreshold } from "./shared/helpers.js";
+import { t, getLang, loadMessages, applyMessages, thresholdLabel } from "./shared/i18n.js";
 
 Promise.all([loadMessages(), getLang()]).then(([m, lang]) => {
   applyMessages(m);

@@ -5,9 +5,9 @@
  * - Handling fetch requests delegated from content scripts (to avoid CORS).
  */
 
-import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./helpers.js";
-import { t, getLang, thresholdLabel } from "./i18n.js";
-import { runMigrations } from "./migrations.js";
+import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, PREORDER_URL, THRESHOLDS, parseDateTime, addThreeMonths, groupByThreshold } from "./shared/helpers.js";
+import { t, getLang, thresholdLabel } from "./shared/i18n.js";
+import { runMigrations } from "./shared/migrations.js";
 
 const ALARM_NAME = "pixelatoy-daily-check";
 
