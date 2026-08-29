@@ -8,54 +8,54 @@
 <body>
   <div class="layout">
     <nav class="sidebar">
-      <div class="sidebar-title" id="sidebar-title"></div>
-      <button class="tab-btn active" data-tab="config" id="tab-config"></button>
-      <button class="tab-btn" data-tab="data" id="tab-data"></button>
-      <button class="tab-btn" data-tab="about" id="tab-about"></button>
+      <div class="sidebar-title" id="sidebar-title" data-i18n="options_sidebar_title"></div>
+      <button class="tab-btn active" data-tab="config" id="tab-config" data-i18n="options_tab_config"></button>
+      <button class="tab-btn" data-tab="data" id="tab-data" data-i18n="options_tab_data"></button>
+      <button class="tab-btn" data-tab="about" id="tab-about" data-i18n="options_tab_about"></button>
     </nav>
 
     <main class="content">
 
       <!-- Tab: Configuración -->
       <div class="tab-panel active" id="panel-config">
-        <h1 id="title"></h1>
+        <h1 id="title" data-i18n="options_tab_config"></h1>
 
-        <h2 id="h-general"></h2>
-        <div class="row"><label id="l-notifications"></label><input type="checkbox" id="notifications"></div>
-        <div class="row"><label id="l-popup"></label><input type="checkbox" id="popup"></div>
-        <div class="row"><label id="l-tabs"></label><input type="checkbox" id="tabs"></div>
-        <div class="row"><label id="l-default-tab"></label>
+        <h2 id="h-general" data-i18n="options_h_general"></h2>
+        <div class="row"><label id="l-notifications" data-i18n="options_l_notifications"></label><input type="checkbox" id="notifications"></div>
+        <div class="row"><label id="l-popup" data-i18n="options_l_popup"></label><input type="checkbox" id="popup"></div>
+        <div class="row"><label id="l-tabs" data-i18n="options_l_tabs"></label><input type="checkbox" id="tabs"></div>
+        <div class="row"><label id="l-default-tab" data-i18n="options_l_default_tab"></label>
           <select id="defaultTab">
-            <option value="warehouse" id="opt-warehouse"></option>
-            <option value="unavailable" id="opt-unavailable"></option>
+            <option value="warehouse" id="opt-warehouse" data-i18n="options_opt_warehouse"></option>
+            <option value="unavailable" id="opt-unavailable" data-i18n="options_opt_unavailable"></option>
           </select>
         </div>
-        <div class="row"><label id="l-instructions"></label><input type="checkbox" id="instructionsOpen"></div>
-        <div class="row"><label id="l-refresh-toast"></label><input type="checkbox" id="refreshToast"></div>
+        <div class="row"><label id="l-instructions" data-i18n="options_l_instructions"></label><input type="checkbox" id="instructionsOpen"></div>
+        <div class="row"><label id="l-refresh-toast" data-i18n="options_l_refresh_toast"></label><input type="checkbox" id="refreshToast"></div>
 
-        <h2 id="h-urgency"></h2>
+        <h2 id="h-urgency" data-i18n="options_h_urgency"></h2>
         <div class="threshold-row">
-          <span></span><span id="h-days"></span><span id="h-bg"></span><span id="h-text"></span>
+          <span></span><span id="h-days" data-i18n="options_h_days"></span><span id="h-bg" data-i18n="options_h_bg"></span><span id="h-text" data-i18n="options_h_text"></span>
         </div>
         <div id="thresholds"></div>
 
         <div class="actions">
-          <button id="save"></button>
-          <button id="reset"></button>
+          <button id="save" data-i18n="options_save"></button>
+          <button id="reset" data-i18n="options_reset"></button>
         </div>
         <div class="status" id="status"></div>
       </div>
 
       <!-- Tab: Datos -->
       <div class="tab-panel" id="panel-data">
-        <h1 id="title-data"></h1>
-        <p class="data-description" id="data-description-export"></p>
+        <h1 id="title-data" data-i18n="options_tab_data"></h1>
+        <p class="data-description" id="data-description-export" data-i18n="options_data_desc_export"></p>
         <div class="actions" style="margin-top: 0;">
-          <button id="export"></button>
+          <button id="export" data-i18n="options_export"></button>
         </div>
-        <p class="data-description" id="data-description-import" style="margin-top: 20px;"></p>
+        <p class="data-description" id="data-description-import" data-i18n="options_data_desc_import" style="margin-top: 20px;"></p>
         <div class="actions" style="margin-top: 0;">
-          <button id="import"></button>
+          <button id="import" data-i18n="options_import"></button>
           <input type="file" id="import-file" accept=".json" style="display:none">
         </div>
         <div class="status" id="data-status"></div>
@@ -63,17 +63,17 @@
 
       <!-- Tab: Acerca de -->
       <div class="tab-panel" id="panel-about">
-        <h1 id="title-about"></h1>
+        <h1 id="title-about" data-i18n="options_tab_about"></h1>
         <p class="about-version" id="about-version"></p>
         <div class="about-links">
-          <a id="about-store" href="https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej" target="_blank"></a>
-          <a id="about-changelog" href="https://github.com/vegekku/pixelatoy-extension/blob/main/CHANGELOG.md" target="_blank"></a>
-          <a id="about-feedback" href="#" target="_blank"></a>
-          <a id="about-privacy" href="https://vegekku.github.io/pixelatoy-extension/privacy.html" target="_blank"></a>
+          <a id="about-store" href="https://chromewebstore.google.com/detail/pixelatoy-preorder-manage/daecelgkmbgcacjgmmemclknpceiloej" target="_blank" data-i18n="options_about_store"></a>
+          <a id="about-changelog" href="https://github.com/vegekku/pixelatoy-extension/blob/main/CHANGELOG.md" target="_blank" data-i18n="options_about_changelog"></a>
+          <a id="about-feedback" href="#" target="_blank" data-i18n="options_about_feedback"></a>
+          <a id="about-privacy" href="https://vegekku.github.io/pixelatoy-extension/privacy.html" target="_blank" data-i18n="options_about_privacy"></a>
         </div>
         <div class="about-support">
-          <p id="about-support-text"></p>
-          <a id="about-donate" href="https://www.paypal.com/donate/?hosted_button_id=QTP8BWVU6QKM4" target="_blank"></a>
+          <p id="about-support-text" data-i18n="options_about_support"></p>
+          <a id="about-donate" href="https://www.paypal.com/donate/?hosted_button_id=QTP8BWVU6QKM4" target="_blank" data-i18n="options_about_donate"></a>
         </div>
       </div>
 

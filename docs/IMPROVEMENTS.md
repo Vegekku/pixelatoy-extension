@@ -4,6 +4,14 @@
 
 | # | Punto |
 |---|-------|
+| 1 | [9.17 Reorganización de `src/`: carpeta `shared/`](#917-reorganización-de-src-carpeta-shared) |
+| 2 | [9.4 Refactor: helpers compartidos](#94-refactor-helpers-compartidos) |
+| 3 | [9.12 Clase `Reserva`](#912-clase-reserva) |
+| 4 | [9.7 Refactor post-extracción de módulos](#97-refactor-post-extracción-de-módulos) |
+| 5 | [1.1 Auto-fetch en segundo plano](#11-auto-fetch-en-segundo-plano) |
+| 6 | [3.1 Campo de entrada de fecha editable o de solo lectura](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura) |
+| 7 | [6.7 Notificaciones vía email (Gmail API)](#67-notificaciones-vía-email-gmail-api) |
+| 8 | [9.8 Accesibilidad (WCAG 2.1 AA)](#98-accesibilidad-wcag-21-aa) |
 
 ---
 
@@ -12,24 +20,11 @@
 | Prioridad | Puntos |
 |-----------|--------|
 | 1 — Bugs críticos | |
-| 2 — Infraestructura y calidad | [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado), [9.14](#914-análisis-estático-y-revisión-automática-de-código), [9.16](#916-refactor-i18n-separar-lógica-de-negocio-y-adoptar-patrón-getmessagesapplymessages) |
+| 2 — Infraestructura y calidad | [9.4](#94-refactor-helpers-compartidos), [9.6](#96-automatización-de-subida-a-chrome-web-store), [9.7](#97-refactor-post-extracción-de-módulos), [9.8](#98-accesibilidad-wcag-21-aa), [9.9](#99-testing-automatizado), [9.14](#914-análisis-estático-y-revisión-automática-de-código), [9.17](#917-reorganización-de-srcsrc-carpeta-shared) |
 | 3 — UX | [2.2](#22-fusión-de-columnas-precio-y-pagado), [2.3](#23-formato-del-contador-de-tiempo-restante), [2.4](#24-autoeliminación-de-reservas-no-encontradas), [3.1](#31-campo-de-entrada-de-fecha-editable-o-de-solo-lectura), [3.2](#32-introducción-manual-de-la-fecha-de-disponibilidad-estimada), [8.2](#82-modo-oscuro), [8.3](#83-efecto-pulso-en-filas-con-cambios-directos), [9.13](#913-iconos-font-awesome-propios-subconjunto) |
 | 4 — Funcionalidad nueva | [1.1](#11-auto-fetch-en-segundo-plano), [1.3](#13-variantes-de-texto-en-campos-i18n), [2.1](#21-barra-de-progreso-global-en-auto-fetch-y-refresh), [6.1](#61-badge-en-el-icono-de-la-extensión), [6.2](#62-notificación-al-detectar-cambios-en-auto-fetch), [6.4](#64-añadir-al-carrito-desde-el-popup), [6.5](#65-notificaciones-configurables-por-tipo-de-aviso), [6.6](#66-mostrar-orphans-con-fecha-límite-en-el-popup), [6.7](#67-notificaciones-vía-email-gmail-api), [7](#7-historial-de-fechas), [9.12](#912-clase-reserva) |
 | 5 — Expansión | [4.1](#41-enriquecimiento-de-la-tabla-de-favoritos), [4.2](#42-indicador-de-favorito-en-el-detalle-del-producto), [5.1](#51-resaltar-productos-en-reserva-o-favoritos-en-el-catálogo), [5.2](#52-precio-más-bajo-en-tarjetas-del-catálogo), [5.3](#53-alerta-de-bajada-de-precio-en-favoritos), [5.4](#54-historial-de-precios-en-el-detalle-del-producto) |
 
----
-
-## Índice
-
-- [1. Auto-fetch de datos del producto](#1-auto-fetch-de-datos-del-producto)
-- [2. Tabla de reservas](#2-tabla-de-reservas)
-- [3. Configuración de la extensión](#3-configuración-de-la-extensión)
-- [4. Favoritos y detalle de producto](#4-favoritos-y-detalle-de-producto)
-- [5. Catálogo y detalle de producto](#5-catálogo-y-detalle-de-producto)
-- [6. Icono y notificaciones](#6-icono-y-notificaciones)
-- [7. Historial de fechas](#7-historial-de-fechas)
-- [8. UX](#8-ux)
-- [9. Infraestructura y código](#9-infraestructura-y-código)
 ---
 
 ## 1. Auto-fetch de datos del producto
@@ -390,6 +385,32 @@ Puntos a definir:
 
 Ficheros afectados: `src/popup.html`, `src/popup.js`, posiblemente `src/background.js` para delegar el POST si hay restricciones de CORS.
 
+### 6.5 Notificaciones configurables por tipo de aviso
+
+El usuario puede activar/desactivar individualmente cada tipo de aviso desde opciones. Cada tipo puede notificar via badge, push y/o pulso en el popup y en la fila de reservas.
+
+**Tipos disponibles:**
+
+| Tipo | Cambio que lo origina | Por defecto |
+|---|---|---|
+| Urgentes | Límite de almacén próximo | ✅ activado |
+| Cambios pendientes | Valor existente modificado | ✅ activado |
+| Nueva entrada en almacén | `null` → `date` | ✅ activado |
+| Próxima llegada | `null` → `comingSoon` | ✅ activado |
+| Avance de estado | `availableFrom` → `comingSoon`, `comingSoon` → `date` | ✅ activado |
+| Enlace reparado | `brokenLink` `true` → `false` | ⬜ desactivado |
+
+**Pulso en fila de reservas**
+
+Todos los tipos generan un pulso en la fila correspondiente la primera vez que el usuario entra tras el cambio, usando `pixelatoyAnnounce` en storage (ver [8.3](#83-efecto-pulso-en-filas-con-cambios-directos)).
+
+**Cambios en storage**
+
+`pixelatoyConfig.announceTypes`: objeto con un booleano por tipo de aviso.
+Nueva clave `pixelatoyAnnounce`: misma estructura por producto que `pixelatoyTexts`, contiene flags temporales de anuncio pendiente. Al mostrarse el pulso, el flag se elimina.
+
+Ficheros afectados: `src/background.js`, `src/content.js`, `src/options.html`, `src/options.js`, `src/helpers.js`, `src/migrations.js`.
+
 ### 6.6 Mostrar orphans con fecha límite en el popup
 
 Actualmente el popup solo muestra productos que siguen apareciendo en la tabla de reservas. Las reservas no encontradas (orphans) que tienen fecha de entrada en almacén (`date`) y por tanto un límite activo no aparecen en el popup, aunque su urgencia sigue siendo real.
@@ -446,32 +467,6 @@ Permitir al usuario configurar su cuenta de Gmail para recibirse notificaciones 
 - `pixelatoyConfig.emailNotificationTypes`: objeto con booleano por tipo de aviso (igual que `announceTypes`).
 
 Ficheros afectados: `src/background.js`, `src/options.html`, `src/options.js`, `src/helpers.js`, `src/migrations.js`.
-
-### 6.5 Notificaciones configurables por tipo de aviso
-
-El usuario puede activar/desactivar individualmente cada tipo de aviso desde opciones. Cada tipo puede notificar via badge, push y/o pulso en el popup y en la fila de reservas.
-
-**Tipos disponibles:**
-
-| Tipo | Cambio que lo origina | Por defecto |
-|---|---|---|
-| Urgentes | Límite de almacén próximo | ✅ activado |
-| Cambios pendientes | Valor existente modificado | ✅ activado |
-| Nueva entrada en almacén | `null` → `date` | ✅ activado |
-| Próxima llegada | `null` → `comingSoon` | ✅ activado |
-| Avance de estado | `availableFrom` → `comingSoon`, `comingSoon` → `date` | ✅ activado |
-| Enlace reparado | `brokenLink` `true` → `false` | ⬜ desactivado |
-
-**Pulso en fila de reservas**
-
-Todos los tipos generan un pulso en la fila correspondiente la primera vez que el usuario entra tras el cambio, usando `pixelatoyAnnounce` en storage (ver [8.3](#83-efecto-pulso-en-filas-con-cambios-directos)).
-
-**Cambios en storage**
-
-`pixelatoyConfig.announceTypes`: objeto con un booleano por tipo de aviso.
-Nueva clave `pixelatoyAnnounce`: misma estructura por producto que `pixelatoyTexts`, contiene flags temporales de anuncio pendiente. Al mostrarse el pulso, el flag se elimina.
-
-Ficheros afectados: `src/background.js`, `src/content.js`, `src/options.html`, `src/options.js`, `src/helpers.js`, `src/migrations.js`.
 
 ---
 
@@ -693,20 +688,16 @@ Integrar herramientas de análisis automático para detectar bugs, vulnerabilida
 
 Ficheros afectados: `.github/workflows/sonarcloud.yml` (nuevo), `.github/dependabot.yml` (nuevo), `sonar-project.properties` (nuevo).
 
-### 9.16 Refactor i18n: separar lógica de negocio y adoptar patrón getMessages/applyMessages
+### 9.17 Reorganización de `src/`: carpeta `shared/`
 
-El módulo `src/i18n.js` actual mezcla responsabilidades: gestión del idioma en storage (`getLang`, `saveLang`, `LANG`), traducción por clave individual (`t()`), lógica de negocio (`thresholdLabel`, `translateAvailableFrom`, `translateComingSoon`) y datos de meses para parseo de fechas.
-
-Cardmarket-extension tiene un enfoque más limpio: `getMessages(lang)` devuelve el objeto completo de traducciones con fallback, `loadMessages()` lo carga desde storage, y `applyMessages(m)` aplica las traducciones al DOM via atributos `data-i18n`, `data-i18n-placeholder` y `data-i18n-title`, eliminando las llamadas `t(key)` dispersas por el código.
+Actualmente `src/` mezcla módulos del content script (`modules/`) con ficheros compartidos por todos los contextos de la extensión (`helpers.js`, `i18n.js`, `migrations.js`). Cardmarket-extension resuelve esto con una carpeta `src/shared/` que agrupa los módulos reutilizables por content, popup y background.
 
 Cambios propuestos:
-- Extraer `thresholdLabel`, `translateAvailableFrom`, `translateComingSoon` y los datos de meses (`MONTHS_BY_NUM`, `MONTHS_TO_NUM`) fuera de `i18n.js` — a `helpers.js` o a un módulo `src/modules/date-i18n.js`.
-- Añadir `getMessages(lang)` y `loadMessages()` como alternativa o sustituto de `t()`.
-- Añadir `applyMessages(m)` y migrar los HTMLs a atributos `data-i18n` para centralizar la aplicación de traducciones.
-- Evaluar si mantener `t()` para los casos de uso dinámicos (textos generados en JS) o sustituirlo completamente.
+- Crear `src/shared/` y mover a ella: `helpers.js`, `i18n.js`, `migrations.js`.
+- Actualizar todos los imports que referencian estos ficheros desde su ruta actual.
+- Evaluar si `src/reserva.js` (punto [9.12](#912-clase-reserva)) debería vivir también en `src/shared/` desde el inicio.
 
 Ficheros afectados:
-- `src/i18n.js` — refactor principal
-- `src/helpers.js` o `src/modules/date-i18n.js` — destino de la lógica de negocio extraída
-- `src/popup.html`, `src/options.html` — añadir atributos `data-i18n`
-- `src/popup.js`, `src/options.js`, `src/modules/*.js` — sustituir llamadas `t()` por `applyMessages` donde aplique
+- `src/helpers.js`, `src/i18n.js`, `src/migrations.js` — movidos a `src/shared/`
+- `src/content.js`, `src/background.js`, `src/popup.js`, `src/options.js`, `src/modules/*.js` — actualizar imports
+- `build.js` — verificar que las rutas de entrada siguen siendo correctas

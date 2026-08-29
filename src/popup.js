@@ -6,9 +6,10 @@
  */
 
 import { STORAGE_KEY, CONFIG_KEY, DEFAULT_CONFIG, THRESHOLDS, groupByThreshold } from "./helpers.js";
-import { t, getLang, thresholdLabel } from "./i18n.js";
+import { t, getLang, loadMessages, applyMessages, thresholdLabel } from "./i18n.js";
 
-getLang().then(lang => {
+Promise.all([loadMessages(), getLang()]).then(([m, lang]) => {
+  applyMessages(m);
   chrome.storage.local.get([STORAGE_KEY, CONFIG_KEY], (res) => {
     const config = { ...DEFAULT_CONFIG, ...(res[CONFIG_KEY] || {}) };
     if (!config.popup) { window.close(); return; }
@@ -23,7 +24,6 @@ getLang().then(lang => {
       th.label = thresholdLabel(th.days, i > 0 ? thresholds[i - 1].days : null, lang);
     });
 
-    document.getElementById("title").textContent = t("popup_title", lang);
     const data = res[STORAGE_KEY] || {};
     const content = document.getElementById("content");
     const groups = groupByThreshold(data, thresholds);

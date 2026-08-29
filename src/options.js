@@ -5,7 +5,7 @@
  */
 
 import { CONFIG_KEY, DEFAULT_CONFIG, STORAGE_KEY } from "./helpers.js";
-import { getLang, t } from "./i18n.js";
+import { getLang, loadMessages, applyMessages, t } from "./i18n.js";
 import { runMigrations } from "./migrations.js";
 
 /** Valid keys for each product entry in STORAGE_KEY. */
@@ -107,54 +107,22 @@ function validateImportData(data) {
 
 /**
  * Applies i18n labels to the static elements of the page.
- * @param {string} lang
+ * @param {Record<string, string>} m
  * @param {string} version
  */
-function applyLabels(lang, version) {
-  document.title = t("options_title", lang);
-  document.getElementById("sidebar-title").textContent = t("options_sidebar_title", lang);
-  document.getElementById("tab-config").textContent = t("options_tab_config", lang);
-  document.getElementById("tab-data").textContent = t("options_tab_data", lang);
-  document.getElementById("tab-about").textContent = t("options_tab_about", lang);
-  document.getElementById("title").textContent = t("options_tab_config", lang);
-  document.getElementById("title-data").textContent = t("options_tab_data", lang);
-  document.getElementById("title-about").textContent = t("options_tab_about", lang);
-  document.getElementById("h-general").textContent = t("options_h_general", lang);
-  document.getElementById("h-urgency").textContent = t("options_h_urgency", lang);
-  document.getElementById("l-notifications").textContent = t("options_l_notifications", lang);
-  document.getElementById("l-popup").textContent = t("options_l_popup", lang);
-  document.getElementById("l-tabs").textContent = t("options_l_tabs", lang);
-  document.getElementById("l-default-tab").textContent = t("options_l_default_tab", lang);
-  document.getElementById("opt-warehouse").textContent = t("options_opt_warehouse", lang);
-  document.getElementById("opt-unavailable").textContent = t("options_opt_unavailable", lang);
-  document.getElementById("l-instructions").textContent = t("options_l_instructions", lang);
-  document.getElementById("l-refresh-toast").textContent = t("options_l_refresh_toast", lang);
-  document.getElementById("h-days").textContent = t("options_h_days", lang);
-  document.getElementById("h-bg").textContent = t("options_h_bg", lang);
-  document.getElementById("h-text").textContent = t("options_h_text", lang);
-  document.getElementById("save").textContent = t("options_save", lang);
-  document.getElementById("reset").textContent = t("options_reset", lang);
-  document.getElementById("export").textContent = t("options_export", lang);
-  document.getElementById("import").textContent = t("options_import", lang);
-  document.getElementById("data-description-export").textContent = t("options_data_desc_export", lang);
-  document.getElementById("data-description-import").textContent = t("options_data_desc_import", lang);
-  document.getElementById("about-version").textContent = `${t("options_about_version", lang)} ${version}`;
-  document.getElementById("about-store").textContent = t("options_about_store", lang);
-  document.getElementById("about-changelog").textContent = t("options_about_changelog", lang);
+function applyLabels(m, version) {
+  document.title = m.options_title ?? document.title;
+  applyMessages(m);
+  document.getElementById("about-version").textContent = `${m.options_about_version} ${version}`;
   const feedbackLink = document.getElementById("about-feedback");
   if (feedbackLink) {
-    feedbackLink.textContent = t("options_about_feedback", lang);
     chrome.storage.local.get("pixelatoyConfig", data => {
-      const storedLang = data.pixelatoyConfig?.lang || lang;
+      const storedLang = data.pixelatoyConfig?.lang || "en";
       const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      const version = chrome.runtime.getManifest().version;
       const params = new URLSearchParams({ version, lang: storedLang, theme });
       feedbackLink.href = `https://vegekku.github.io/pixelatoy-extension/feedback.html?${params}`;
     });
   }
-  document.getElementById("about-privacy").textContent = t("options_about_privacy", lang);
-  document.getElementById("about-donate").textContent = t("options_about_donate", lang);
-  document.getElementById("about-support-text").textContent = t("options_about_support", lang);
 }
 
 /**
@@ -287,9 +255,9 @@ function showDataStatus(msg, error = false) {
 }
 
 async function init() {
-  const lang = await getLang();
+  const [m, lang] = await Promise.all([loadMessages(), getLang()]);
   const version = chrome.runtime.getManifest().version;
-  applyLabels(lang, version);
+  applyLabels(m, version);
   initTabs();
 
   const stored = await new Promise(resolve =>
